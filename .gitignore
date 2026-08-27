@@ -1,0 +1,56 @@
+# ---------------------------------------------------------------------------
+# Corpora and derived data
+#
+# Nothing under data/ is committed except the converted Core ML model. The
+# image corpora are downloaded, licence-bound, and 7.5 GB; the caches and
+# result tables are reproducible from bench/.
+# ---------------------------------------------------------------------------
+/data/*
+!/data/coreml/
+/data/coreml/*
+# The one heavy artifact we do track: the converted pixel model the iOS app
+# pins by weight digest. Without it the app cannot be built.
+!/data/coreml/commfor-lowq-384.mlpackage/
+# `.mlmodelc` is the compiled form, produced from the `.mlpackage` at build
+# time. Tracking it would duplicate 42 MB for no benefit.
+
+*.zip
+
+# ---------------------------------------------------------------------------
+# Secrets. A read-only Hugging Face token belongs here and nowhere else.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+
+# ---------------------------------------------------------------------------
+# Generated documentation. Rebuild with `mkdocs build`.
+# ---------------------------------------------------------------------------
+/site/
+
+# ---------------------------------------------------------------------------
+# Editor and agent workspace state, local to one machine.
+# ---------------------------------------------------------------------------
+.kiro/
+.vscode/
+.idea/
+
+# ---------------------------------------------------------------------------
+# macOS
+# ---------------------------------------------------------------------------
+.DS_Store
+._*

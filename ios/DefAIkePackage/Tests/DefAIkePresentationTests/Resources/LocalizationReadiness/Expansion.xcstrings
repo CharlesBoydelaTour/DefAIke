@@ -1,0 +1,114 @@
+{
+  "sourceLanguage" : "en-x-expand",
+  "strings" : {
+    "copy.chrome.analysis-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Analyzing this image on your device · Analyzing this image on your device⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Stop analyzing · Stop analyzing⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦You stopped the analysis, so there is no result · You stopped the analysis, so there is no result⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Development build. Its calibration is not approved, so nothing below is a verdict about any image. · Development build. Its calibration is not approved, so nothing below is a verdict about any image.⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Choose an image to analyze · Choose an image to analyze⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Getting the image you chose · Getting the image you chose⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦No strong signal detected · No strong signal detected⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Not enough signal · Not enough signal⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-expand" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⟦Signals consistent with AI generation · Signals consistent with AI generation⟧"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

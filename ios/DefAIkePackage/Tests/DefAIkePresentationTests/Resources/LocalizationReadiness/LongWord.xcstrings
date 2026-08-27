@@ -1,0 +1,114 @@
+{
+  "sourceLanguage" : "en-x-longword",
+  "strings" : {
+    "copy.chrome.analysis-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzingthisimageonyourdeviceunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "StopanalyzingStopanalyzingunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Youstoppedtheanalysissothereisnoresultunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DevelopmentbuildItscalibrationisnotapprovedsonothingbelowisaverdictaboutanyimageunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chooseanimagetoanalyzeunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gettingtheimageyouchoseunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nostrongsignaldetectedunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notenoughsignalunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-longword" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signalsconsistentwithaigenerationunbreakabletoken"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -1,0 +1,304 @@
+# DefAIke iOS Xcode project specification (XcodeGen).
+#
+# The .xcodeproj is generated, not committed: run
+#   ios/Scripts/generate-xcode-project.sh
+# and open ios/DefAIke.xcworkspace.
+#
+# Two capability compositions ship from the same source as separate signed build
+# outputs, never as a remotely toggled feature flag:
+#
+#   DefAIkeApp-PixelOnly              links DefAIkePixelOnly (no validator)
+#   DefAIkeApp-PixelPlusProvenance    links DefAIkePixelPlusProvenance
+#
+# Each composition has its own Share Extension, App Group, bundle identifier, UI
+# test target, and device-validation target, so gate evidence can never be pooled
+# across capability sets (Requirements 13.18 through 13.22).
+#
+# Unresolved release-controlled values are deliberately absent here: signing team
+# and key policy, the distributed build identity, the device allowlist, resource
+# budgets, lifecycle deadlines, and capability approval all arrive as approved
+# artifacts and gates, not as build settings.
+
+name: DefAIke
+
+options:
+  bundleIdPrefix: dev.defaike
+  createIntermediateGroups: true
+  developmentLanguage: en
+  groupSortPosition: top
+  minimumXcodeGenVersion: "2.42.0"
+  deploymentTarget:
+    iOS: "17.0"
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  DefAIkePackage:
+    path: DefAIkePackage
+
+settings:
+  base:
+    # Requirement 1.1: iPhone-only. Requirement 1.2: iOS 17.0 or later.
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    SUPPORTED_PLATFORMS: iphoneos iphonesimulator
+    SUPPORTS_MACCATALYST: NO
+    SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+    SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+
+    # Matches swiftLanguageModes: [.v6] in DefAIkePackage/Package.swift.
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_EMIT_LOC_STRINGS: YES
+
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+
+    # The Release Process supplies the distributed build identity and signing
+    # policy. These local values are not a release version claim, and nothing in
+    # the application reads either of them as one: the build identity the Release
+    # Approved iPhone Allowlist is keyed on is DefAIkeAppBuildID, a separate
+    # release-controlled Info.plist key, and ObservedDeviceIdentity refuses to
+    # substitute CFBundleVersion or CFBundleShortVersionString for it whatever
+    # values they hold.
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+  configs:
+    Debug:
+      ENABLE_TESTABILITY: YES
+    Release:
+      SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+      GCC_TREAT_WARNINGS_AS_ERRORS: YES
+
+targetTemplates:
+  App:
+    type: application
+    platform: iOS
+    sources:
+      - path: DefAIkeApp/Shared
+      - path: DefAIkeApp/${compositionDirectory}
+      - path: DefAIkeApp/Support/Info.plist
+        buildPhase: none
+      - path: DefAIkeApp/Support/DefAIkeApp.entitlements
+        buildPhase: none
+    settings:
+      base:
+        PRODUCT_NAME: DefAIke
+        PRODUCT_BUNDLE_IDENTIFIER: ${appBundleID}
+        DEFAIKE_APP_GROUP_ID: ${appGroupID}
+        INFOPLIST_FILE: DefAIkeApp/Support/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DefAIkeApp/Support/DefAIkeApp.entitlements
+        # XcodeGen's iOS target presets default to "1,2", which would offer the
+        # app on iPad. Requirement 1.1 is iPhone-only, so override per target.
+        TARGETED_DEVICE_FAMILY: "1"
+      # ----------------------------------------------------------------------
+      # DEBUG-ONLY development identifiers. NOT RELEASE VALUES.
+      # ----------------------------------------------------------------------
+      #
+      # Info.plist declares the five release-controlled keys the composition root
+      # reads. Their values are set here, and only in the Debug configuration, so
+      # they reach a locally provisioned Simulator build and nothing else.
+      #
+      # A Release build leaves every one of them unset, the plist substitutions
+      # resolve to empty, and MainAppReleaseProvisioning.installedIdentifiers
+      # reports each one as the UnprovisionedReleaseInput it is — exactly as it
+      # does today. Setting them at `base` would bake development identifiers into
+      # a shipping Info.plist, which is a release claim this repository must not
+      # make.
+      #
+      # Each value is namespaced `local-development` so an identifier from this
+      # seam is recognizable wherever it is recorded, and each is distinct per
+      # composition so gate evidence cannot be pooled across capability sets
+      # (Requirements 13.18 through 13.22).
+      configs:
+        Debug:
+          DEFAIKE_APP_BUILD_ID: build.local-development.${composition}
+          DEFAIKE_CAPABILITY_MANIFEST_ID: manifest.local-development.${composition}
+          DEFAIKE_VERDICT_COPY_CATALOG_ID: catalog.local-development.${composition}.verdict-copy
+          DEFAIKE_EMBEDDED_MODEL_BUNDLE_ID: bundle.local-development.${composition}
+          # The application's own pixel-analysis implementation version. Not a
+          # third-party release: no linked adapter reports it, so unlike the
+          # provenance validator's version it has to arrive as a provisioned
+          # value. SchemaSemanticVersion rejects 0.0.0, so a placeholder here
+          # would be a refusal rather than a silent pass.
+          DEFAIKE_PIXEL_ANALYSIS_IMPLEMENTATION_VERSION: "1.0.0"
+    dependencies:
+      - package: DefAIkePackage
+        product: ${compositionProduct}
+      - target: DefAIkeShareExtension-${composition}
+
+  ShareExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: DefAIkeShareExtension/Sources
+      - path: DefAIkeShareExtension/Support/Info.plist
+        buildPhase: none
+      - path: DefAIkeShareExtension/Support/DefAIkeShareExtension.entitlements
+        buildPhase: none
+    settings:
+      base:
+        PRODUCT_NAME: DefAIkeShareExtension
+        PRODUCT_BUNDLE_IDENTIFIER: ${appBundleID}.share
+        DEFAIKE_APP_GROUP_ID: ${appGroupID}
+        INFOPLIST_FILE: DefAIkeShareExtension/Support/Info.plist
+        CODE_SIGN_ENTITLEMENTS: DefAIkeShareExtension/Support/DefAIkeShareExtension.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      # Transfer and domain only. Adding an inference, image-pipeline, model-bundle,
+      # or provenance dependency here violates the Extension Execution Policy and
+      # is rejected by ios/Scripts/check-module-boundaries.py.
+      - package: DefAIkePackage
+        product: DefAIkeShareExtensionKit
+
+  UITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/DefAIkeUITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ${appBundleID}.uitests
+        TEST_TARGET_NAME: DefAIkeApp-${composition}
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - target: DefAIkeApp-${composition}
+
+  DeviceValidationTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/DefAIkeDeviceValidationTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ${appBundleID}.devicetests
+        TARGETED_DEVICE_FAMILY: "1"
+        # Name the composition's app target the same way the UITests template
+        # does, so the host relationship is declared by target and the build
+        # system resolves the product itself instead of a hard-coded path.
+        TEST_TARGET_NAME: DefAIkeApp-${composition}
+        # TEST_HOST is deliberately empty, which is not the same as absent.
+        #
+        # For a unit-test bundle that depends on an application target, XcodeGen
+        # injects, unless the spec already sets TEST_HOST:
+        #   TEST_HOST = $(BUILT_PRODUCTS_DIR)/<app TARGET name>.app/<app TARGET name>
+        # The App template overrides PRODUCT_NAME to DefAIke, so that injected
+        # path never exists and build-for-testing fails with "Could not find test
+        # host". Declaring TEST_HOST here is the only way to stop the injection.
+        #
+        # It cannot be given a path either. Both compositions build the same
+        # product, DefAIke.app, so any TEST_HOST path matches both app targets:
+        # Xcode's implicit-dependency resolution then pulls DefAIkeApp-PixelOnly
+        # into the DefAIkeApp-PixelPlusProvenance graph and the build fails with
+        # "Multiple commands produce .../DefAIke.app". ($(PRODUCT_NAME) is also
+        # unusable: inside a test target it is the test bundle's own name.)
+        #
+        # So these bundles run un-hosted, next to the app rather than inside it.
+        # Hosting them in the app would require the two compositions to build
+        # distinct product names, which is a release-visible change and is not
+        # made here.
+        TEST_HOST: ""
+    dependencies:
+      - target: DefAIkeApp-${composition}
+      - package: DefAIkePackage
+        product: DefAIkeReleaseValidation
+
+targets:
+  DefAIkeApp-PixelOnly:
+    templates: [App]
+    templateAttributes:
+      composition: PixelOnly
+      compositionDirectory: PixelOnly
+      compositionProduct: DefAIkePixelOnly
+      appBundleID: dev.defaike.app
+      appGroupID: group.dev.defaike.app
+
+  DefAIkeShareExtension-PixelOnly:
+    templates: [ShareExtension]
+    templateAttributes:
+      appBundleID: dev.defaike.app
+      appGroupID: group.dev.defaike.app
+
+  DefAIkeUITests-PixelOnly:
+    templates: [UITests]
+    templateAttributes:
+      composition: PixelOnly
+      appBundleID: dev.defaike.app
+
+  DefAIkeDeviceValidationTests-PixelOnly:
+    templates: [DeviceValidationTests]
+    templateAttributes:
+      composition: PixelOnly
+      appBundleID: dev.defaike.app
+
+  DefAIkeApp-PixelPlusProvenance:
+    templates: [App]
+    templateAttributes:
+      composition: PixelPlusProvenance
+      compositionDirectory: PixelPlusProvenance
+      compositionProduct: DefAIkePixelPlusProvenance
+      appBundleID: dev.defaike.app.provenance
+      appGroupID: group.dev.defaike.app.provenance
+
+  DefAIkeShareExtension-PixelPlusProvenance:
+    templates: [ShareExtension]
+    templateAttributes:
+      appBundleID: dev.defaike.app.provenance
+      appGroupID: group.dev.defaike.app.provenance
+
+  DefAIkeUITests-PixelPlusProvenance:
+    templates: [UITests]
+    templateAttributes:
+      composition: PixelPlusProvenance
+      appBundleID: dev.defaike.app.provenance
+
+  DefAIkeDeviceValidationTests-PixelPlusProvenance:
+    templates: [DeviceValidationTests]
+    templateAttributes:
+      composition: PixelPlusProvenance
+      appBundleID: dev.defaike.app.provenance
+
+schemes:
+  DefAIkeApp-PixelOnly:
+    build:
+      targets:
+        DefAIkeApp-PixelOnly: all
+        DefAIkeShareExtension-PixelOnly: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - DefAIkeDeviceValidationTests-PixelOnly
+        - DefAIkeUITests-PixelOnly
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+
+  DefAIkeApp-PixelPlusProvenance:
+    build:
+      targets:
+        DefAIkeApp-PixelPlusProvenance: all
+        DefAIkeShareExtension-PixelPlusProvenance: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - DefAIkeDeviceValidationTests-PixelPlusProvenance
+        - DefAIkeUITests-PixelPlusProvenance
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

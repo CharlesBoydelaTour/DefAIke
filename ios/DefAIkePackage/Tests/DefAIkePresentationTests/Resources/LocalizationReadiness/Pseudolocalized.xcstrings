@@ -1,0 +1,114 @@
+{
+  "sourceLanguage" : "en-x-pseudo",
+  "strings" : {
+    "copy.chrome.analysis-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Àņàľýžīņģ ţhīş īmàģē ōņ ýōūŗ ďēvīçē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Şţōp àņàľýžīņģ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Ýōū şţōppēď ţhē àņàľýşīş, şō ţhēŗē īş ņō ŗēşūľţ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Ďēvēľōpmēņţ būīľď. Īţş çàľībŗàţīōņ īş ņōţ àppŗōvēď, şō ņōţhīņģ bēľōw īş à vēŗďīçţ àbōūţ àņý īmàģē.]"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Çhōōşē àņ īmàģē ţō àņàľýžē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Ģēţţīņģ ţhē īmàģē ýōū çhōşē]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Ņō şţŗōņģ şīģņàľ ďēţēçţēď]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Ņōţ ēņōūģĥ şīģņàľ]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en-x-pseudo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "[Şīģņàľş çōņşīşţēņţ ŵīţĥ ÀĨ ģēņēŗàţīōņ]"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

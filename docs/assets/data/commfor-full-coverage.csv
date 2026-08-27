@@ -1,0 +1,9 @@
+evidence_scope,rung,score_rows_per_model,paired_distinct_ids,frontier_auc,lowq_auc,delta_auc,delta_auc_ci_low,delta_auc_ci_high,frontier_tpr_at_1pct_fpr,lowq_tpr_at_1pct_fpr,delta_tpr,delta_tpr_ci_low,delta_tpr_ci_high,bootstrap_resamples
+measured_full,clean,9582,9569,0.9373,0.9478,0.0104,0.0088,0.0121,0.653,0.667,0.014,-0.022,0.025,2000
+measured_full,light,9582,9569,0.9299,0.9402,0.0102,0.0086,0.0118,0.637,0.646,0.009,-0.021,0.026,2000
+measured_full,moderate,9582,9569,0.9228,0.9332,0.0104,0.0088,0.0122,0.578,0.587,0.009,-0.006,0.034,2000
+measured_full,heavy,9582,9569,0.9213,0.9332,0.0119,0.0102,0.0137,0.609,0.617,0.008,-0.017,0.022,2000
+measured_full,severe,9582,9569,0.9128,0.9258,0.0130,0.0110,0.0153,0.531,0.528,-0.004,-0.021,0.020,2000
+measured_full,screenshot,9582,9569,0.9383,0.9483,0.0100,0.0084,0.0115,0.658,0.651,-0.007,-0.021,0.022,2000
+measured_full,screenshot_shared,9582,9569,0.9267,0.9382,0.0115,0.0099,0.0132,0.601,0.624,0.023,0.002,0.039,2000
+measured_full,thumbnail,9582,9569,0.7518,0.8313,0.0795,0.0733,0.0860,0.075,0.249,0.173,0.142,0.197,2000

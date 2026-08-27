@@ -1,0 +1,14 @@
+# Generated from project.yml by Scripts/generate-xcode-project.sh.
+*.xcodeproj/
+.xcodegen-cache/
+
+# SwiftPM and Xcode build products.
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserdatad
+xcuserdata/
+
+# DefAIkePackage/Package.resolved is intentionally tracked, not ignored: the
+# property-based dependency is exact-pinned and its resolved revision is part of
+# the dependency reconciliation record.

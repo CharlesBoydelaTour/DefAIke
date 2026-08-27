@@ -1,0 +1,538 @@
+#  defaike — v0 evaluation set composition
+#
+#  Machine-readable spec for the Task 1 loader. Every count, size, and licence here was
+#  checked against a primary source in August 2026; fields marked verified = false are
+#  assumptions the loader must confirm at fetch time and report on.
+#
+#  Design constraints driving this composition:
+#    1. Hard ceiling of 10 GB on disk.
+#    2. The real side must be CONTEMPORARY. Pairing 2026 generator output against
+#       LAION-era (pre-2022) web JPEGs lets a classifier win on era and camera-pipeline
+#       artifacts instead of synthesis. Since false-accusing a real photo is the harmful
+#       error, a shortcut on the real side is the worst available failure mode.
+#    3. TPR@1%FPR is estimated from the real tail, so reals are the scarce resource,
+#       not fakes.
+#    4. Nothing gated. Every slice below is fetchable without a token or an approval wait.
+
+[meta]
+spec_version   = "1"
+name           = "defaike-v0-testset"
+created        = "2026-08-19"
+plan_reference = "PLAN.md — Task 1"
+scope          = "whole-image synthesis detection only"
+purpose = """
+Model-selection and calibration-fitting set for Phase 0. Not a training set: see
+[training] for why, and Task 6a for the curation strategy that replaces it.
+"""
+
+[budget]
+ceiling_bytes   = 10_737_418_240   # 10 GiB, hard
+projected_bytes =  8_205_895_297   # sum of est_bytes across enabled slices
+projected_gb    = 8.21             # decimal GB
+projected_gib   = 7.64
+projected_items = 10_832
+headroom_bytes  =  2_531_522_943
+headroom_gb     = 2.53
+# Local disk measured 2026-08-19: 237 GB free. The ceiling is a discipline choice,
+# not a capacity limit — it keeps the set reproducible on a laptop and forces the
+# curation thinking that Task 6a needs anyway.
+
+
+# ---------------------------------------------------------------------------------
+#  SLICE 1 — contemporary platform-native reals.  The load-bearing slice.
+# ---------------------------------------------------------------------------------
+[[slice]]
+id          = "sofake_ood_real"
+source      = "hf:saberzl/So-Fake-OOD"
+revision    = "main"
+role        = "real"
+verified    = true
+gated       = false
+licence     = "CC-BY-NC-4.0"
+commercial  = false
+capture_era = "2024-2026"
+
+take        = 2_600
+avg_item_bytes = 1_474_000        # derived: 91,370 redistributable rows / 46 shards, ~2.93 GB per shard
+est_bytes   = 3_832_400_000
+est_gb      = 3.8
+
+# Pool available before sampling. X and Instagram are excluded: the dataset releases
+# those two platforms as download links only, per platform redistribution terms.
+#
+# MEASURED 2026-08-19 from the index pass, superseding the dataset card's platform table.
+# The card lists Reddit 19,538 / Tumblr 2,351 / Bluesky 1,449 = 23,338, but the
+# redistributable split actually holds 23,278. The ~60-row gap is rows the card counts as
+# platform-native that ended up link-only. X and Instagram turn out to be absent from the
+# redistributable split entirely, so the platform filter below is belt-and-braces.
+pool_total    = 32_511
+pool_usable   = 23_278
+pool_by_platform = { reddit = 19_512, tumblr = 2_339, bluesky = 1_427 }
+pool_source   = "measured"
+excluded_platforms = ["X", "Instagram"]
+excluded_reason = "release_form = link-only; retrieving them is subject to platform terms"
+
+filter_label  = ["REAL"]
+filter_scope_exclude = ["TAMPERED", "FULL_SYNTHETIC"]
+filter_release_form = ["image"]
+
+notes = """
+This slice is why the set works. Nothing else surveyed offers reals from
+contemporary social platforms at usable volume; every alternative real source
+(OpenFake -> LAION-400M, bitmind -> Open Images / Flickr30k) is pre-2022 web
+scrape and would reintroduce the era shortcut.
+"""
+
+
+# ---------------------------------------------------------------------------------
+#  SLICE 2 — newest available generators, byte-preserved.
+# ---------------------------------------------------------------------------------
+[[slice]]
+id          = "sofake_ood_recent5"
+source      = "hf:saberzl/So-Fake-OOD"
+revision    = "main"
+role        = "fake"
+verified    = true
+gated       = false
+licence     = "CC-BY-NC-4.0"
+commercial  = false
+capture_era = "2026"
+
+take        = 1_400
+avg_item_bytes = 1_474_000
+est_bytes   = 2_063_600_000
+est_gb      = 2.1
+
+filter_label  = ["FULL_SYNTHETIC"]
+filter_generator = ["GPT-image-2", "GPT-image-1.5", "nano_banana_2", "seedream4.5", "FLUX_2"]
+
+# Available per generator in the balanced manifest, before our 1,400 sample.
+pool_by_generator = { "GPT-image-2" = 1_334, "GPT-image-1.5" = 2_778, "nano_banana_2" = 987, "seedream4.5" = 997, "FLUX_2" = 1_388 }
+pool_total = 7_484
+sample = "stratified, proportional to pool_by_generator, seed 42"
+
+# The other ten generators in this dataset are deliberately left out of the headline
+# slice to keep the recency signal clean. Named here so the loader can offer them.
+generators_available_not_taken = [
+  "Flux.1_pro", "GPT4o", "Hidream", "Imagen4", "Recraftv3",
+  "Seedream3.0", "Ideogram3", "imagen3", "Ideogram2", "nano_banana",
+]
+
+notes = """
+These are generator-direct, i.e. clean, un-transmitted output. That is a DIFFERENT
+distribution from the same generator's images after a platform CDN has re-encoded
+them; see the optional scam_ai_gpt_image_2 slice for the transmitted axis.
+"""
+
+
+# ---------------------------------------------------------------------------------
+#  SLICE 3 — in-the-wild near-duplicates, with precomputed quality and reference logits.
+# ---------------------------------------------------------------------------------
+[[slice]]
+id          = "rewind_no_ammeba"
+source      = "https://www.grip.unina.it/download/prog/QuAD/ReWIND.zip"
+manifest    = "https://raw.githubusercontent.com/grip-unina/QuAD/main/datasets/ReWIND/ReWIND.csv"
+role        = "mixed"
+verified    = true
+gated       = false
+licence     = "GRIP-UNINA non-commercial"
+licence_text = "should be used, reproduced and modified only for informational and nonprofit purposes"
+commercial  = false
+capture_era = "in-the-wild, mixed; date column is sparse"
+
+take        = 5_582
+est_bytes   = 1_503_238_553
+est_gb      = 1.4
+archive_md5 = "14d7f7de383421ee017de052ce2095b4"
+
+# Full dataset is 162 sources / 9,646 instances. The distributed archive omits AMMeBa,
+# which the authors cannot redistribute; those images are URL-only and subject to link rot.
+full_sources   = 162
+full_instances = 9_646
+full_balance   = { real_sources = 87, fake_sources = 75, real_instances = 4_367, fake_instances = 5_279 }
+
+exclude_subset = ["ammeba"]
+exclude_reason = "not redistributed; URLs in ammeba_urls.csv, link rot expected"
+excluded_instances = 4_064
+resolved_balance = { real = 2_438, fake = 3_144 }   # verified = false, arithmetic from the published per-source table
+
+subsets_included = ["viral_bfree", "FOSID", "google_factcheck", "RRDataset"]
+
+# Columns the CSV already provides. estimated_QF and the reference logits are the
+# reason this slice earns its place despite being the smallest by byte count.
+manifest_columns = [
+  "filename", "src_dataset", "src", "label", "format", "date",
+  "w", "h", "size", "estimated_QF", "md5",
+]
+reference_scores = [
+  "ReWIND.csv                  # uncalibrated detector logits",
+  "ReWIND_calibrated_AT.csv    # QuAD-calibrated, fitted on 50% of AncesTree",
+  "ReWIND_calibrated_LOO.csv   # QuAD-calibrated, leave-one-out on ReWIND",
+]
+
+notes = """
+Carries a slice of RRDataset (23 real sources, 1,177 near-duplicates) so a piece of
+that ICCV 2025 benchmark arrives whether or not the standalone release is obtainable.
+The reference logits let Task 7 validate a calibration implementation against the
+authors' own numbers BEFORE any detector of ours exists.
+"""
+
+
+# ---------------------------------------------------------------------------------
+#  SLICE 4 — independent platform-native cross-check.
+# ---------------------------------------------------------------------------------
+[[slice]]
+id          = "openfaketiny_reddit"
+source      = "hf:ComplexDataLab/OpenFakeTiny"
+revision    = "main"
+config      = "reddit"
+split       = "test"
+role        = "mixed"
+verified    = true
+gated       = false
+licence     = "undeclared; treat as CC-BY-NC-4.0 inherited from ComplexDataLab/OpenFake"
+commercial  = false
+capture_era = "mixed"
+
+take        = 1_250
+est_bytes   = 806_656_744
+est_gb      = 0.81
+# MEASURED 2026-08-19. The assumption that this split was balanced was wrong, and wrong in
+# the expensive direction: it is heavily fake-majority, which is why the corpus came in at
+# 48.6% real instead of 52.3%.
+balance     = { real = 230, fake = 1_020 }
+balance_source = "measured"
+balance_assumed = { real = 625, fake = 625 }
+generator_attribution = "unavailable"
+generator_note = """
+The `model` column reads "reddit" for every fake in this config rather than naming a
+generator, so these 1,020 fakes cannot be attributed to a model. Usable for a real-vs-fake
+verdict, useless for per-generator slicing — do not report generator breakdowns from it.
+"""
+
+notes = """
+Second, independent platform-sourced slice. Its value is disagreement: if results here
+diverge from sofake_ood_real, that is a finding about one of the two sources, not noise
+to average away.
+
+Deliberately NOT taking OpenFakeTiny's `core` config (3,750 items, 4.07 GB). Its real
+side descends from LAION-400M, which is the era skew this composition exists to avoid,
+and it would consume half the budget to reintroduce a known bias.
+"""
+
+
+# ---------------------------------------------------------------------------------
+#  OPTIONAL — the post-transmission axis. Not in the 8.1 GB projection.
+# ---------------------------------------------------------------------------------
+[[slice]]
+id          = "scam_ai_gpt_image_2"
+enabled     = false
+source      = "hf:Scam-AI/gpt-image-2"
+role        = "fake"
+verified    = true
+gated       = "auto"
+gate_action = "requires accepting terms in a browser once; a read-only token alone will not work"
+licence     = "CC-BY-NC-SA-4.0"
+commercial  = false
+capture_era = "2026-04-21..2026-04-28"
+
+take        = 800
+pool_total  = 10_217
+avg_item_bytes = 400_000    # verified = false, estimated from ~12 sampled files (71 KB .. 1.01 MB)
+est_bytes   = 320_000_000
+est_gb      = 0.32
+storage     = "individual JPEGs under images/ and images_overflow/, freely subsettable"
+paper       = "arXiv:2604.25370"
+ground_truth = "Twitter/X 'Made with AI' badge, browser-verified by the authors"
+
+why = """
+Uniquely gives GPT-image-2 AFTER X's CDN re-encoded it, rather than generator-direct.
+That is the distribution the app actually meets in the screenshot and share-sheet paths.
+The same paper is also the citable source for X stripping C2PA at the CDN.
+
+Left disabled because it is the only gated item in this file and enabling it costs a
+manual browser click. Flip enabled = true once that click has happened.
+"""
+
+
+# ---------------------------------------------------------------------------------
+[balance]
+# MEASURED from the resolved manifest, 2026-08-19. Projections retained below for
+# comparison, because the gap between them is the useful part of the record.
+items       = 10_832
+real        = 5_268
+fake        = 5_564
+real_frac   = 0.486
+tolerance   = 0.05
+source      = "measured"
+
+projected_real      = 5_663
+projected_fake      = 5_169
+projected_real_frac = 0.523
+drift_note = """
+Reals came in 395 short of projection, entirely from openfaketiny_reddit: that split is
+230 real / 1,020 fake, not the 625/625 assumed. Every other slice hit its number exactly.
+The corpus is now marginally fake-majority (48.6% real) rather than the intended 52.3%.
+Not fatal, but it moves in the wrong direction for the one metric that matters — see
+fpr_tail_note.
+"""
+
+# The metric that constrains everything.
+headline_metric = "TPR@1%FPR"
+fpr_tail_items  = 53
+projected_fpr_tail_items = 57
+fpr_tail_note = """
+57 images decide the 1% operating point. Thin. The distribution is right, which matters
+more than the count, but any confidence interval on TPR@1%FPR will be wide and must be
+reported as such rather than quoted as a point estimate.
+
+Cheapest lever if precision becomes the binding constraint: sofake_ood_real.take. The
+Reddit pool alone holds 19,538 usable reals, ~1.47 MB each, so +2,000 reals costs
+~2.9 GB and would roughly double the tail.
+"""
+
+
+[fetch]
+# So-Fake-OOD's test_image split is 46 parquet shards at ~2.9 GB each, ~135 GB total.
+# We want ~4,000 specific rows out of 91,370.
+strategy = "index-first, then selective row-group reads"
+forbid_shard_download = true
+forbid_reason = """
+Row-to-shard distribution was undocumented when this spec was written. Now measured, and
+the answer is reassuring: per-shard REAL counts run min 361 / max 548 / mean 506 / std 29,
+so shards are homogeneous and no scope bias hides in shard order. The prohibition stands
+anyway — a whole shard is 2.9 GB for ~500 usable reals, so shard downloads are simply
+wasteful now rather than dangerous.
+"""
+
+# MEASURED layout, 2026-08-19. These numbers drive the selection algorithm.
+layout_row_groups_total   = 1_381
+layout_rows_per_group     = 66.2      # mean; the atomic download unit
+layout_bytes_per_group    = 97_000_000
+layout_image_col_fraction = 0.997     # `image` is 99.7% of shard bytes
+layout_metadata_per_shard = 1_000_000 # all non-image columns together, hence a cheap index
+layout_interleaved        = true
+layout_mean_real_per_group   = 16.9   # range 2..32
+layout_mean_recent_per_group = 5.4
+layout_mean_tampered_per_group = 24.7
+
+# Consequence, recorded because it is the main cost surprise of this slice.
+transfer_exceeds_disk = true
+measured_transfer_bytes = 11_931_000_000  # 123 row groups x ~97 MB
+measured_keep_bytes     = 5_896_000_000
+measured_efficiency     = 0.80
+transfer_note = """
+Interleaving means a row group cannot be narrowed to one class: every group we touch is
+~26% REAL, ~37% TAMPERED, ~37% other-generator. We keep reals plus recent-generator fakes
+from each group, which lifts byte efficiency to ~80%. The remaining waste is structural.
+Hugging Face throttles per connection at ~0.85 MB/s but scales to ~6+ MB/s aggregate
+across 12-14 streams, so the fetch is parallelism-bound, not bandwidth-bound.
+"""
+steps = [
+  "1. fetch manifests/oodv3_balanced_full34046_seed42_public.csv (small) and select target rows",
+  "2. read only matching row groups over HTTPS via duckdb or pyarrow with predicate pushdown",
+  "3. verify per-item md5 where the source provides one (ReWIND does)",
+  "4. write the resolved manifest with actual, not projected, counts and bytes",
+]
+cache = "content-addressed; a rerun with an unchanged spec is a no-op"
+
+
+[integrity]
+# Defects and constraints that must survive into the resolved manifest rather than
+# being discovered halfway through Phase 0.
+
+[[integrity.caveat]]
+slice  = "sofake_ood_real"
+kind   = "property"
+detail = """
+Original file bytes are preserved: no resize, crop, re-encode, or normalisation during
+packaging, so native resolution and compression characteristics are retained. This is
+what makes the slice valid for FITTING calibration and not merely scoring accuracy —
+most detection datasets re-encode and destroy exactly the signals Lane C reads.
+"""
+
+[[integrity.caveat]]
+slice  = "sofake_ood_real"
+kind   = "measurement"
+verified = true
+detail = """
+ANSWERED, and the answer is no. Probed 1,200 real + 1,200 fake with `bench probe-metadata`:
+
+  signal          real    fake
+  EXIF present     11%      5%
+  camera make       3%      0%
+  XMP present       7%      1%
+  C2PA hint         0%      0%
+  AI disclosure     0%    0.08%  (1 image of 1,200)
+
+C2PA survival is zero. Byte preservation is genuine — EXIF and XMP do come through — so
+this is not a packaging artifact: it measures the real world, where essentially no
+social-media image carries a manifest. Extends the published X-strips-C2PA finding to
+Reddit, Tumblr and Bluesky.
+
+Two consequences. Lane A gets no fixtures from this corpus and must rely on
+c2pa-org/public-testfiles as planned. And the app's design assumption that absent
+provenance is the NORMAL case, not the exception, is now measured rather than asserted.
+"""
+
+[[integrity.caveat]]
+slice  = "sofake_ood_real"
+kind   = "residual_gap"
+verified = true
+detail = """
+The reals carry professional camera bodies, not phones. Every identifiable make/model in
+the probe was DSLR or mirrorless: SONY ILCE-1 (18), Canon EOS 5D Mark III (6), 5D Mark II
+(5), EOS R5 (4), ILCE-9M2 (2), EOS-1D X Mark III (2). Zero smartphones.
+
+This is a different gap from the capture-era skew this composition was built to fix, and it
+is not fixed. The app's real input is overwhelmingly iPhone photos; the corpus's
+attributable reals are photographer uploads. Only 3% of reals expose a make at all, so the
+other 97% may well be phone images — but that is an assumption, not a measurement, and it
+must not be reported as one.
+
+Bearing on Task 2: the iOS screenshot profile still needs real device captures to validate
+against, and this corpus does not supply them.
+"""
+
+[[integrity.caveat]]
+slice  = "openfaketiny_reddit"
+kind   = "upstream_defect"
+detail = """
+Parent dataset OpenFake has documented prompt-image misalignment affecting ~19.77% of
+synthetic images across five generators: flux-realism, sd-3.5, sdxl-realvis-v5,
+sd-1.5-dreamshaper, sd-1.5-epicdream. Reported November 2025, fix pending. LABELS are
+unaffected; the `prompt` field is not. We use labels, so this is recorded rather than
+blocking — but never treat OpenFake prompts as ground truth.
+"""
+
+[[integrity.caveat]]
+slice  = "rewind_no_ammeba"
+kind   = "coverage"
+detail = """
+42% of ReWIND (4,064 of 9,646 instances) is AMMeBa, excluded from the archive and
+reachable only through URLs with expected link rot. Tests must assert 'N of 9,646
+resolved, coverage reported', never a hard equality on 9,646, or they fail for reasons
+that are not bugs.
+"""
+
+[[integrity.caveat]]
+slice  = "*"
+kind   = "leakage"
+verified = true
+severity = "high"
+detail = """
+MEASURED: image resolution alone separates real from fake at 63.1% accuracy, using no
+pixels whatsoever.
+
+  exact 1024x1024:            21.5% of fakes,  0.2% of reals
+  any known generator size:   28.6% of fakes,  0.4% of reals
+  concentration:              1,160 of 1,400 So-Fake fakes sit at a generator resolution
+
+Generators emit fixed canvas sizes; cameras and platforms do not. Any detector evaluated on
+native-resolution images can score well above chance by learning canvas dimensions, which
+would transfer to production as approximately nothing.
+
+MITIGATION, and it is already the plan's Task 2: the degradation ladder applies random crop
+and resize, and the iOS screenshot profile rescales to device dimensions. Both destroy the
+resolution tell. Therefore:
+
+  - native-resolution accuracy is NOT a headline number and must never be quoted as one
+  - every reported figure carries its degradation rung
+  - the screenshot rung is the one that matters, because it is the deployment condition
+  - a candidate that beats others only at native resolution has learned the shortcut
+
+This is the same class of error as capture-era skew, caught by the same reflex: check
+whether a trivial feature already explains the result before crediting the model.
+"""
+
+[[integrity.caveat]]
+slice  = "*"
+kind   = "scope"
+detail = """
+So-Fake-OOD's 34,046 TAMPERED rows are filtered out everywhere. Localized manipulation
+is explicitly outside v0 scope. Noted because they are a ready-made asset with
+pixel-level masks if scope ever widens.
+"""
+
+
+[licence_position]
+# Mirrors the PLAN.md licence matrix. Decision on record: accept nonprofit scope.
+commercial_use_permitted = false
+posture = "nonprofit, open-source, free; no paid tiers, no IAP, no ads"
+non_commercial_slices = ["sofake_ood_real", "sofake_ood_recent5", "rewind_no_ammeba", "openfaketiny_reddit", "scam_ai_gpt_image_2"]
+note = """
+Every slice in this file is non-commercial. That is a consequence of the field, not of
+lazy selection: no permissively-licensed dataset surveyed offers contemporary
+platform-native reals. Open action in Task 1: written clarification from GRIP-UNINA on
+free App Store distribution of a nonprofit open-source app.
+"""
+
+
+[training]
+# This file describes an EVALUATION set. It is not the training set, and should not
+# quietly become one.
+is_training_set = false
+rationale = """
+SSAFE (arXiv:2606.08634) reports that ~10K representation-aware curated images beat
+288K (AIGIBench) and 4M (OpenFake) for training a frozen-feature probe. Task 6a
+therefore curates its own small training set rather than scaling this one up.
+
+Keeping the two separate also keeps the headline numbers honest: sofake_ood_real is the
+only contemporary-real source available, so if it were spent on training there would be
+nothing left to measure false-accusation rate against.
+"""
+
+
+[open_questions]
+# Still open after the Task 1 fetch. Each one changes a number above.
+items = [
+  "Scam-AI/gpt-image-2 average item size estimated from ~12 files — measure if the slice is enabled",
+  "GPT-image-2 coverage is 155 images; decide whether to enable scam_ai_gpt_image_2 to raise it",
+  "97% of reals expose no camera make, so the phone-vs-pro-camera mix is unmeasured",
+  "Corpus is 48.6% real against a 52.3% target; decide whether to top up reals from the Reddit pool",
+  "4 duplicate content hashes remain — expected in a near-duplicate corpus, but unconfirmed",
+]
+
+[resolved_questions]
+# Answered during Task 1. Kept rather than deleted so the record shows what moved.
+sofake_pool_usable = """
+ANSWERED: 23,278 redistributable reals, not the 23,338 implied by the dataset card's
+platform table. X and Instagram are absent from the redistributable split entirely.
+"""
+sofake_shard_bias = """
+ANSWERED: shards are homogeneous. Per-shard REAL counts min 361 / max 548 / mean 506 /
+std 29. Sampling across all 46 shards carries no scope bias.
+"""
+sofake_recent5_pool = """
+ANSWERED: 7,484 recent-5 rows exist, matching the dataset card exactly. But they are
+spread across 1,381 row groups at ~5.4 per group, and GPT-image-2 alone averages under 1
+row per group. Consequence: a 123-group fetch yields only 155 GPT-image-2 images. If
+denser GPT-image-2 coverage is wanted, Scam-AI/gpt-image-2 supplies it as individual
+JPEGs at ~20x better byte efficiency — that is the argument for enabling that slice.
+"""
+openfaketiny_balance = """
+ANSWERED, and the assumption was wrong: 230 real / 1,020 fake, not 625/625. This single
+error accounts for the entire shortfall against the 52.3% real target.
+"""
+rewind_resolved_split = """
+ANSWERED: 2,438 real / 3,144 fake, matching the arithmetic prediction from the published
+per-source table exactly. 5,582 of 5,583 archive members kept; the one non-image is
+ammeba_urls.csv. Zero undecodable.
+"""
+rewind_reference_columns = """
+ANSWERED, and richer than the dataset README documents. The CSV ships three no-reference
+IQA scores (IQA_QCN, IQA_LoDa, IQA_TReS) and logits from SIX published detectors (DMID,
+CoDE, D3, B-Free, DRCT, CO-SPY), all carried into the manifest as ref_* columns.
+
+Raises this slice's value well above its 1.5 GB: Task 5 can compare against six baselines
+on identical images without running any of them, and Task 7 can fit quality-conditioned
+calibration against three independent IQA definitions rather than one.
+"""
+rewind_join_key = """
+ANSWERED the hard way. Joining the archive to the CSV on BASENAME silently corrupts the
+slice: 624 basenames are shared by more than one row, and `src.jpg` alone is used by 24
+rows whose labels disagree (both REAL and FAKE). The first implementation did this and
+produced 555 size mismatches plus an unknown number of mislabelled images. Archive member
+paths match the CSV `filename` column exactly, so the join is on full path, and output
+filenames derive from the path rather than the basename.
+"""

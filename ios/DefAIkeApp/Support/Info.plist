@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>DefAIke</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<!-- The registered App Group container, supplied by the target's build
+	     configuration. A build configuration fact, not a release approval:
+	     SessionStorageRoots fails closed when it does not resolve. -->
+	<key>DefAIkeAppGroupID</key>
+	<string>$(DEFAIKE_APP_GROUP_ID)</string>
+	<!-- The five release-controlled keys the composition root reads.
+	
+	     Declaring a key is not supplying its value. Every substitution below
+	     resolves from a build setting that ios/project.yml defines ONLY in the
+	     Debug configuration, so:
+	
+	       * a Release build resolves each one to the empty string,
+	         MainAppReleaseProvisioning.installedIdentifiers rejects it, and the
+	         startup gate refuses with the matching UnprovisionedReleaseInput —
+	         which is unchanged behaviour; and
+	       * a Debug build carries local-development identifiers that let
+	         DevelopmentProvisioning assemble a coherent input set for a
+	         Simulator run. Those identifiers are not approved artifacts and
+	         name no signed release.
+	
+	     None of these is CFBundleVersion or CFBundleShortVersionString, and
+	     none may be substituted by one. The Release Approved iPhone Allowlist is
+	     keyed on DefAIkeAppBuildID, and ObservedDeviceIdentity reads that key
+	     and no other: a marketing or project version is a build-configuration
+	     convenience whatever value it holds, and reading one as the distributed
+	     build identity would manufacture an AppBuildID no allowlist entry can
+	     legitimately name. -->
+	<key>DefAIkeAppBuildID</key>
+	<string>$(DEFAIKE_APP_BUILD_ID)</string>
+	<key>DefAIkeCapabilityManifestID</key>
+	<string>$(DEFAIKE_CAPABILITY_MANIFEST_ID)</string>
+	<key>DefAIkeVerdictCopyCatalogID</key>
+	<string>$(DEFAIKE_VERDICT_COPY_CATALOG_ID)</string>
+	<key>DefAIkeEmbeddedModelBundleID</key>
+	<string>$(DEFAIKE_EMBEDDED_MODEL_BUNDLE_ID)</string>
+	<!-- One entry per compiled capability, and both compositions share this
+	     file, so it can only record the capability every composition compiles.
+	     The provenance composition's content-credential-validation entry is
+	     supplied from the linked adapter's own reported version instead, which is
+	     a compiled fact rather than a plist claim — see
+	     CapabilityComposition.linkedImplementationVersions. A per-composition
+	     Info.plist would let the plist record both, and is a packaging change the
+	     Release Process owns. -->
+	<key>DefAIkeCapabilityImplementationVersions</key>
+	<dict>
+		<key>pixel-analysis</key>
+		<string>$(DEFAIKE_PIXEL_ANALYSIS_IMPLEMENTATION_VERSION)</string>
+	</dict>
+	<!-- No NSPhotoLibraryUsageDescription is required for the Photos route: it
+	     uses selected-item access through PhotosPicker and never requests
+	     full-library authorization (Requirement 9.4). -->
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<!-- No NSPhotoLibraryUsageDescription. The Photos route uses selected-item
+	     access through PhotosPicker and never requests full-library
+	     authorization (Requirement 2.1). -->
+	<!-- No ITSAppUsesNonExemptEncryption. Export-compliance declaration is a
+	     legal decision owned by the Release Process, and it depends on whether
+	     the provenance composition ships. It is deliberately unset here. -->
+</dict>
+</plist>

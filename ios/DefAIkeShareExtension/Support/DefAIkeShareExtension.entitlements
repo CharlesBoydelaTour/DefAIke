@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The one shared container the consented handoff moves through, and the only
+	     entitlement this target has.
+
+	     It must match the containing app's exactly. DEFAIKE_APP_GROUP_ID is
+	     defined once per capability composition in ios/project.yml and applied to
+	     both targets, so the two processes cannot drift onto different containers;
+	     the two compositions get different values, so a pixel-only build and a
+	     provenance build cannot exchange handoffs.
+
+	     A build-configuration fact rather than a release approval: it grants access
+	     to a container, and says nothing about whether this build may stage a
+	     handoff into it. The container path is resolved through FileManager and
+	     never constructed by hand, and an unresolvable container keeps the transfer
+	     route unavailable rather than falling back to process-private storage
+	     (AppGroupContainer, SessionStorageRoots). -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(DEFAIKE_APP_GROUP_ID)</string>
+	</array>
+	<!-- Deliberately absent, each for a stated reason:
+
+	       com.apple.developer.default-data-protection
+	           Requirement 9.6 is satisfied by applying an explicit protection
+	           level at creation, and the level is an approved artifact value
+	           (ExtensionExecutionPolicy.stagedFileProtection) that the design
+	           records against physical-device evidence. A build-level default
+	           would be a second, unversioned source for the same decision: it
+	           would either duplicate the policy value or silently contradict it,
+	           and PlatformDataProtection verifies the attribute it requested by
+	           reading it back either way. The startup gate additionally refuses to
+	           accept work on a platform that does not enforce data protection at
+	           all.
+
+	       keychain-access-groups
+	           Nothing is stored in the keychain. The handoff carries encoded bytes
+	           and one bounded ticket through the App Group container, and both are
+	           removed under the Data Lifecycle Policy's deadlines.
+
+	       com.apple.developer.associated-domains
+	           There is no universal-link route into the containing app. The share
+	           extension point cannot open the containing app on iOS, and the
+	           handoff deliberately ends with an instruction rather than a launch
+	           (design, fixed decision 4).
+
+	       com.apple.security.network.client, and any other network entitlement
+	           The extension issues no network request. Requirement 9.2 forbids
+	           off-device transmission of user images and image-derived data, and
+	           Requirement 9.3 requires an Analysis Session to complete with
+	           connectivity disabled.
+
+	       com.apple.developer.healthkit, .homekit, .siri, and every other
+	       capability
+	           None is used. An entitlement this target does not need is attack
+	           surface and an App Review question with no answer. -->
+</dict>
+</plist>

@@ -1,0 +1,56 @@
+{
+  "snapshot": "August 2026",
+  "scope": "completed pre-app research, benchmark, model selection, and Core ML work",
+  "corpus": {
+    "manifest_path": "data/manifest.parquet",
+    "rows": 10832,
+    "distinct_ids": 10819,
+    "real": 5268,
+    "fake": 5564,
+    "referenced_image_bytes": 8005629351,
+    "manifest_file_bytes": 1055372,
+    "manifest_sha256": "3753b8350a710e6bb5234b04ec717d512b09a9c56ff6a7cd707929603980504d",
+    "commfor_eligible_score_rows_per_rung": 9582,
+    "commfor_eligible_distinct_ids": 9569
+  },
+  "scores": {
+    "path": "data/scores.parquet",
+    "rows": 314900,
+    "detector_labels": 15,
+    "rungs": 8,
+    "file_bytes": 1923030,
+    "sha256": "a200c40ad185eeed323b4b69a97ea0fe4f3b96a64d713b75bfc2d11c0fd823a9"
+  },
+  "tests": {
+    "collected": 267,
+    "passed_default": 266,
+    "skipped_default": 1,
+    "skip_reason": "opt-in Core ML end-to-end integration test; RUN_COREML_TESTS=1"
+  },
+  "selected_model": {
+    "repository": "Thermostatic/community-forensics-low-quality-detector-2026-08",
+    "parameters": 21800000,
+    "license": "MIT",
+    "coreml_gate": "passed"
+  },
+  "known_integrity_items": {
+    "duplicate_manifest_id_groups": 13,
+    "duplicate_extra_rows": 13,
+    "duplicate_content_hashes_recorded_in_spec": 4,
+    "missing_files_last_verify": 0,
+    "size_mismatches_last_verify": 0,
+    "orphans_last_verify": 0
+  },
+  "source_paths": [
+    "PLAN.md",
+    "datasets/testset.toml",
+    "bench/cli.py",
+    "bench/degrade.py",
+    "bench/metrics.py",
+    "bench/evaluate.py",
+    "bench/detectors/base.py",
+    "bench/detectors/commfor.py",
+    "bench/coreml.py",
+    "tests/"
+  ]
+}

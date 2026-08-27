@@ -1,0 +1,57 @@
+{
+  "evidence_scope": "measured_full",
+  "snapshot": "August 2026",
+  "model": {
+    "repository": "Thermostatic/community-forensics-low-quality-detector-2026-08",
+    "adapter_label": "commfor:lowq-2026-08",
+    "architecture": "vit_small_patch16_384",
+    "parameters": 21800000,
+    "raw_logit_boundary": 1.390625,
+    "license": "MIT"
+  },
+  "conversion": {
+    "format": "mlprogram",
+    "precision": "float16",
+    "minimum_deployment_target": "iOS17",
+    "seconds": 3.6,
+    "mlpackage_bytes": 43744071,
+    "mlmodelc_bytes": 43764661,
+    "weight_sha256": "f073f8a325f63e35ef0668c985ac762486a1b50e57dcf5ae33d4647bd26d4c1e"
+  },
+  "placement": {
+    "method": "MLComputePlan.get_compute_device_usage_for_mlprogram_operation",
+    "assigned_operations": 264,
+    "ane_operations": 262,
+    "ane_fraction": 0.9924242424,
+    "cpu_operations": 2,
+    "unsupported_by_ane": ["ios17.mul", "ios17.cast"],
+    "verdict": "pass_essentially_fully_on_ane"
+  },
+  "parity": {
+    "fixtures": 96,
+    "max_absolute_logit_delta": 0.13058,
+    "mean_absolute_logit_delta": 0.03698,
+    "mean_bias": 0.02884,
+    "spearman_rho": 0.999949,
+    "decision_agreement": 1.0,
+    "decision_disagreements": 0,
+    "threshold": 1.390625
+  },
+  "latency_m3_pro_ms_per_image": {
+    "cpu_only": 16.84,
+    "cpu_and_gpu": 12.86,
+    "cpu_and_neural_engine": 9.33,
+    "all": 9.35,
+    "scope": "relative Mac comparison only; not an iPhone latency claim"
+  },
+  "environment": {
+    "hardware": "Apple M3 Pro",
+    "gpu_cores": 18,
+    "python": "3.12.12 arm64",
+    "coremltools": "9.0",
+    "torch": "2.13.0",
+    "torchvision": "0.28.0",
+    "timm": "1.0.28",
+    "mps_available": true
+  }
+}

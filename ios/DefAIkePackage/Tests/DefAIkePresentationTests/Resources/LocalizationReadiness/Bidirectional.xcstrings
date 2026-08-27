@@ -1,0 +1,114 @@
+{
+  "sourceLanguage" : "ar-x-bidi",
+  "strings" : {
+    "copy.chrome.analysis-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Analyzing this image on your device⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Stop analyzing⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] You stopped the analysis, so there is no result⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Development build. Its calibration is not approved, so nothing below is a verdict about any image.⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Choose an image to analyze⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Getting the image you chose⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] No strong signal detected⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Not enough signal⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation" : {
+      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar-x-bidi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⁧[عربي] Signals consistent with AI generation⁩"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -1,0 +1,114 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "copy.chrome.analysis-in-progress-status" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.analysisInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change; Requirement 15.1 keeps the active family on screen until the work ends. States that work is continuing and nothing more: Requirements 15.2, 15.3, and 15.10 forbid a completion fraction, an estimate, or a time remaining, and no stage reports a completed-work and total-work pair for the same measured unit to this layer. Do not add a percentage, a duration, or a stage name.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyzing this image on your device"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.cancellationAction. Requirement 12.1 requires a label identifying the control's purpose and Requirement 15.5 keeps this control visible and enabled for all active analysis work. Names stopping the work, never discarding, deleting, or retrying: cancellation is its own terminal (Requirement 11.17) and no other recovery is representable.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop analyzing"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.cancelledStatus. Requirement 11.17 makes cancellation a terminal disjoint from completed and failed and forbids presenting it as a failure, so this states the absence of a result without naming an error, a category, or a cause. Do not word it as an error, a timeout, or a problem.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You stopped the analysis, so there is no result"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Notice for ChromeCopySurface.developmentBuildNotice, rendered only from the application target's #if DEBUG development-provisioning seam and addressed by nothing in a Release build. Requirement 8.4 forbids presenting a model signal as proof, and Requirement 8.13 forbids a displayed magnitude; a locally provisioned build supplies its own unapproved Calibration Policy, so the label a run produces is not a verdict and this says so before any label is read. Do not soften it and do not remove the word development.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Development build. Its calibration is not approved, so nothing below is a verdict about any image."
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.imageSelectionAction. Requirement 12.1 requires a label identifying the control's purpose; Requirement 2.1 fixes the Photos Picker route and Requirement 2.7 fixes exactly one image per session, so this names a single image. It is also the recovery every terminal screen offers (Requirement 3.13), and SessionRecovery has one case, so it must not read as resume, retry, or recompute.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose an image to analyze"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status" : {
+      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.importInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change. An ingest attempt is not yet an Analysis Session, so this must not say analyzing; it carries no route name, because a route is a developer identifier and not a sentence, and no progress, because a provider retrieval reports no measured amounts to this layer.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Getting the image you chose"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected" : {
+      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.4 makes it a statement about model signal, never proof of authenticity. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No strong signal detected"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal" : {
+      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.5 makes it a lack of usable signal, never an authentic-image result. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough signal"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation" : {
+      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.3 keeps it probabilistic-consistency framing rather than certainty. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signals consistent with AI generation"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

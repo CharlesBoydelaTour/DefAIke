@@ -1,0 +1,15 @@
+detector_or_family,evidence_scope,implementation,approx_params,input,license,status
+commfor_lowq,measured_full,bench/detectors/commfor.py,21.8M,384px,MIT,selected
+commfor_frontier,measured_full,bench/detectors/commfor.py,21.8M,384px,MIT,full_coverage_reference
+dda,measured_sample,bench/detectors/dda.py,307M,336px,Apache-2.0,accuracy_ceiling_not_shippable
+corvi2023,measured_sample,bench/detectors/corvi.py,23.5M,native_crop,Apache-2.0,degradation_control
+clipbased_latent10k,measured_sample,bench/detectors/clipbased.py,303M,224px,Apache-2.0_code,reference_ceiling
+clipbased_latent10k_plus,measured_sample,bench/detectors/clipbased.py,303M,224px,Apache-2.0_code,reference_ceiling
+siglip_ateeqq,measured_sample,bench/detectors/siglip.py,92.9M,224px,Apache-2.0,rejected_low_fpr
+organika,measured_sample,bench/detectors/hf_classifier.py,unknown,224px,CC-BY-NC-3.0,rejected_low_fpr
+dima806,measured_sample,bench/detectors/hf_classifier.py,unknown,224px,Apache-2.0,rejected_low_fpr
+bfree,author_logits_and_blocked_adapter,bench/detectors/bfree.py,large,504px_multicrop,non-commercial,official_host_502
+rewind_reference_detectors,author_logits,bench/detectors/reference.py,n/a,clean_only,various,comparison_only
+pgc,third_party,not_implemented,large,n/a,Apache-2.0,not_run
+d3qe,third_party,not_implemented,unknown,n/a,MIT,not_run
+ssp_essp,third_party,not_implemented,unknown,patch,MIT,weights_unobtainable

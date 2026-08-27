@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>DefAIke</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!-- The registered App Group container, supplied by the target's build
+	     configuration and read by ShareExtensionReleaseProvisioning. It must be
+	     the same value the containing app reads under the same key, which
+	     ios/project.yml guarantees by defining DEFAIKE_APP_GROUP_ID once per
+	     composition and applying it to both targets.
+
+	     A build-configuration fact, not a release approval: it names where the
+	     shared container is, and nothing about whether this build may stage
+	     anything into it. AppGroupContainer fails closed when it does not
+	     resolve, and the startup gate refuses rather than falling back to a
+	     process-private directory. -->
+	<key>DefAIkeAppGroupID</key>
+	<string>$(DEFAIKE_APP_GROUP_ID)</string>
+	<!-- Release-controlled keys the extension's composition root reads, and which
+	     this repository deliberately does not set. Each absent key is one
+	     UnprovisionedExtensionReleaseInput value, and the startup gate refuses
+	     rather than substituting a local development value:
+
+	       DefAIkeAppBuildID
+	           The distributed application build identity. CFBundleVersion is 0
+	           and CFBundleShortVersionString is 0.0.0 here; both are local
+	           stand-ins. Reading either would manufacture an AppBuildID no
+	           allowlist entry can legitimately name, and it would additionally be
+	           stamped into every published ticket as extensionBuildID, which the
+	           claiming app compares against its own (Requirement 2.19).
+	       DefAIkeCapabilityManifestID
+	           The embedded signed Release Capability Manifest version. The
+	           extension reads it to reach the Extension Execution Policy, the
+	           Data Lifecycle Policy, the Share Extension Resource Budget, and the
+	           device allowlist by exact identifier.
+	       DefAIkeVerdictCopyCatalogID
+	           The Approved Verdict Copy catalogue artifact version.
+
+	     Deliberately absent and not needed here, unlike in the containing app:
+	     DefAIkeEmbeddedModelBundleID and
+	     DefAIkeCapabilityImplementationVersions. The extension verifies no Model
+	     Bundle and compiles no evidence capability (Requirement 11.11), so
+	     carrying either would be a claim this binary is not entitled to make. -->
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.share-services</string>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
+		<key>NSExtensionAttributes</key>
+		<dict>
+			<!-- Offer the extension for exactly one image and nothing else.
+
+			     What this rule is: a limit on what a host share sheet
+			     *presents*, enforced by the host. What it is not: the
+			     one-item rule. Runtime validation stays authoritative and
+			     refuses any count other than one before a byte is read —
+			     ShareActivation.resolvedCandidate counts the providers and
+			     the sole provider's attachments, ConfirmedConsent refuses
+			     any other count at construction, and
+			     ShareExtensionIngestCoordinator counts again at staging time
+			     (Requirements 2.6 and 2.7; design, Share Extension handoff
+			     sequence).
+
+			     Every key is a build-configuration fact rather than a release
+			     approval: it declares which system activation this bundle
+			     registers for, and nothing about whether this build is
+			     approved to stage a handoff. That decision is the signed
+			     Extension Execution Policy's and the device allowlist's, and
+			     the startup gate refuses without them.
+
+			     Deliberately NOT narrowed to public.jpeg, public.png,
+			     public.heic, and public.heif. A predicate rule restricting the
+			     offered types to the three Supported Static Image containers
+			     would make Requirements 2.15, 2.16, and 1.11 unreachable
+			     through the Share route: an unsupported static format has to
+			     reach ingest in order to be refused with
+			     unsupported-static-format, and animated media has to reach it
+			     to be refused with unsupported-media. Hiding them here would
+			     leave the user with a share sheet that silently omits
+			     DefAIke and no explanation at all. -->
+			<key>NSExtensionActivationRule</key>
+			<dict>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>1</integer>
+				<!-- Exactly one attachment. The minimum keeps a
+				     zero-attachment activation from being offered at all;
+				     the maximum keeps a multi-attachment one from being
+				     offered. Both counts are still checked at runtime. -->
+				<key>NSExtensionActivationSupportsAttachmentsWithMinCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsAttachmentsWithMaxCount</key>
+				<integer>1</integer>
+				<!-- Explicit zeros for every other activation kind. Absent
+				     keys already default to zero or false; writing them out
+				     states the Version 1 scope, so a later edit has to
+				     change a declared value rather than add one. Files,
+				     paste, drag-and-drop, camera capture, video, audio, and
+				     batch analysis are unsupported Version 1 scopes
+				     (Requirement 1.10). -->
+				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
+				<integer>0</integer>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>0</integer>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>0</integer>
+				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
+				<integer>0</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<false/>
+			</dict>
+		</dict>
+	</dict>
+</dict>
+</plist>

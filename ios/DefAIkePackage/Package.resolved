@@ -1,0 +1,51 @@
+{
+  "originHash" : "37d50c0fdcec76beb8d3fdf535f5669da821e03c408c486ea881c55b643bf923",
+  "pins" : [
+    {
+      "identity" : "c2pa-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/contentauth/c2pa-swift.git",
+      "state" : {
+        "revision" : "a2812bdebcff324aa68fecba804e10e2144d5e4f",
+        "version" : "0.0.12"
+      }
+    },
+    {
+      "identity" : "swift-asn1",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-asn1.git",
+      "state" : {
+        "revision" : "a9a5efd40eaf558a2bcd48d64b1d1646be686008",
+        "version" : "1.7.1"
+      }
+    },
+    {
+      "identity" : "swift-certificates",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-certificates.git",
+      "state" : {
+        "revision" : "449dbbecd0f31e82b510ada227ca152caa8b5e98",
+        "version" : "1.19.4"
+      }
+    },
+    {
+      "identity" : "swift-crypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-crypto.git",
+      "state" : {
+        "revision" : "95ba0316a9b733e92bb6b071255ff46263bbe7dc",
+        "version" : "3.15.1"
+      }
+    },
+    {
+      "identity" : "swift-property-based",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/x-sheep/swift-property-based.git",
+      "state" : {
+        "revision" : "f5b24d3a0468d688934405a9cba9516cb17be2ec",
+        "version" : "2.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}

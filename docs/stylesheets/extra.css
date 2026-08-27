@@ -1,0 +1,53 @@
+:root {
+  --evidence-full: #146c43;
+  --evidence-sample: #9a6700;
+  --evidence-author: #6f42c1;
+  --evidence-third-party: #57606a;
+}
+
+.evidence {
+  border: 1px solid currentColor;
+  border-radius: 0.3rem;
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  margin: 0 0.25rem 0.2rem 0;
+  padding: 0.06rem 0.35rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.evidence.full { color: var(--evidence-full); }
+.evidence.sample { color: var(--evidence-sample); }
+.evidence.author { color: var(--evidence-author); }
+.evidence.third-party { color: var(--evidence-third-party); }
+
+.metric-grid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  margin: 1rem 0;
+}
+
+.metric-card {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.35rem;
+  padding: 0.75rem;
+}
+
+.metric-card strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.md-typeset table:not([class]) {
+  font-size: 0.72rem;
+}
+
+.md-typeset .scope-boundary {
+  border-left: 0.25rem solid var(--md-accent-fg-color);
+  padding-left: 0.8rem;
+}
