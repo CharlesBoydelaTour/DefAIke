@@ -224,17 +224,17 @@ public enum UnprovisionedResourceInput: String, Hashable, Sendable, CaseIterable
 
     /// No release-controlled validation version tuple is bound.
     ///
-    /// The application build identity is `0`/`0.0.0` in both shipping targets, so no
-    /// `AppBuildID` a run could legitimately name exists, and Requirement 13.20 forbids
-    /// assembling gate evidence across tuples.
+    /// No release-approved `AppBuildID` exists for a run to legitimately name — the local
+    /// build identity is a development placeholder — and Requirement 13.20 forbids assembling
+    /// gate evidence across tuples.
     case boundResourceValidationVersionTuple = "bound-resource-validation-version-tuple"
 
     /// No Share Extension device-test host exists.
     ///
-    /// `ios/project.yml` declares `DefAIkeDeviceValidationTests-PixelOnly` and
-    /// `-PixelPlusProvenance`, and both are hosted by `DefAIkeApp-<composition>`. Neither
-    /// runs inside the Share Extension process, and an app-hosted test cannot observe the
-    /// extension's own peak footprint, temporary storage, energy, or thermal behaviour.
+    /// `ios/project.yml` declares one `DefAIkeDeviceValidationTests` target, named against
+    /// `DefAIkeApp`. It does not run inside the Share Extension process, and an app-adjacent
+    /// test cannot observe the extension's own peak footprint, temporary storage, energy, or
+    /// thermal behaviour.
     /// Requirement 11.19's separate Share Extension measurement set therefore has no
     /// execution home yet, which is a project-configuration change rather than a code one.
     case shareExtensionDeviceTestHost = "share-extension-device-test-host"

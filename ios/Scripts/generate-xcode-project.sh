@@ -20,6 +20,19 @@ if [[ ! -f "${SPEC}" ]]; then
     exit 1
 fi
 
+# Local, uncommitted build settings: the developer's Apple team identifier and an
+# optional bundle-identifier prefix. `project.yml` references this file
+# unconditionally, so it has to exist before generation; seeding it from the
+# committed example keeps a fresh clone generating without any manual step.
+#
+# Never overwritten. A developer's team identifier survives every regeneration.
+LOCAL_CONFIG="${IOS_DIR}/Local.xcconfig"
+if [[ ! -f "${LOCAL_CONFIG}" ]]; then
+    cp "${IOS_DIR}/Local.xcconfig.example" "${LOCAL_CONFIG}"
+    echo "note: created ios/Local.xcconfig from the example; set"
+    echo "      DEFAIKE_LOCAL_DEVELOPMENT_TEAM there to build for a physical device"
+fi
+
 if command -v xcodegen >/dev/null 2>&1; then
     GENERATOR=(xcodegen)
 elif command -v mint >/dev/null 2>&1; then

@@ -815,38 +815,41 @@ struct OfflineContentCredentialValidationTests {
         )
     }
 
-    /// Requirements 6.19 and 6.20: the pixel-only composition links no validator.
+    /// Requirements 6.19 and 6.20: which products may reach the validator module.
     ///
-    /// A value-level check on the package manifest, which is where the two capability
-    /// compositions are declared. The pixel-only product is built from the shared module list
-    /// alone; only the provenance composition adds the adapter. `check-module-boundaries.py`
-    /// enforces the same rule over the whole graph and `build-ios.sh` compiles both schemes;
-    /// this is the test-suite-visible form, so a change to the product membership fails here
-    /// rather than only in a script.
-    @Test("The pixel-only composition product does not include the validator module")
-    func pixelOnlyProductExcludesTheValidatorModule() throws {
+    /// A value-level check on the package manifest, which is where the compositions are
+    /// declared. The application composition is the one product that adds the adapter; the
+    /// Share Extension composition must not reach it, or `DefAIkeProvenanceAPI`, at all.
+    /// `check-module-boundaries.py` enforces the same rule over the whole graph and
+    /// `build-ios.sh` compiles the app; this is the test-suite-visible form, so a change to
+    /// product membership fails here rather than only in a script.
+    ///
+    /// The Share Extension assertion carries more weight than it used to. While a pixel-only
+    /// application product existed, *it* was the archive-level proof that a DefAIke build
+    /// could ship without a Content Credential validator. That product is gone, so the
+    /// extension is the only shipping module closure whose exclusion of the validator can
+    /// still be measured — which is what keeps the application product's positive membership
+    /// a measurement rather than the only observation in the run.
+    @Test("Only the application composition product includes the validator module")
+    func onlyTheApplicationProductIncludesTheValidatorModule() throws {
         let text = try packageManifestText()
 
-        let pixelOnly = try #require(
-            productDeclaration(named: "DefAIkePixelOnly", in: text),
-            "the manifest must declare the pixel-only composition product"
+        let app = try #require(
+            productDeclaration(named: "DefAIkeAppKit", in: text),
+            "the manifest must declare the application composition product"
         )
         #expect(
-            !pixelOnly.contains("DefAIkeProvenanceC2PA"),
-            "the pixel-only product must not name the validator module"
+            app.contains("DefAIkeProvenanceC2PA"),
+            "the application composition is the one that adds the validator module"
         )
         #expect(
-            pixelOnly.contains("sharedAppModules"),
-            "the pixel-only product is the shared module list and nothing more"
+            app.contains("sharedAppModules"),
+            "the application composition is the shared module list plus the adapter"
         )
 
-        let provenance = try #require(
-            productDeclaration(named: "DefAIkePixelPlusProvenance", in: text),
-            "the manifest must declare the provenance composition product"
-        )
         #expect(
-            provenance.contains("DefAIkeProvenanceC2PA"),
-            "the provenance composition is the one that adds the validator module"
+            productDeclaration(named: "DefAIkePixelOnly", in: text) == nil,
+            "the pixel-only composition product was merged into the application composition"
         )
 
         let shareExtension = try #require(

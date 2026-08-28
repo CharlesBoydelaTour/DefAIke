@@ -43,12 +43,19 @@
 //
 //     A build-ordering race, so the module and architecture named varied run to run
 //     (`DefAIkeModelBundle`/x86_64, `DefAIkeApplication`/arm64, `DefAIkeImagePipeline`/arm64,
-//     `DefAIkeProvenanceC2PA`/x86_64). Measured over 5 runs: Debug passed on both schemes;
-//     Release `DefAIkeApp-PixelOnly` passed; Release `DefAIkeApp-PixelPlusProvenance` failed
-//     3 of 3 attempts at the default two-architecture setting, passed with `ARCHS=arm64`, and
-//     passed once and failed once with `ONLY_ACTIVE_ARCH=YES`. Provenance was affected and
-//     pixel-only was not because the longer package build lets module emission interleave with
-//     the extension compile.
+//     `DefAIkeProvenanceC2PA`/x86_64).
+//
+//     Measured over 5 runs while two app schemes existed: Debug passed on both; Release
+//     `DefAIkeApp-PixelOnly` passed; Release `DefAIkeApp-PixelPlusProvenance` failed 3 of 3
+//     attempts at the default two-architecture setting, passed with `ARCHS=arm64`, and passed
+//     once and failed once with `ONLY_ACTIVE_ARCH=YES`. The provenance scheme was affected and
+//     the pixel-only one was not because the longer package build lets module emission
+//     interleave with the extension compile.
+//
+//     Those two schemes were merged into one, `DefAIkeApp`, which links the provenance adapter
+//     — so the surviving scheme is the one that exhibited the race. The measurement is kept as
+//     recorded rather than restated: it is the only data anyone has on this, and the pixel-only
+//     column is what identified the package build's length as the cause.
 //
 // Nothing here imports a forbidden module.
 

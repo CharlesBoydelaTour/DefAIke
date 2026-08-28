@@ -456,23 +456,35 @@ struct EvidenceCoordinatorTests {
         }
     }
 
-    @Test("An unavailable lane in a session bound to a policy is refused")
-    func unavailableLaneRefusesABoundPolicy() {
-        #expect(
-            throws: EvidenceJoinFault.provenanceLaneNotBoundToSession(
-                expected: ProvenanceSample.policyID,
-                found: nil
-            )
-        ) {
-            try report(
+    @Test("An unavailable lane in a session bound to a policy is permitted")
+    func unavailableLaneIsPermittedBesideABoundPolicy() throws {
+        // The direction that used to be refused, and the configuration the shipping app is
+        // actually in: the manifest enables the capability and names a policy, so the session
+        // binds one, and the lane is still unavailable because no approved decision supplies
+        // an analyzer.
+        //
+        // Refusing it cost every Analysis Session in that release: `checkProvenanceAttribution`
+        // threw at `evidenceJoining`, the coordinator committed `model-load-error`, and the
+        // user saw an Analysis Error rather than a completed report with an honest unavailable
+        // lane. The binding records which policy version governs the session; the lane records
+        // what the session produced. They are allowed to differ, and the lane's reason is the
+        // record of why.
+        for reason in UnavailableReason.allCases {
+            let report = try report(
                 coordinator(
                     binding: SessionSample.binding(
                         provenancePolicyID: ProvenanceSample.policyID
                     )
                 ),
                 pixel: .noStrongSignalDetected,
-                provenance: .unavailable(.capabilityNotEnabledByReleaseCapabilityManifest)
+                provenance: .unavailable(reason)
             )
+
+            #expect(report.provenance == .unavailable(reason))
+            #expect(report.binding.provenancePolicyID == ProvenanceSample.policyID)
+            // Permitting the lane does not let it contribute to an interpretation.
+            #expect(report.combinedSummary == nil)
+            #expect(report.apparentInconsistency == nil)
         }
     }
 
@@ -549,9 +561,13 @@ struct EvidenceCoordinatorTests {
         #expect(report.provenance == .available(evidence))
     }
 
-    @Test("A pixel-only composition joins the unavailable lane its provider resolved")
-    func pixelOnlyCompositionJoinsTheUnavailableLane() async throws {
-        let lane = await ProvenanceLaneProvider.pixelOnly.lane(for: ProvenanceSample.asset())
+    @Test("An unavailable composition joins the unavailable lane its provider resolved")
+    func unavailableCompositionJoinsTheUnavailableLane() async throws {
+        // The shipping composition's own lane: the adapter is linked and the manifest enables
+        // the capability, and there is still no analyzer, so the reason names the missing
+        // approval rather than an uncompiled validator.
+        let lane = await ProvenanceLaneProvider.enablementUnapproved
+            .lane(for: ProvenanceSample.asset())
         let lanes = try #require(
             EvidenceLaneJoin.unresolved
                 .resolving(pixel: .noStrongSignalDetected)?
@@ -565,7 +581,7 @@ struct EvidenceCoordinatorTests {
             provenance: lanes.provenance
         )
 
-        #expect(report.provenance == .unavailable(.validatorNotCompiledIntoRelease))
+        #expect(report.provenance == .unavailable(.validatorEnablementUnapproved))
         #expect(report.pixel == .noStrongSignalDetected)
         #expect(report.combinedSummary == nil)
         #expect(report.apparentInconsistency == nil)

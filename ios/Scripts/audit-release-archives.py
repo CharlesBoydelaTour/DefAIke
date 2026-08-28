@@ -10,18 +10,18 @@ any of them:
     five-package external-dependency allowlist, the 219-file production-source scan for six
     forbidden dependency classes (analytics, advertising, account, custom diagnostics,
     third-party crash reporting, network model updates), both targets' `Info.plist` and
-    entitlements key scans, and per-composition archive inspection self-attributed through
+    entitlements key scans, and archive inspection self-attributed through
     `CFBundleIdentifier`.
   * ``check-offline-privacy-archive.py`` (12.5) owns per-compiled-object symbol attribution
-    over every `.o` in both builds, the composition network asymmetry, the archive endpoint
+    over every `.o` in the build, the network capability split, the archive endpoint
     inventory, the seventh forbidden class (result persistence and export), archive-level
     model delivery, and the vendor static-archive network-stack inventory. It already runs
-    12.3 and 12.2 for both compositions.
+    12.3 and 12.2.
 
 This script **runs 12.5** — which chains the other two — and requires it to pass, ingesting
 its `--json` facts rather than re-deriving them. So the whole "analytics / advertising /
 account / crash SDK / identifier / unexpected endpoint / remote-model client /
-result-export surface / pixel-only provenance binary" half of task 14.6 is delegated, by
+result-export surface / Share Extension provenance binary" half of task 14.6 is delegated, by
 running the checks that own it. Everything below is something none of the three does:
 
   1. **A Software Bill of Materials.** CycloneDX 1.6 JSON, one document per capability
@@ -57,26 +57,23 @@ running the checks that own it. Everything below is something none of the three 
 Usage:
 
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-    for scheme in DefAIkeApp-PixelOnly DefAIkeApp-PixelPlusProvenance; do
-        xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme "$scheme" \\
-            -configuration Debug -destination 'generic/platform=iOS Simulator' \\
-            -derivedDataPath "/tmp/t146-$scheme" CODE_SIGNING_ALLOWED=NO
-    done
+    xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme DefAIkeApp \\
+        -configuration Debug -destination 'generic/platform=iOS Simulator' \\
+        -derivedDataPath /tmp/t146-DefAIkeApp CODE_SIGNING_ALLOWED=NO
     ios/Scripts/audit-release-archives.py \\
-        --pixel-only-build /tmp/t146-DefAIkeApp-PixelOnly \\
-        --provenance-build /tmp/t146-DefAIkeApp-PixelPlusProvenance \\
+        --build /tmp/t146-DefAIkeApp \\
         --sbom-directory /tmp/t146-sbom --release-input /tmp/t146-release-input.json
 
     ios/Scripts/audit-release-archives.py                    # static checks only
     ios/Scripts/audit-release-archives.py --self-test        # non-vacuity, static
     ios/Scripts/audit-release-archives.py --self-test-archives \\
-        --pixel-only-build DIR --provenance-build DIR        # non-vacuity, archives
+        --build DIR                                          # non-vacuity, archive
 
-``--pixel-only-build`` and ``--provenance-build`` take the ``-derivedDataPath`` *root*, and
-both are Debug roots because 12.5 reads `Build/Products/Debug-iphonesimulator`. Two distinct
-roots are mandatory: both schemes build `DefAIke.app` under a shared `PRODUCT_NAME`, so one
-shared path means the second build overwrites the first. Each archive is still attributed by
-its own `CFBundleIdentifier`, so a swapped pair is a finding.
+``--build`` takes the ``-derivedDataPath`` *root*, and it is a Debug root because 12.5 reads
+`Build/Products/Debug-iphonesimulator`. The archive is attributed by its own
+`CFBundleIdentifier` and cross-checked against the composition table, so a bundle built from
+some other spec — or a stale one in a shared derived-data path — is a finding rather than a
+silently wrong report.
 
 What this script does not decide. It reaches no licensing conclusion, writes no notice text,
 approves no digest baseline, and declares no distribution eligible. Requirement 14.5's notices
@@ -120,7 +117,7 @@ def _load(name: str, filename: str):
 # disagree about which bundle identifier is which composition.
 _CAPABILITY_CHECK = _load("check_capability_composition", "check-capability-composition.py")
 COMPOSITIONS = _CAPABILITY_CHECK.COMPOSITIONS
-PIXEL_ONLY, PROVENANCE = COMPOSITIONS[0], COMPOSITIONS[1]
+APP = COMPOSITIONS[0]
 BY_BUNDLE_ID = {c.bundle_identifier: c for c in COMPOSITIONS}
 
 
@@ -261,7 +258,7 @@ APPROVED_BY_IDENTITY = {package.identity: package for package in APPROVED_PACKAG
 
 # MARK: - Approved binary artifact digests
 
-# The one binary artifact either composition ships, in three layers.
+# The one binary artifact the composition ships, in three layers.
 #
 # `declaredChecksum` is the value `c2pa-swift`'s own manifest publishes for the xcframework
 # zip. Pinning it here and requiring the resolved checkout's manifest to agree is a real
@@ -455,8 +452,8 @@ def delegate_existing_audits(
     Delegation rather than duplication, and running rather than citing. Every claim about
     analytics, advertising, account, crash-reporting, custom-diagnostic, and model-update
     dependency classes, every identifier and plist-key scan, the endpoint inventory, the
-    result-export class, the pixel-only provenance-binary absence, and the offline asymmetry
-    stays owned by the script that measured it. What this adds is that a regression in any of
+    result-export class, the Share Extension's provenance-binary absence, and the offline
+    network-capability split stays owned by the script that measured it. What this adds is that a regression in any of
     them lands in *this* task's release-record input under `prohibited-capability`, instead of
     being invisible to a release record assembled only from 14.6's output.
 
@@ -472,13 +469,8 @@ def delegate_existing_audits(
         "--json",
         str(json_path),
     ]
-    if all(path is not None for path in builds.values()):
-        command += [
-            "--pixel-only-build",
-            str(builds[PIXEL_ONLY.name]),
-            "--provenance-build",
-            str(builds[PROVENANCE.name]),
-        ]
+    if builds.get(APP.name) is not None:
+        command += ["--build", str(builds[APP.name])]
     result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8")
     try:
         delegated = json.loads(json_path.read_text(encoding="utf-8"))
@@ -1685,7 +1677,7 @@ def run_archive_checks(
     report: Report,
     sbom_directory: pathlib.Path | None,
 ) -> dict[str, dict]:
-    """Inspect both archives. Both are required, because several checks compare them."""
+    """Inspect the built archive."""
     index, corpus_count = corpus_size_index(REPOSITORY, report)
     sboms: dict[str, dict] = {}
 
@@ -1704,8 +1696,9 @@ def run_archive_checks(
 
         # Self-attribution, the same way 12.3 and 12.5 do it: the artifact says which
         # composition it is, and the caller's flag is cross-checked against that rather than
-        # trusted. Both schemes build `DefAIke.app` to the same path under a shared
-        # PRODUCT_NAME, so a swapped pair of build roots must be a finding.
+        # trusted. It retains value with one composition: a bundle built from some other spec,
+        # or a stale one in a shared derived-data path, must be a finding rather than silently
+        # audited under this composition's rules.
         try:
             with (app / "Info.plist").open("rb") as handle:
                 identifier = plistlib.load(handle).get("CFBundleIdentifier", "")
@@ -1720,7 +1713,7 @@ def run_archive_checks(
                 PROHIBITED_CAPABILITY,
                 f"the archive at {products} identifies itself as {identifier!r} but was "
                 f"supplied as the {composition.name} archive, which is "
-                f"{composition.bundle_identifier!r}; the two build roots were swapped or share "
+                f"{composition.bundle_identifier!r}; the wrong build root was supplied, or it shares "
                 "one derived-data path",
             )
             continue
@@ -1948,7 +1941,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
                 expectations.append((f"corpus probe: {label}", "no corpus on disk", 0))
                 continue
             staged = staged_build_root(
-                builds[PIXEL_ONLY.name], base / f"corpus-{filename}"
+                builds[APP.name], base / f"corpus-{filename}"
             )
             app = staged / "Build" / "Products" / "Debug-iphonesimulator" / "DefAIke.app"
             shutil.copyfile(corpus_sample, app / filename)
@@ -1957,7 +1950,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
                 bundle.name: inventory_bundle(bundle) for bundle in bundles_in(app)
             }
             check_corpus_exclusion(
-                PIXEL_ONLY.name, inventories, corpus_index, corpus_count, REPOSITORY, report
+                APP.name, inventories, corpus_index, corpus_count, REPOSITORY, report
             )
             expectations.append(
                 (
@@ -1968,7 +1961,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
             )
 
         # 4. The privacy-manifest audit, against a manifest that declares tracking.
-        staged = staged_build_root(builds[PIXEL_ONLY.name], base / "privacy")
+        staged = staged_build_root(builds[APP.name], base / "privacy")
         app = staged / "Build" / "Products" / "Debug-iphonesimulator" / "DefAIke.app"
         (app / "PrivacyInfo.xcprivacy").write_bytes(
             plistlib.dumps(
@@ -1988,7 +1981,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
             )
         )
         report = Report(quiet=True)
-        check_privacy_manifests(PIXEL_ONLY.name, app, report)
+        check_privacy_manifests(APP.name, app, report)
         for expected in [
             "declares NSPrivacyTracking True",
             "declares tracking domains",
@@ -2008,7 +2001,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         # direction that never shows — and it was, once: an earlier version classified the Share
         # Extension's own manifest as third-party, which would have hidden a first-party manifest
         # that did exist.
-        staged = staged_build_root(builds[PIXEL_ONLY.name], base / "first-party-privacy")
+        staged = staged_build_root(builds[APP.name], base / "first-party-privacy")
         app = staged / "Build" / "Products" / "Debug-iphonesimulator" / "DefAIke.app"
         clean_manifest = plistlib.dumps(
             {
@@ -2022,8 +2015,8 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         for appex in sorted(app.rglob("*.appex")):
             (appex / "PrivacyInfo.xcprivacy").write_bytes(clean_manifest)
         report = Report(quiet=True)
-        check_privacy_manifests(PIXEL_ONLY.name, app, report)
-        found = report.facts.get(f"{PIXEL_ONLY.name}.firstPartyPrivacyManifests", [])
+        check_privacy_manifests(APP.name, app, report)
+        found = report.facts.get(f"{APP.name}.firstPartyPrivacyManifests", [])
         expectations.append(
             (
                 f"first-party privacy manifests in the app and the .appex are recognised {found}",
@@ -2037,11 +2030,11 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         )
 
         # 5. Module attribution, against an object no resolved package defines.
-        staged = staged_build_root(builds[PROVENANCE.name], base / "module")
+        staged = staged_build_root(builds[APP.name], base / "module")
         products = staged / "Build" / "Products" / "Debug-iphonesimulator"
         shutil.copyfile(products / "C2PA.o", products / "AnalyticsSDK.o")
         report = Report(quiet=True)
-        check_module_attribution(PROVENANCE.name, staged, report)
+        check_module_attribution(APP.name, staged, report)
         expectations.append(
             (
                 "module attribution refuses an unattributable object",
@@ -2059,12 +2052,12 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         # 6. The notice check's *passing* direction. A check that can only fail is not a check,
         # and every real run of this one fails, so the probe stages the notices it asks for and
         # requires silence.
-        staged = staged_build_root(builds[PROVENANCE.name], base / "notices")
+        staged = staged_build_root(builds[APP.name], base / "notices")
         app = staged / "Build" / "Products" / "Debug-iphonesimulator" / "DefAIke.app"
         notices = app / "Notices"
         notices.mkdir()
         report = Report(quiet=True)
-        shipped = check_module_attribution(PROVENANCE.name, staged, report)
+        shipped = check_module_attribution(APP.name, staged, report)
         for subject in [CHECKPOINT_NOTICE_SUBJECT] + sorted(shipped):
             (notices / f"{subject}-LICENSE.txt").write_text(
                 "staged by the non-vacuity probe; not an approved notice\n", encoding="utf-8"
@@ -2073,7 +2066,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
             bundle.name: inventory_bundle(bundle) for bundle in bundles_in(app)
         }
         probe = Report(quiet=True)
-        check_required_notices(PROVENANCE.name, staged, shipped, inventories, probe)
+        check_required_notices(APP.name, staged, shipped, inventories, probe)
         gaps = [m for m in probe.messages() if m.startswith(NOTICE_GAP)]
         expectations.append(
             (
@@ -2085,9 +2078,9 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
 
         # 7. The notice check's failing direction, over the real archive.
         report = Report(quiet=True)
-        shipped = check_module_attribution(PROVENANCE.name, builds[PROVENANCE.name], report)
+        shipped = check_module_attribution(APP.name, builds[APP.name], report)
         real_app = (
-            builds[PROVENANCE.name] / "Build" / "Products" / "Debug-iphonesimulator"
+            builds[APP.name] / "Build" / "Products" / "Debug-iphonesimulator"
             / "DefAIke.app"
         )
         inventories = {
@@ -2096,7 +2089,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         }
         probe = Report(quiet=True)
         check_required_notices(
-            PROVENANCE.name, builds[PROVENANCE.name], shipped, inventories, probe
+            APP.name, builds[APP.name], shipped, inventories, probe
         )
         expectations.append(
             (
@@ -2119,7 +2112,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
             }
             VENDORED_BINARY_ARTIFACT["declaredChecksum"] = "1" * 64
             report = Report(quiet=True)
-            check_binary_artifact(builds[PROVENANCE.name], report)
+            check_binary_artifact(builds[APP.name], report)
             for expected in ["digests to", "bytes, baseline", "declares checksum"]:
                 expectations.append(
                     (
@@ -2131,21 +2124,32 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         finally:
             VENDORED_BINARY_ARTIFACT = saved
 
-        # 9. Archive self-attribution: a swapped pair of build roots must be refused.
+        # 9. Archive self-attribution: a build root whose bundle identifier is not this
+        # composition's must be refused.
+        #
+        # This used to swap a pair of build roots, which one composition cannot do. A retired
+        # composition is appended to the table for the length of the probe instead, so the real
+        # archive is audited under a name that is not its own — and `pixel-only` is chosen
+        # deliberately, so this also fires if that name is ever reintroduced as a valid one.
         report = Report(quiet=True)
-        run_archive_checks(
-            {
-                PIXEL_ONLY.name: builds[PROVENANCE.name],
-                PROVENANCE.name: builds[PIXEL_ONLY.name],
-            },
-            report,
-            None,
+        COMPOSITIONS.append(
+            _CAPABILITY_CHECK.Composition(
+                name="pixel-only",
+                bundle_identifier="dev.defaike.app.retired",
+                product="DefAIkePixelOnly",
+                source_directory="PixelOnly",
+                links_validator=False,
+            )
         )
+        try:
+            run_archive_checks({**builds, "pixel-only": builds[APP.name]}, report, None)
+        finally:
+            COMPOSITIONS.pop()
         expectations.append(
             (
-                "swapped build roots are refused by self-attribution",
-                "the two build roots were swapped",
-                len([m for m in report.messages() if "the two build roots were swapped" in m]),
+                "an archive whose identifier is not this composition's is refused",
+                "the wrong build root was supplied",
+                len([m for m in report.messages() if "the wrong build root was supplied" in m]),
             )
         )
 
@@ -2153,7 +2157,7 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
         # of them vacuous at once.
         report = Report(quiet=True)
         real_app = (
-            builds[PIXEL_ONLY.name] / "Build" / "Products" / "Debug-iphonesimulator"
+            builds[APP.name] / "Build" / "Products" / "Debug-iphonesimulator"
             / "DefAIke.app"
         )
         bundle_list = bundles_in(real_app)
@@ -2187,14 +2191,9 @@ def self_test_archives(builds: dict[str, pathlib.Path]) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--pixel-only-build",
+        "--build",
         type=pathlib.Path,
-        help="the -derivedDataPath root of a Debug DefAIkeApp-PixelOnly build",
-    )
-    parser.add_argument(
-        "--provenance-build",
-        type=pathlib.Path,
-        help="the -derivedDataPath root of a Debug DefAIkeApp-PixelPlusProvenance build",
+        help="the -derivedDataPath root of a Debug DefAIkeApp build",
     )
     parser.add_argument(
         "--sbom-directory",
@@ -2222,20 +2221,14 @@ def main() -> int:
     if arguments.self_test:
         return self_test()
 
-    builds: dict[str, pathlib.Path | None] = {
-        PIXEL_ONLY.name: arguments.pixel_only_build,
-        PROVENANCE.name: arguments.provenance_build,
-    }
-    complete = all(path is not None for path in builds.values())
+    builds: dict[str, pathlib.Path | None] = {APP.name: arguments.build}
+    complete = arguments.build is not None
 
     if arguments.self_test_archives:
         if not complete:
-            print(
-                "error: --self-test-archives needs both build roots",
-                file=sys.stderr,
-            )
+            print("error: --self-test-archives needs --build", file=sys.stderr)
             return 2
-        return self_test_archives({name: path for name, path in builds.items() if path})
+        return self_test_archives({APP.name: arguments.build})
 
     report = Report()
 
@@ -2250,12 +2243,8 @@ def main() -> int:
             arguments.sbom_directory,
         )
     else:
-        print("Built archives")
-        print(
-            "  skipped: pass --pixel-only-build and --provenance-build. Both are required "
-            "together: the notice, corpus, and dependency checks are per composition, and the "
-            "binary-digest check only applies to the archive that links the validator."
-        )
+        print("Built archive")
+        print("  skipped: pass --build to inspect the built archive")
 
     if report.observations:
         print()

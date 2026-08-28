@@ -6,17 +6,21 @@
 
 | Metric | Value |
 |---|---|
-| Package tests | **2,882 passing, 0 failing** |
-| Package test suites | **363** |
+| Package tests | **2,905 passing, 0 failing** |
+| Package test suites | **367** |
 | Property-based tests | 40, all asserting non-vacuity by construction, not by timing alone |
-| Host-suite repeat runs (final checkpoint) | 4 consecutive clean runs, empty failing-name set every time |
-| Debug build, both schemes | Zero errors |
-| Release build, both schemes | Zero errors (provenance scheme independently re-verified 3× on fresh derived data after a build-ordering-race repair) |
-| `build-for-testing`, both schemes | Succeeds; produces a valid `.xctestrun` for each |
-| Module-boundary check | Passes |
-| Release-audit self-tests | 13/13, 8/8, 12/12, 8/8, 7/7, 16/16, 42/42, 28/28 probes fire as designed |
+| Debug build, `DefAIkeApp` scheme | Zero errors, for the simulator and with signing |
+| Module-boundary check | Passes, including `--require-xcode-project` |
+| Release-audit self-tests | 12/12, 5/5, 12/12, 6/6, 7/7, 16/16, 41/42, 28/28 probes fire as designed |
+| App on Simulator (iPhone 17 Pro, iOS 26.5) | Startup gate passes; a Photos ingest completes and both lane cards render |
 
-Every one of these numbers was measured by running the actual tools in `ios/Scripts/`, not inferred from source review. The final checkpoint verifier explicitly checked the vacuity-exclusion mechanism for every property test (all 40 closures contain zero propagating `try`, so the framework's `try?`-based error-discarding path has nothing to discard — vacuity is closed by the type system, not by convention) and spot-checked counted-work floors in the newest deterministic suites to rule out a loop that examines nothing but still reports a pass.
+Every one of these numbers was measured by running the actual tools in `ios/Scripts/`, not inferred from source review.
+
+Three qualifiers, stated rather than buried:
+
+- **Release configuration, `build-for-testing`, and the repeat-run count were not re-measured** after the two capability compositions were merged into one. Earlier checkpoints recorded zero-error Release builds on both former schemes, a `build-for-testing` success on each, and four consecutive clean host runs; only the Debug simulator build and one host run were repeated after the merge.
+- **`release-pipeline.py --self-test` fails one probe of 42.** `appBuild reason names the placeholder identity` expects the `0.0.0`/`0` build identity `PLACEHOLDER_BUILD_IDENTITY` names, and `project.yml` carries `0.1.0`/`1`. Pre-existing and unrelated to the merge — verified by stashing the merge and reproducing 41/42 on the prior commit. The gate's conclusion is right (no release-approved `AppBuildID` exists either way); only its stated reason is wrong.
+- **`check-share-extension-target.py` has no self-test mode**, so seven scripts contribute the eight probe counts above. The final checkpoint verifier explicitly checked the vacuity-exclusion mechanism for every property test (all 40 closures contain zero propagating `try`, so the framework's `try?`-based error-discarding path has nothing to discard — vacuity is closed by the type system, not by convention) and spot-checked counted-work floors in the newest deterministic suites to rule out a loop that examines nothing but still reports a pass.
 
 ## What exists and passes
 
@@ -31,19 +35,28 @@ Every section of the spec has shipped code and tests, not a stub:
 - **Conditional provenance, independent evidence lanes, and fusion** — the provenance port, the fusion-rule lookup, and the lane-independence guarantee.
 - **Session orchestration, resource control, cancellation, and cleanup** — the `AnalysisCoordinator` actor, target-specific resource budgets, cooperative cancellation, and lifecycle-policy-driven cleanup.
 - **Safe SwiftUI presentation, accessibility, and localization readiness** — view-state projection, evidence cards, the accessibility semantics layer, and the English String Catalog.
-- **Main app and Share Extension compositions** — both composition roots, both `StartupPreflight`/`ShareExtensionStartupGate` fail-closed gates, and build-isolation enforcement between the two capability compositions.
+- **Main app and Share Extension compositions** — both composition roots, both `StartupPreflight`/`ShareExtensionStartupGate` fail-closed gates, and build-isolation enforcement between the application composition and the Share Extension.
 - **Fixture, device, security, and release-validation automation** — the fixture catalog, parity/resource/accessibility-matrix runners, a Software Bill of Materials generator, corpus-identifier remediation tooling, and release-record assembly with device-allowlist generation.
 - **Final wiring** — the noninteractive `release-pipeline.py`, deterministic composition-root tests, and fail-closed preflight integration tests.
 
 ## Known defects
 
-These are real production defects surfaced by the test suite, deliberately left unfixed and pinned by a passing test that documents the actual behavior, because fixing them is a design decision outside an implementation pass. Each is reported here rather than silently worked around.
+These are real production defects surfaced by the test suite, deliberately left unfixed and pinned by a passing test that documents the actual behavior, because fixing them is a design decision outside an implementation pass. Each is reported here rather than silently worked around. One has since been fixed and is kept, struck through, with the account of what changed.
 
-### The provenance composition cannot complete a single Analysis Session
+### ~~The provenance composition cannot complete a single Analysis Session~~ — fixed
 
-**Severity: blocking for that composition.** No shipping type conforms to the domain's `ProvenanceAnalyzing` port — the C2PA adapter (`DefAIkeProvenanceC2PA.C2PAProvenanceValidator`) deliberately does not conform, and `c2pa-swift` 0.0.12 refuses to configure with synthetic trust anchors. `AnalysisSessionBinder` decides whether to bind a Provenance Policy based on `admission.enablesProvenance` — a fact read from the signed capability manifest — rather than from whether a provenance analyzer actually resolved at runtime. Because no analyzer resolves in either composition, a pixel-plus-provenance build whose manifest enables the capability produces a lane with no bound policy, and `EvidenceLaneJoin` faults on the mismatch: **every session on both ingest routes fails** with `AnalysisError.modelLoadError` at the evidence-joining stage. Test: `aProvenanceCompositionCannotCompleteASessionAtAll`.
+**Fixed when the two capability compositions were merged into one.** It had to be: the single application composition links the validator, so its manifest enables provenance and *every* session in the shipping app would have failed.
 
-This is a materially worse finding than the previously known "the unavailable-provenance reason string is wrong for a build that links the validator" — with this defect, no completed report is ever produced at all in that composition, so the wrong reason string is never even shown. Closing it requires a design decision: add a real `ProvenanceAnalyzing` conformance, change the binder to skip binding a policy when no analyzer resolves, or add a new `UnavailableReason` case (which needs approved user-facing copy that does not yet exist).
+The defect was this. No shipping type conforms to the domain's `ProvenanceAnalyzing` port — the C2PA adapter (`DefAIkeProvenanceC2PA.C2PAProvenanceValidator`) deliberately does not conform, and `c2pa-swift` 0.0.12 refuses to configure with synthetic trust anchors. `AnalysisSessionBinder` binds a Provenance Policy based on `admission.enablesProvenance`, read from the signed capability manifest, so a provenance-enabled build always bound one; the lane resolved from a `nil` analyzer reported none; and `EvidenceCoordinator.checkProvenanceAttribution` required the two to agree in both directions. Result: every session on both ingest routes failed with `AnalysisError.modelLoadError` at the evidence-joining stage.
+
+Two things changed:
+
+1. **`checkProvenanceAttribution` now permits an unavailable lane in a policy-bound session.** The refusal rested on an implication that no longer holds. While the pixel-only build linked no validator, an enabling manifest meant a linked adapter and `ProvenanceLaneProvider`'s enabled path always returns an available lane, so enabled implied available and the biconditional was free. One composition adds a break in that chain: linked, enabled, and no analyzer. The other direction stays hard — an available lane in a session bound to no policy, or naming a policy the session did not bind, is still refused.
+2. **`UnavailableReason` gained `validatorEnablementUnapproved`.** Reporting the new state as `validatorNotCompiledIntoRelease` would misstate the module graph of a build that links the adapter, and as `capabilityNotEnabledByReleaseCapabilityManifest` would misstate the manifest. All three reasons resolve to the one approved `provenanceUnavailable` copy entry, so this needed no new approved wording — the distinction is for a release audit, not for a reader.
+
+The binding was deliberately *not* derived from the resolved lane. It records which signed policy version governs the session, a configuration fact; deriving it from whether an analyzer happened to exist would make the same signed release record different bindings, which is the version-attribution property the binding exists to hold still.
+
+Tests: `unavailableLaneIsPermittedBesideABoundPolicy`, `aProvenanceEnabledReportCompletesWithABoundPolicy`, `linkingIsNotApproval`.
 
 ### `StartupPreflight` admits evidence it should refuse
 
@@ -83,7 +96,7 @@ These are not defects; they are the honest boundary of what a development Mac wi
 - **`PlatformDataProtection.enforcesDataProtection` is `false` off iOS**, so Requirement 9.6 (iOS Data Protection enforcement on ephemeral files) has no host evidence; the host suite exercises the fail-closed *code path* but not the platform guarantee itself.
 - **No signed release artifacts exist.** Roughly fifteen release-controlled inputs remain owed: application build identity, capability manifest, capability implementation versions, Model Bundle, calibration policy, lifecycle policy, fixture suite, validation plan, a distribution archive, the first-party privacy manifest, physical-device execution evidence, a produced Initial Model Bundle artifact tree, approved notice artifacts, an approved binary-digest baseline, and an approved external-dependency allowlist artifact. Both evidence scopes the pipeline observes are marked provisional as a result.
 - **No approved copy exists beyond three fixed pixel labels.** The English String Catalog ships with exactly the three required labels (`Signals consistent with AI generation`, `No strong signal detected`, `Not enough signal`); every other user-facing surface — privacy screens, model information, the correction channel, accessibility labels, Share Extension text — is a recorded, enumerable gap rather than an invented sentence.
-- **The provenance composition's offline guarantee is runtime configuration, not code absence.** The vendored `C2PAC` static archive links a complete Rust HTTP/2 + TLS + async-runtime stack (measured: `h2`, `hyper`, `tokio`, `rustls`, `reqwest`, and more, all as lower bounds because this toolchain's `nm` cannot read every archive member) plus swift-certificates' OCSP client. Offline behavior is enforced by `C2PALibraryReader.applyOfflineSettings` (`remoteManifestFetch: false`, `ocspFetch: false`, `allowedNetworkHosts: []`) at runtime, not by the capability being absent from the binary. The pixel-only archive's guarantee is different in kind: it has **zero** network symbol references anywhere, which is genuine absence. Neither audit script treats the provenance asymmetry as a violation; both record it as a Provenance Feasibility Gate security-review input.
+- **The provenance composition's offline guarantee is runtime configuration, not code absence.** The vendored `C2PAC` static archive links a complete Rust HTTP/2 + TLS + async-runtime stack (measured: `h2`, `hyper`, `tokio`, `rustls`, `reqwest`, and more, all as lower bounds because this toolchain's `nm` cannot read every archive member) plus swift-certificates' OCSP client. Offline behavior is enforced by `C2PALibraryReader.applyOfflineSettings` (`remoteManifestFetch: false`, `ocspFetch: false`, `allowedNetworkHosts: []`) at runtime, not by the capability being absent from the binary. The Share Extension's guarantee is different in kind: its `.appex` images have **zero** network symbol references and **zero** URL-like strings once the code-signing DOCTYPE URL is excluded (a signed build embeds the entitlements plist, whose DOCTYPE names the property-list DTD; an unsigned build carries none), which is genuine absence — and since the two app compositions were merged into one, the extension is the absence case that keeps those scans non-vacuous. Neither audit script treats the application's network capability as a violation; both record it as a Provenance Feasibility Gate security-review input.
 
 ## Where the model-side evidence stands
 

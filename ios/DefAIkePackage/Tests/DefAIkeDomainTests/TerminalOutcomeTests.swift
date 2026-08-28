@@ -103,11 +103,13 @@ struct TerminalOutcomeTests {
 
     @Test("The label and lane space is fully representable")
     func laneSpaceIsRepresentable() {
-        // Three labels crossed with two unavailable reasons and five enabled states.
+        // Three labels crossed with three unavailable reasons and five enabled states.
         // Every combination is a legitimate completed session, including an
         // insufficient pixel result beside a validated claim.
-        #expect(SessionValue.allLanes.count == 7)
-        #expect(SessionValue.allReports.count == PixelEvidence.allCases.count * 7)
+        let laneCount = UnavailableReason.allCases.count + ProvenanceCategory.allCases.count
+        #expect(laneCount == 8)
+        #expect(SessionValue.allLanes.count == laneCount)
+        #expect(SessionValue.allReports.count == PixelEvidence.allCases.count * laneCount)
     }
 
     @Test("A completed outcome is completed and nothing else",

@@ -374,6 +374,7 @@ struct MatrixHarness {
                 recorder: recorder
             ),
             provenance: ProvenanceLaneProvider.resolve(
+                linksValidator: true,
                 analyzer: analyzer,
                 policy: release.admission.configuration.provenancePolicy,
                 manifest: release.admission.configuration.capabilityManifest

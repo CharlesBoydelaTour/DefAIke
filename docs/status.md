@@ -21,7 +21,7 @@
 | Test suite | Green | 267 collected: 266 passed, one opt-in Core ML integration test skipped |
 | Quality-aware calibration / abstention | Not implemented | Research direction only; FP16 drift sets a minimum ±0.131-logit band floor |
 | iOS app specification | Complete | The `ios-app` spec's 16 sections and every checkpoint are implemented; see [iOS app documentation](ios-app/index.md) |
-| iOS app implementation | Implemented, not release-ready | 2,882 package tests passing across every spec section; two known defects and no signed release artifacts. See [Implementation status](ios-app/status.md) |
+| iOS app implementation | Implemented, not release-ready | 2,905 package tests passing across every spec section; one app composition covering both evidence lanes, remaining known defects and no signed release artifacts. See [Implementation status](ios-app/status.md) |
 | iOS device benchmark | Not started | No physical iPhone available; every device gate reports `not-executed` by design. See [Implementation status](ios-app/status.md#unverifiable-in-this-environment) |
 
 ## Decisions on record

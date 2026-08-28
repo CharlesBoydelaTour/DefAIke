@@ -130,24 +130,46 @@ public struct EvidenceCoordinator: Sendable {
 
     /// Requires the provenance lane to describe the composition the session was bound to.
     ///
-    /// A session records a Provenance Policy version exactly when its composition resolved
-    /// an available lane, so the two facts have to agree in both directions: an available
-    /// lane in a session bound to no policy would attribute a finding to nothing, and an
-    /// unavailable lane in a session bound to a policy would discard a capability the
-    /// session recorded. Where an enabled state names the policy that mapped it, that name
-    /// must be the bound one; `absent` names none, because "no Content Credential was
-    /// found" carries no policy-dependent detail.
+    /// One direction is hard and the other is not, and the asymmetry is deliberate.
+    ///
+    /// **An available lane in a session bound to no policy is refused.** Every enabled state
+    /// except `absent` names the Provenance Policy that mapped it, so a finding in an
+    /// unbound session would be attributed to nothing. Where an enabled state names a
+    /// policy, that name must be the bound one; `absent` names none, because "no Content
+    /// Credential was found" carries no policy-dependent detail.
+    ///
+    /// **An unavailable lane in a session bound to a policy is permitted**, and this used to
+    /// be refused. The refusal rested on an implication that no longer holds: while the
+    /// pixel-only build linked no validator, a manifest that enabled the capability meant a
+    /// linked adapter, and `ProvenanceLaneProvider`'s enabled path always returns an
+    /// available lane because `ProvenanceAnalyzing.analyze` cannot fail. Enabled therefore
+    /// implied available, and the biconditional was free.
+    ///
+    /// The single application composition links the validator unconditionally, which adds a
+    /// break in that chain: the manifest can enable the capability and name a policy while
+    /// no approved decision supplies an analyzer, which is
+    /// `UnavailableReason.validatorEnablementUnapproved`. Keeping the old refusal would end
+    /// every Analysis Session in that configuration with an `evidenceJoining` fault, so the
+    /// app would report an Analysis Error instead of a completed report with an honest
+    /// unavailable lane — a worse outcome than the one the rule was written to prevent.
+    ///
+    /// Nothing is discarded by permitting it. The binding records which signed policy
+    /// version governs the session, a configuration fact; the lane records what the session
+    /// produced, an outcome. An audit that reads both sees the release enabled provenance
+    /// under that policy *and* that the lane produced nothing, with the reason attached.
+    /// Deriving the binding from the lane instead would make the same signed release record
+    /// different bindings depending on whether an analyzer happened to exist, which is the
+    /// version-attribution property the binding exists to hold still.
     private func checkProvenanceAttribution(
         _ lane: ProvenanceLane
     ) throws(EvidenceJoinFault) {
         switch lane {
         case .unavailable:
-            guard binding.provenancePolicyID == nil else {
-                throw .provenanceLaneNotBoundToSession(
-                    expected: binding.provenancePolicyID,
-                    found: nil
-                )
-            }
+            // Permitted whether or not the session bound a policy. The lane's own reason is
+            // the record of why nothing was produced, and `EvidenceReport` separately
+            // refuses a Combined Summary or an inconsistency notice beside an unavailable
+            // lane, so an unavailable lane still cannot contribute to an interpretation.
+            break
         case .available(let evidence):
             guard let bound = binding.provenancePolicyID else {
                 throw .provenanceLaneNotBoundToSession(

@@ -23,26 +23,25 @@ import Foundation
 // local run produces are the real ones, loaded by the real `CoreMLPixelModelLoader` through the
 // real `BundleCompiledModelLocator`. Nothing about the inference is stubbed.
 //
-// # Why it is not bundled as a resource
+// # How it reaches the app bundle
 //
-// It is read from the repository working tree rather than copied into the app bundle, and that is
-// a deliberate choice between two imperfect options:
+// `ios/project.yml` names `../data/coreml/commfor-lowq-384.mlpackage` in the app target's
+// resource phase, in the **Debug configuration only**, and Xcode's Core ML compiler turns it
+// into `commfor-lowq-384.mlmodelc` at the bundle root. ``installedRoot`` resolves against that
+// bundle.
 //
-//   * Adding a `resources:` entry to `ios/project.yml` would make the committed project spec
-//     reference `data/`, which `.gitignore` excludes. Project generation, and then every build,
-//     would depend on a path a fresh clone does not have — so the committed spec would describe
-//     a project that cannot be generated. It would also copy 42 MB into every Debug and Release
-//     build of both compositions.
-//   * Reading it from the working tree keeps `data/` unreferenced by the Xcode project entirely,
-//     costs nothing in a Release build, and is the approach this repository already takes for the
-//     same artifact: `ApprovedCompiledPixelModel` in `DefAIkeCoreMLTests` locates it from
-//     `#filePath` for exactly this reason.
+// This was previously read from the repository working tree through `#filePath`, on the
+// reasoning that `data/` is `.gitignore`d and a committed spec must not reference a path a fresh
+// clone lacks. That reasoning had a false premise: `.gitignore` excludes the *compiled*
+// `.mlmodelc` but explicitly tracks the `.mlpackage` it is built from, with the comment "the one
+// heavy artifact we do track". A fresh clone has the model. What it lacked was a build step that
+// put it anywhere the app could read.
 //
-// The cost is that this works only where the process can read the developer's working tree,
-// which means the Simulator and nowhere else. On a physical device the location resolves to a
-// path that does not exist, `BundleCompiledModelLocator` hands the loader a missing directory,
-// and the session ends in `model-load-error` — a real Analysis Error on the error screen, which
-// is the correct fail-closed outcome rather than a fallback model.
+// The old arrangement worked on the Simulator and nowhere else: a physical device cannot read the
+// developer's working tree, so `BundleCompiledModelLocator` handed the loader a missing directory
+// and every session on device ended in `model-load-error` — a correct fail-closed outcome, and a
+// useless app. Compiling the tracked `.mlpackage` into the bundle costs nothing in git, works on
+// both, and keeps a Release build model-free.
 //
 // # What is not real
 //
@@ -68,26 +67,51 @@ enum DevelopmentModelBundle {
     /// Split from the root so `ApprovedBundleLayout` and `ModelBundleManifest` can declare the
     /// same relative path the layout resolves, which is what `BundleCompiledModelLocator`
     /// requires: it refuses a layout naming a file the manifest never declared.
-    static let compiledModelRelativePath = "coreml/commfor-lowq-384.mlmodelc"
+    ///
+    /// A bare filename with no directory component, because that is where Xcode's Core ML
+    /// compiler puts a compiled model: `commfor-lowq-384.mlpackage` in the target's resource
+    /// phase becomes `commfor-lowq-384.mlmodelc` at the bundle root.
+    static let compiledModelRelativePath = "commfor-lowq-384.mlmodelc"
 
     /// The weight blob inside the compiled model, whose digest `RequiredPixelModel` pins.
-    static let weightBlobRelativePath = "coreml/commfor-lowq-384.mlmodelc/weights/weight.bin"
+    static let weightBlobRelativePath = "commfor-lowq-384.mlmodelc/weights/weight.bin"
 
-    /// Where the bundle's declared relative paths resolve against: the repository's `data`
+    /// Where the bundle's declared relative paths resolve against: this build's own resource
     /// directory.
     ///
-    /// Derived from this file's own location rather than from a working directory or a build
-    /// setting, so it does not depend on how the process was launched. This file lives at
-    /// `<repository>/ios/DefAIkeApp/Shared/`, so four levels up is the repository root.
+    /// This used to be the repository's `data/` directory, derived from `#filePath`. That worked
+    /// on the Simulator and nowhere else — a physical device cannot read the developer's working
+    /// tree, so the locator handed the loader a missing directory and every session on device
+    /// ended in `model-load-error`. Reading from the app's own bundle works on both, which is
+    /// what makes a device build useful rather than merely installable.
     ///
-    /// `#filePath` is a compile-time string, so this is a constant baked into a DEBUG binary and
-    /// not a filesystem search. It performs no I/O and creates nothing.
-    static let installedRoot: URL = URL(fileURLWithPath: #filePath)
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
-        .appending(path: "data", directoryHint: .isDirectory)
+    /// The model reaches the bundle because `ios/project.yml` names
+    /// `../data/coreml/commfor-lowq-384.mlpackage` in this target's resource phase **in the
+    /// Debug configuration only**. Xcode's Core ML compiler turns it into
+    /// `commfor-lowq-384.mlmodelc` here. The `.mlpackage` is the form this repository already
+    /// tracks in git, so nothing new is committed to make a device build work.
+    ///
+    /// Two consequences worth stating rather than discovering:
+    ///
+    ///   * **The bundled model is recompiled by whatever Xcode built it.** Measured with Xcode
+    ///     26.6, the compiled `weights/weight.bin` is byte-identical to both
+    ///     `data/coreml/commfor-lowq-384.mlmodelc`'s and
+    ///     `RequiredPixelModel.weightDigestHexadecimal` — Core ML compilation rewrites the
+    ///     graph, not the weight blob. That is a measurement of one toolchain rather than a
+    ///     guarantee across versions, and it is not *checked* anywhere on this path: checking
+    ///     the digest is `ModelBundleActivator`'s job and this seam does not have that
+    ///     collaborator. Which is also why the digest in ``declaredArtifacts()`` stays a fixed
+    ///     pattern rather than becoming a measurement — a measurement here would look like
+    ///     verification.
+    ///   * **A Release build carries no model**, by `EXCLUDED_SOURCE_FILE_NAMES`. An unapproved
+    ///     model inside a Release archive would make the release audit's "no Core ML artifact"
+    ///     observation read as Requirement 10.1 satisfied, when no signed Initial Model Bundle
+    ///     exists. A Release build refuses at startup anyway, so it needs no model.
+    ///
+    /// `nil` is unreachable in practice — an iOS app bundle always has a resource URL — but the
+    /// fallback is the bundle root rather than a force-unwrap, because a crash here would be a
+    /// development seam taking down a build that has not even reached its startup gate.
+    static let installedRoot: URL = Bundle.main.resourceURL ?? Bundle.main.bundleURL
 
     /// The approved-layout value naming each release role's path.
     ///

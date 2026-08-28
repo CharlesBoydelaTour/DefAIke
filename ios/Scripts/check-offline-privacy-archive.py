@@ -23,20 +23,24 @@ does:
      compiled source file in both Xcode targets is attributed individually, per architecture.
      That is what turns "no DefAIke module references a network symbol" from a statement about
      eight linked blobs into a statement about every source file that reaches an archive.
-  2. **The composition asymmetry, measured and stated rather than assumed.** The pixel-only and
-     provenance archives differ in exactly this property, and the difference is the point:
-     pixel-only carries zero network symbol references anywhere, and the provenance archive's
+  2. **The network capability split, measured and stated rather than assumed.** The application
+     and its Share Extension differ in exactly this property, and the difference is the point:
+     the `.appex` images carry zero network symbol references, and the app's
      `DefAIke.debug.dylib` carries thirteen — all of them arriving with the reviewed validator.
      This script measures both sides every run and refuses to let either be a comment.
+
+     The absence half used to come from a pixel-only application archive. The two application
+     compositions were merged into one, so it comes from the extension now — the remaining
+     shipping bundle the Extension Execution Policy forbids any network code.
   3. **An endpoint inventory.** Neither existing script reads string data. This extracts every
-     URL-like string from every Mach-O image in both archives and inventories the hosts, so
+     URL-like string from every Mach-O image in the archive and inventories the hosts, so
      "no unexpected endpoint" is a measurement.
   4. **A seventh forbidden class: result persistence and export.** 12.3's six classes are
      network model updates, analytics, advertising, account, custom diagnostics, and third-party
      crash reporting. Requirements 9.14, 9.15, and 9.17 forbid a different set of things —
      pasteboard, share sheet, document export, photo-library write, archived or database result
      storage, and any write into a persistent container domain — and no existing check looks for
-     them. This one scans production sources, both plists, and both archives for their API
+     them. This one scans production sources, both plists, and the archive for their API
      surfaces.
   5. **Model-delivery evidence at the archive level (Requirements 10.20 and 10.21).** What the
      archive actually contains, what it declares, and whether any download API is attributable
@@ -51,27 +55,21 @@ does:
 Usage:
 
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-    for scheme in DefAIkeApp-PixelOnly DefAIkeApp-PixelPlusProvenance; do
-        xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme "$scheme" \\
-            -configuration Debug -destination 'generic/platform=iOS Simulator' \\
-            -derivedDataPath "/tmp/t125-$scheme" CODE_SIGNING_ALLOWED=NO
-    done
-    ios/Scripts/check-offline-privacy-archive.py \\
-        --pixel-only-build /tmp/t125-DefAIkeApp-PixelOnly \\
-        --provenance-build /tmp/t125-DefAIkeApp-PixelPlusProvenance
+    xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme DefAIkeApp \\
+        -configuration Debug -destination 'generic/platform=iOS Simulator' \\
+        -derivedDataPath /tmp/t125-DefAIkeApp CODE_SIGNING_ALLOWED=NO
+    ios/Scripts/check-offline-privacy-archive.py --build /tmp/t125-DefAIkeApp
 
-    ios/Scripts/check-offline-privacy-archive.py                 # static checks only
-    ios/Scripts/check-offline-privacy-archive.py --self-test     # non-vacuity, static
+    ios/Scripts/check-offline-privacy-archive.py                     # static checks only
+    ios/Scripts/check-offline-privacy-archive.py --self-test         # non-vacuity, static
     ios/Scripts/check-offline-privacy-archive.py --self-test-products \\
-        --pixel-only-build DIR --provenance-build DIR            # non-vacuity, archives
+        --build DIR                                                  # non-vacuity, archive
 
-``--pixel-only-build`` and ``--provenance-build`` take the ``-derivedDataPath`` *root*, not the
-products directory, because half of what this script measures lives under
-`Intermediates.noindex`. Two distinct roots are mandatory rather than convenient: both schemes
-build `DefAIke.app` under a shared `PRODUCT_NAME`, so one shared derived-data path means the
-second build overwrites the first and only one archive is inspectable. Each archive is still
-attributed by its own `CFBundleIdentifier` and cross-checked against the flag, so a swapped pair
-is a finding rather than a silently wrong report.
+``--build`` takes the ``-derivedDataPath`` *root*, not the products directory, because half of
+what this script measures lives under `Intermediates.noindex`. The archive is attributed by its
+own `CFBundleIdentifier` and cross-checked against the composition table, so a bundle built from
+some other spec — or a stale one left in a shared derived-data path — is a finding rather than a
+silently wrong report.
 
 What this script does **not** do: run an Analysis Session. A session cannot be run from a shell
 audit, and "networking unavailable" is established here by absence of the capability rather than
@@ -119,7 +117,20 @@ _CAPABILITY_CHECK = _load("check_capability_composition", "check-capability-comp
 COMPOSITIONS = _CAPABILITY_CHECK.COMPOSITIONS
 production_source_roots = _CAPABILITY_CHECK.production_source_roots
 
-PIXEL_ONLY, PROVENANCE = COMPOSITIONS[0], COMPOSITIONS[1]
+APP = COMPOSITIONS[0]
+
+# The `.appex` path prefix inside the built `.app`.
+#
+# The Share Extension is the absence case now. While two application archives shipped, the
+# pixel-only one carried zero network symbols and zero URL-like strings anywhere, and that
+# zero was the non-vacuity partner for the provenance archive's non-zero counts: a scan
+# reporting zero everywhere is indistinguishable from a broken scan. The two application
+# compositions were merged, so the pairing moved inside the one archive. The extension's
+# images are built from DefAIke objects alone and the Extension Execution Policy forbids
+# them any network or provenance code, so their zero is a real measurement — verified
+# against the built bytes, not assumed — and the app's non-zero counts in the same run are
+# what prove the scanner works.
+EXTENSION_PREFIX = "PlugIns/DefAIkeShareExtension.appex/"
 
 
 # MARK: - Symbol vocabularies
@@ -324,6 +335,23 @@ VENDOR_NETWORK_CRATES = [
 # found is honest, and a tight one that quietly drops an endpoint is not.
 URL_PATTERN = re.compile(r"(?:https?|wss?|ftp)://[A-Za-z0-9._~:/?#@!$&()*+,;=%-]+")
 
+# URLs that code signing puts in a binary, which no DefAIke source contains.
+#
+# Measured: `codesign` embeds the entitlements as an XML plist, and that plist's DOCTYPE line
+# names the property-list DTD. So a *signed* build carries this string in every image that has
+# an entitlements blob, including the Share Extension's — whose own sources contain no URL at
+# all. An unsigned build (`CODE_SIGNING_ALLOWED=NO`) carries none, which is why an earlier
+# measurement of this archive reported zero and a signed one reports one per image.
+#
+# Excluded by exact match, not by host: allowing anything under `apple.com` would let a real
+# Apple endpoint through. A DOCTYPE identifier is not an endpoint a build contacts — nothing
+# resolves it, and `allowedNetworkHosts: []` would refuse it if anything tried — but leaving it
+# in the count would make the Share Extension's absence assertion fire on every signed build,
+# and an assertion that always fires gets relaxed rather than read.
+#
+# The filtered count is reported in the inventory observation rather than dropped silently.
+SIGNING_ARTIFACT_URLS = frozenset({"http://www.apple.com/DTDs/PropertyList-1.0.dtd"})
+
 # What a plausible host looks like, applied *after* matching rather than instead of it.
 #
 # Measured: the provenance archive's `DefAIke.debug.dylib` yields 73 distinct authority strings
@@ -511,7 +539,7 @@ def delegate_to_existing_audits(
     surfaces here instead of being masked by a green run of a narrower audit.
     """
     for composition in COMPOSITIONS:
-        build_root = builds[composition.name]
+        build_root = builds.get(composition.name)
         products = (
             build_root / "Build" / "Products" / "Debug-iphonesimulator"
             if build_root
@@ -767,8 +795,8 @@ def measure_image_symbols(
 ) -> dict[str, list[str]]:
     """Count network symbol references per Mach-O image, and attribute each one.
 
-    Returns the per-image reference map so the caller can state the asymmetry between the two
-    compositions rather than assert one composition in isolation.
+    Returns the per-image reference map so the caller can state the split between the
+    application and the Share Extension rather than assert the archive in isolation.
     """
     app = products / "DefAIke.app"
     if not app.is_dir():
@@ -786,8 +814,8 @@ def measure_image_symbols(
     report.require(
         identifier == expected,
         f"the archive at {products} identifies itself as {identifier!r}, but it was supplied as "
-        f"the {composition_name} archive, which is {expected!r}; the two builds were swapped or "
-        "share one derived-data path",
+        f"the {composition_name} archive, which is {expected!r}; the wrong build was supplied "
+        "or a stale bundle is present in this derived-data path",
     )
     if identifier != expected:
         return {}
@@ -804,45 +832,64 @@ def measure_image_symbols(
     return references
 
 
-def check_composition_asymmetry(
-    pixel_only: dict[str, list[str]],
-    provenance: dict[str, list[str]],
-    provenance_build: pathlib.Path,
+def check_network_capability_split(
+    measured: dict[str, list[str]],
+    build_root: pathlib.Path,
     report: Report,
 ) -> None:
-    """State the two compositions' network-capability difference, both halves of it.
+    """State the archive's network-capability split, both halves of it.
 
-    The two archives are **not** symmetric, and a test that implied otherwise would be wrong:
+    The archive is **not** uniform, and a check that implied otherwise would be wrong:
 
-      * The **pixel-only** archive references no network symbol in any image. Its offline
-        guarantee is that the capability is absent from the shipped bytes.
-      * The **provenance-enabled** archive statically links the reviewed validator, and the
+      * The **Share Extension**'s images reference no network symbol at all. Its offline
+        guarantee is that the capability is absent from the shipped bytes, which the
+        Extension Execution Policy requires (Requirement 2.6).
+      * The **application**'s main image statically links the reviewed validator, and the
         validator brings a network client with it. So its offline guarantee rests on
         `C2PALibraryReader.applyOfflineSettings` — `remoteManifestFetch: false`,
         `ocspFetch: false`, `allowedNetworkHosts: []` — at **runtime**, not on absence.
 
     Neither is a violation of this task, and the second is not a violation of 12.3's
     "remove the dependency" clause either: nothing DefAIke wrote added it, and removing it
-    means removing the reviewed validator. What this check requires is that the asymmetry be
-    measured and attributed every run — that pixel-only really is empty, that every provenance
-    reference really is attributable to a non-AI-Buster object, and that the difference is
-    recorded as a Provenance Feasibility Gate input rather than described in a comment.
+    means removing the reviewed validator. What this check requires is that the split be
+    measured and attributed every run — that the extension really is empty, that every
+    application reference really is attributable to a non-AI-Buster object, and that the
+    difference is recorded as a Provenance Feasibility Gate input rather than described in a
+    comment.
+
+    This used to compare two application archives. It compares two bundles inside one archive
+    now, for the reason `EXTENSION_PREFIX` records: the asymmetry is what makes the
+    measurement non-vacuous, and it had to be found somewhere real after the merge.
     """
-    pixel_total = sum(len(symbols) for symbols in pixel_only.values())
-    provenance_total = sum(len(symbols) for symbols in provenance.values())
+    extension = {
+        image: symbols
+        for image, symbols in measured.items()
+        if image.startswith(EXTENSION_PREFIX)
+    }
+    application = {
+        image: symbols
+        for image, symbols in measured.items()
+        if not image.startswith(EXTENSION_PREFIX)
+    }
 
     report.require(
-        pixel_total == 0,
-        f"offline: the pixel-only archive references {pixel_total} network symbol(s): "
-        + json.dumps({k: v for k, v in pixel_only.items() if v}, sort_keys=True)
-        + "; a pixel-only build must carry no transmission capability at all",
+        bool(extension),
+        f"offline: no Share Extension image was found under {EXTENSION_PREFIX}; without it "
+        "the application's network-symbol counts have no absence case to be measured against",
+    )
+    extension_total = sum(len(symbols) for symbols in extension.values())
+    report.require(
+        extension_total == 0,
+        f"offline: the Share Extension references {extension_total} network symbol(s): "
+        + json.dumps({k: v for k, v in extension.items() if v}, sort_keys=True)
+        + "; the Share Extension must carry no transmission capability at all",
     )
 
-    # The provenance side is attributed, not asserted away. Every referenced symbol must belong
-    # to a dependency object or to the linked static archive; one belonging to an DefAIke
-    # object would be this task's finding rather than the gate's input.
-    products = provenance_build / "Build" / "Products" / "Debug-iphonesimulator"
-    referenced = sorted({symbol for symbols in provenance.values() for symbol in symbols})
+    # The application side is attributed, not asserted away. Every referenced symbol must
+    # belong to a dependency object or to the linked static archive; one belonging to an
+    # DefAIke object would be this task's finding rather than the gate's input.
+    products = build_root / "Build" / "Products" / "Debug-iphonesimulator"
+    referenced = sorted({symbol for symbols in application.values() for symbol in symbols})
     attribution: dict[str, list[str]] = {}
     for symbol in referenced:
         owners: set[str] = set()
@@ -860,28 +907,29 @@ def check_composition_asymmetry(
     }
     report.require(
         not defaike_owned,
-        "offline: the provenance archive references network symbols from DefAIke modules "
+        "offline: the application references network symbols from DefAIke modules "
         + json.dumps(defaike_owned, sort_keys=True)
         + "; a reference from DefAIke's own code is a violation rather than a supply-chain fact",
     )
 
+    application_total = sum(len(symbols) for symbols in application.values())
     unattributed = sorted(symbol for symbol, owners in attribution.items() if not owners)
     report.observe(
-        "composition-network-asymmetry",
-        requirements=["6.8", "9.2", "9.3", "10.19", "10.20", "10.21"],
-        pixelOnlyNetworkSymbolReferences=pixel_total,
-        provenanceNetworkSymbolReferences=provenance_total,
-        provenanceImages={k: v for k, v in provenance.items() if v},
+        "network-capability-split",
+        requirements=["2.6", "6.8", "9.2", "9.3", "10.19", "10.20", "10.21"],
+        shareExtensionNetworkSymbolReferences=extension_total,
+        applicationNetworkSymbolReferences=application_total,
+        applicationImages={k: v for k, v in application.items() if v},
         attributedTo=attribution,
         unattributedToAnyProductsObject=unattributed,
-        pixelOnlyGuarantee="the capability is absent from the shipped bytes",
-        provenanceGuarantee=(
+        shareExtensionGuarantee="the capability is absent from the shipped bytes",
+        applicationGuarantee=(
             "the capability is present in the shipped bytes and suppressed at runtime by "
             "C2PALibraryReader.applyOfflineSettings (remoteManifestFetch: false, "
             "ocspFetch: false, allowedNetworkHosts: [])"
         ),
         alsoLinked=(
-            "The provenance build additionally compiles swift-certificates' OCSP client "
+            "The application additionally compiles swift-certificates' OCSP client "
             "(OCSPPolicy, OCSPRequest, OCSPResponse, BasicOCSPResponse) and its "
             "TrustRootLoading, plus WebServiceSigner, KeychainSigner, and "
             "SecureEnclaveSigner from c2pa-swift. None is referenced by any DefAIke "
@@ -895,14 +943,15 @@ def check_composition_asymmetry(
             "C2PAC static archive, which is not published to the products directory."
         ),
     )
-    report.facts["pixelOnlyNetworkSymbolReferences"] = pixel_total
-    report.facts["provenanceNetworkSymbolReferences"] = provenance_total
+    report.facts["shareExtensionNetworkSymbolReferences"] = extension_total
+    report.facts["applicationNetworkSymbolReferences"] = application_total
     report.say(
-        f"  asymmetry: pixel-only {pixel_total} network symbol reference(s), "
-        f"provenance {provenance_total}, none attributable to an DefAIke module"
+        f"  split: Share Extension {extension_total} network symbol reference(s), "
+        f"application {application_total}, none attributable to an DefAIke module"
     )
     report.say(
-        f"  provenance references attributed to {sorted({o for v in attribution.values() for o in v})}"
+        f"  application references attributed to "
+        f"{sorted({o for v in attribution.values() for o in v})}"
         f"; unattributable to a products object: {unattributed}"
     )
 
@@ -931,6 +980,7 @@ def check_endpoints(
 
     named_hosts: dict[str, list[str]] = {}
     unparseable: dict[str, int] = {}
+    signing_artifacts_per_image: dict[str, int] = {}
     for image in mach_o_images(app):
         try:
             text = image_strings(image)
@@ -938,9 +988,14 @@ def check_endpoints(
             report.fail(f"{composition_name}: {image.name}: strings failed: {error}")
             continue
         relative = str(image.relative_to(app))
+        matches = URL_PATTERN.findall(text)
+        signing_artifacts = sum(1 for match in matches if match in SIGNING_ARTIFACT_URLS)
+        if signing_artifacts:
+            signing_artifacts_per_image[relative] = signing_artifacts
         authorities = {
             match.split("//", 1)[1].split("/", 1)[0].split(":", 1)[0]
-            for match in URL_PATTERN.findall(text)
+            for match in matches
+            if match not in SIGNING_ARTIFACT_URLS
         }
         hosts = sorted(a for a in authorities if PLAUSIBLE_HOST.match(a))
         # The raw match count, not the plausible-host count, is what the pixel-only assertion
@@ -959,18 +1014,22 @@ def check_endpoints(
         composition=composition_name,
         requirements=["9.2", "9.3", "10.21"],
         urlLikeAuthoritiesPerImage=hosts_per_image,
+        codeSigningDoctypeUrlsExcluded=signing_artifacts_per_image,
         namedHosts=named_hosts,
         unparseableAuthorities=unparseable,
         note=(
             "A URL-like string is not an endpoint a build contacts. The pattern is loose on "
             "purpose; `namedHosts` lists every match shaped like a hostname and "
-            "`unparseableAuthorities` counts the rest rather than dropping them. In the "
-            "provenance archive the named hosts are C2PA, XMP, IPTC, and schema.org "
-            "specification namespaces plus vendor diagnostic URLs, all carried inside the "
-            "reviewed validator; the unparseable remainder is Brotli and Zstandard built-in "
-            "dictionary text, which contains compressed English web content. The pixel-only "
-            "archive contains zero of either. The hostname filter is a heuristic and says so: "
-            "seven of the provenance archive's named hosts (`www.years`, `www.css`, and "
+            "`unparseableAuthorities` counts the rest rather than dropping them. In this "
+            "archive the named hosts are C2PA, XMP, IPTC, and schema.org specification "
+            "namespaces plus vendor diagnostic URLs, all carried inside the reviewed "
+            "validator; the unparseable remainder is Brotli and Zstandard built-in "
+            "dictionary text, which contains compressed English web content. The Share "
+            "Extension's images contain zero of either once the code-signing DOCTYPE URL is "
+            "excluded — see codeSigningDoctypeUrlsExcluded and SIGNING_ARTIFACT_URLS — which is "
+            "the absence case that keeps this scan non-vacuous. The hostname filter is a "
+            "heuristic and says so: seven of "
+            "the application's named hosts (`www.years`, `www.css`, and "
             "similar) are dictionary fragments that happen to be shaped like hostnames. The "
             "filter is deliberately not tightened further, because a tighter one risks dropping "
             "a real endpoint, and the assertion this inventory supports runs on the raw count."
@@ -985,20 +1044,36 @@ def check_endpoints(
     return hosts_per_image
 
 
-def check_pixel_only_has_no_endpoint(hosts_per_image: dict[str, int], report: Report) -> None:
-    """Require the pixel-only archive to contain no URL-like string in any image.
+def check_share_extension_has_no_endpoint(
+    hosts_per_image: dict[str, int], report: Report
+) -> None:
+    """Require the Share Extension's images to contain no URL-like string.
 
-    Measured, not hoped for: every image in the pixel-only archive contains zero. That makes it
-    the non-vacuity partner for the provenance inventory — a scan that reported zero everywhere
-    would be indistinguishable from a broken scan, and the provenance archive's non-zero count
-    in the same run rules that out.
+    Measured, not hoped for: every `.appex` image contains zero. That makes it the non-vacuity
+    partner for the application inventory — a scan reporting zero everywhere would be
+    indistinguishable from a broken scan, and the application's non-zero count in the same run
+    rules that out.
+
+    This ran on a pixel-only application archive before the two compositions were merged. The
+    extension is the shipping bundle that still provably names no endpoint, so the pairing moved
+    there rather than being dropped.
     """
-    offending = {image: count for image, count in hosts_per_image.items() if count}
+    extension = {
+        image: count
+        for image, count in hosts_per_image.items()
+        if image.startswith(EXTENSION_PREFIX)
+    }
+    report.require(
+        bool(extension),
+        f"offline: no Share Extension image was found under {EXTENSION_PREFIX}; without it the "
+        "application's URL-string inventory has no absence case to be measured against",
+    )
+    offending = {image: count for image, count in extension.items() if count}
     report.require(
         not offending,
-        "offline: the pixel-only archive contains URL-like strings "
+        "offline: the Share Extension contains URL-like strings "
         + json.dumps(offending, sort_keys=True)
-        + "; a pixel-only build names no endpoint at all",
+        + "; the Share Extension names no endpoint at all",
     )
 
 
@@ -1019,11 +1094,17 @@ def check_model_delivery(
       * the **negative** half of 10.21, which this build satisfies: no download API is
         attributable to `DefAIkeModelBundle`, and neither `Info.plist` declares an update
         endpoint, a background-refresh identifier, or a resource-request tag; and
-      * the **positive** half of 10.1 and 10.20, which this build does **not** yet satisfy,
-        because no Model Bundle artifact is inside either archive at all. That is recorded as a
-        gap observation rather than silently passed, and rather than reported as a 12.5
-        violation: producing and embedding a signed Initial Model Bundle is task 14.5's and the
-        release process's, not this audit's.
+      * the **positive** half of 10.1 and 10.20, which this build does **not** satisfy. That is
+        recorded as a gap observation rather than silently passed, and rather than reported as a
+        12.5 violation: producing and embedding a signed Initial Model Bundle is task 14.5's and
+        the release process's, not this audit's.
+
+        Two shapes of that gap, and both are observed rather than either being a pass. A Release
+        archive carries no Core ML artifact at all (`bundled-model-absent`). A Debug archive
+        carries the *development* model `ios/project.yml` compiles into it, which is an
+        unverified `.mlpackage` behind a fabricated activation receipt
+        (`bundled-model-unverified`). Bytes being present is not the claim 10.1 makes; a signed
+        manifest and a measured activation receipt are, and neither exists.
     """
     products = build_root / "Build" / "Products" / "Debug-iphonesimulator"
     app = products / "DefAIke.app"
@@ -1063,7 +1144,37 @@ def check_model_delivery(
             "10.1's positive claim is unestablishable from these bytes (observation)"
         )
     else:
-        report.say(f"  {composition_name}: bundled Core ML artifacts {artifacts}")
+        # A Core ML artifact being present does NOT retire the 10.1 gap, and this branch exists
+        # so that cannot be misread. A Debug build carries the development model
+        # `ios/project.yml` compiles into it — an unverified `.mlpackage` behind a fabricated
+        # activation receipt, `EXCLUDED_SOURCE_FILE_NAMES`-excluded from Release for exactly this
+        # reason. Requirement 10.1 wants a *signed* Initial Model Bundle whose digests
+        # `ModelBundleActivator` measured, and no such artifact exists.
+        #
+        # So the presence of bytes is recorded as what it is: a development model, not evidence.
+        # The distinguishing observable is the absence of an activation receipt or signed manifest
+        # alongside it, which is what `manifests` collects.
+        report.observe(
+            "bundled-model-unverified",
+            composition=composition_name,
+            requirements=["10.1", "10.3", "10.20"],
+            coreMLArtifacts=artifacts,
+            bundleLikeFiles=manifests,
+            note=(
+                "This archive carries a Core ML artifact, and that does not establish "
+                "Requirement 10.1. A Debug build compiles the development model named in "
+                "ios/project.yml into the bundle so a physical-device build can run inference "
+                "at all; it is an unverified model behind a fabricated activation receipt, and "
+                "it is excluded from Release. 10.1 wants a signed Initial Model Bundle whose "
+                "artifact digests ModelBundleActivator measured against a verified manifest, "
+                "and none exists. The absence of any activation receipt or signed model manifest "
+                "beside these bytes — see bundleLikeFiles — is what distinguishes the two."
+            ),
+        )
+        report.say(
+            f"  {composition_name}: bundled Core ML artifacts {artifacts}; development model, "
+            "not an approved Initial Model Bundle (observation)"
+        )
     report.facts[f"{composition_name}.bundledCoreMLArtifacts"] = artifacts
 
     # The negative half: no download API from the module that would perform an update.
@@ -1214,46 +1325,25 @@ def run_static_checks(root: pathlib.Path, report: Report) -> None:
     check_result_persistence_declarations(root, report)
 
 
-def run_product_checks(
-    builds: dict[str, pathlib.Path], report: Report
-) -> None:
-    report.say("Per-compiled-object attribution")
-    for composition in COMPOSITIONS:
-        check_object_attribution(composition.name, builds[composition.name], report)
+def run_product_checks(build: pathlib.Path, report: Report) -> None:
+    products = build / "Build" / "Products" / "Debug-iphonesimulator"
 
-    report.say("Composition network asymmetry")
-    measured = {
-        composition.name: measure_image_symbols(
-            composition.name,
-            builds[composition.name] / "Build" / "Products" / "Debug-iphonesimulator",
-            report,
-        )
-        for composition in COMPOSITIONS
-    }
-    check_composition_asymmetry(
-        measured[PIXEL_ONLY.name],
-        measured[PROVENANCE.name],
-        builds[PROVENANCE.name],
-        report,
-    )
+    report.say("Per-compiled-object attribution")
+    check_object_attribution(APP.name, build, report)
+
+    report.say("Network capability split")
+    measured = measure_image_symbols(APP.name, products, report)
+    check_network_capability_split(measured, build, report)
 
     report.say("Endpoint inventory")
-    hosts = {
-        composition.name: check_endpoints(
-            composition.name,
-            builds[composition.name] / "Build" / "Products" / "Debug-iphonesimulator",
-            report,
-        )
-        for composition in COMPOSITIONS
-    }
-    check_pixel_only_has_no_endpoint(hosts[PIXEL_ONLY.name], report)
+    hosts = check_endpoints(APP.name, products, report)
+    check_share_extension_has_no_endpoint(hosts, report)
 
     report.say("Model delivery")
-    for composition in COMPOSITIONS:
-        check_model_delivery(composition.name, builds[composition.name], report)
+    check_model_delivery(APP.name, build, report)
 
     report.say("Vendor static archive")
-    check_vendor_network_stack(builds[PROVENANCE.name], report)
+    check_vendor_network_stack(build, report)
 
 
 # MARK: - Non-vacuity self-tests
@@ -1369,7 +1459,7 @@ def self_test() -> int:
     return 0
 
 
-def self_test_products(builds: dict[str, pathlib.Path]) -> int:
+def self_test_products(build: pathlib.Path) -> int:
     """Prove every archive check can fail, by pointing it at things known to be present.
 
     A planted violation cannot be used here: producing an archive that references a pasteboard
@@ -1381,28 +1471,29 @@ def self_test_products(builds: dict[str, pathlib.Path]) -> int:
     print("Non-vacuity self-test (archives)")
     expectations: list[tuple[str, str, int]] = []
 
+    products = build / "Build" / "Products" / "Debug-iphonesimulator"
+
     saved_network = NETWORK_SYMBOLS
     saved_persistence = PERSISTENCE_EXPORT_SYMBOLS
     try:
         # 1. Object attribution, against a symbol every compiled Swift object references.
         NETWORK_SYMBOLS = ["swift_release"]
         PERSISTENCE_EXPORT_SYMBOLS = []
-        for composition in COMPOSITIONS:
-            report = Report(quiet=True)
-            check_object_attribution(composition.name, builds[composition.name], report)
-            expectations.append(
-                (
-                    f"object attribution sees a real symbol in {composition.name}",
-                    "references the network symbol swift_release",
-                    len([f for f in report.findings if "swift_release" in f]),
-                )
+        report = Report(quiet=True)
+        check_object_attribution(APP.name, build, report)
+        expectations.append(
+            (
+                "object attribution sees a real symbol",
+                "references the network symbol swift_release",
+                len([f for f in report.findings if "swift_release" in f]),
             )
+        )
 
         # 2. The persistence vocabulary, over the same objects.
         NETWORK_SYMBOLS = []
         PERSISTENCE_EXPORT_SYMBOLS = ["swift_retain"]
         report = Report(quiet=True)
-        check_object_attribution(PIXEL_ONLY.name, builds[PIXEL_ONLY.name], report)
+        check_object_attribution(APP.name, build, report)
         expectations.append(
             (
                 "persistence vocabulary sees a real symbol",
@@ -1414,63 +1505,71 @@ def self_test_products(builds: dict[str, pathlib.Path]) -> int:
         NETWORK_SYMBOLS = saved_network
         PERSISTENCE_EXPORT_SYMBOLS = saved_persistence
 
-    # 3. The pixel-only network assertion, held to the provenance archive's images.
+    # 3. The Share Extension network assertion, held to the application's images.
+    #
+    # The probe relabels every image as an extension image, so the assertion that used to be
+    # aimed at a validator-free archive is aimed at the one that links the validator. It has to
+    # fire, or the extension's zero is a scan that measures nothing.
     report = Report(quiet=True)
-    provenance_images = measure_image_symbols(
-        PROVENANCE.name,
-        builds[PROVENANCE.name] / "Build" / "Products" / "Debug-iphonesimulator",
-        report,
-    )
+    measured = measure_image_symbols(APP.name, products, report)
+    relabelled = {
+        f"{EXTENSION_PREFIX}{image}": symbols for image, symbols in measured.items()
+    }
     probe = Report(quiet=True)
-    check_composition_asymmetry(
-        provenance_images, provenance_images, builds[PROVENANCE.name], probe
-    )
+    check_network_capability_split(relabelled, build, probe)
     expectations.append(
         (
-            "the pixel-only network assertion refuses the provenance archive's images",
-            "the pixel-only archive references",
-            len([f for f in probe.findings if "the pixel-only archive references" in f]),
+            "the Share Extension network assertion refuses the application's images",
+            "the Share Extension references",
+            len([f for f in probe.findings if "the Share Extension references" in f]),
         )
     )
 
-    # 4. The endpoint assertion, held to the provenance archive's strings.
+    # 4. The endpoint assertion, held to the application's strings, the same way.
     probe = Report(quiet=True)
-    provenance_hosts = check_endpoints(
-        PROVENANCE.name,
-        builds[PROVENANCE.name] / "Build" / "Products" / "Debug-iphonesimulator",
-        probe,
-    )
+    hosts = check_endpoints(APP.name, products, probe)
     endpoint_probe = Report(quiet=True)
-    check_pixel_only_has_no_endpoint(provenance_hosts, endpoint_probe)
+    check_share_extension_has_no_endpoint(
+        {f"{EXTENSION_PREFIX}{image}": count for image, count in hosts.items()},
+        endpoint_probe,
+    )
     expectations.append(
         (
-            "the endpoint assertion refuses the provenance archive's strings",
+            "the endpoint assertion refuses the application's strings",
             "contains URL-like strings",
             len([f for f in endpoint_probe.findings if "contains URL-like strings" in f]),
         )
     )
 
-    # 5. Archive attribution: each archive must refuse the other composition's name.
-    for composition, other in [(PIXEL_ONLY, PROVENANCE), (PROVENANCE, PIXEL_ONLY)]:
-        probe = Report(quiet=True)
-        measure_image_symbols(
-            other.name,
-            builds[composition.name] / "Build" / "Products" / "Debug-iphonesimulator",
-            probe,
+    # 5. Archive attribution: the archive must refuse a name that is not its own. `pixel-only`
+    # is the retired composition, so this also fails loudly if that name is reintroduced.
+    probe = Report(quiet=True)
+    COMPOSITIONS.append(
+        _CAPABILITY_CHECK.Composition(
+            name="pixel-only",
+            bundle_identifier="dev.defaike.app.retired",
+            product="DefAIkePixelOnly",
+            source_directory="PixelOnly",
+            links_validator=False,
         )
-        expectations.append(
-            (
-                f"the {composition.name} archive refuses the name {other.name}",
-                "the two builds were swapped",
-                len([f for f in probe.findings if "the two builds were swapped" in f]),
-            )
+    )
+    try:
+        measure_image_symbols("pixel-only", products, probe)
+    finally:
+        COMPOSITIONS.pop()
+    expectations.append(
+        (
+            "the archive refuses the name pixel-only",
+            "the wrong build was supplied",
+            len([f for f in probe.findings if "the wrong build was supplied" in f]),
         )
+    )
 
     # 6. Model-delivery attribution. The probe is inverted relative to the others: rather than
     # requiring a finding, it requires the *absence* of the "no DefAIkeModelBundle objects"
     # finding, because that finding is precisely what a vacuous model-update scan would produce.
     report = Report(quiet=True)
-    check_model_delivery(PIXEL_ONLY.name, builds[PIXEL_ONLY.name], report)
+    check_model_delivery(APP.name, build, report)
     expectations.append(
         (
             "model-delivery scan found DefAIkeModelBundle objects to examine",
@@ -1497,14 +1596,9 @@ def self_test_products(builds: dict[str, pathlib.Path]) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--pixel-only-build",
+        "--build",
         type=pathlib.Path,
-        help="the -derivedDataPath root of an DefAIkeApp-PixelOnly build",
-    )
-    parser.add_argument(
-        "--provenance-build",
-        type=pathlib.Path,
-        help="the -derivedDataPath root of an DefAIkeApp-PixelPlusProvenance build",
+        help="the -derivedDataPath root of a DefAIkeApp build",
     )
     parser.add_argument("--json", type=pathlib.Path, help="write findings and facts to a file")
     parser.add_argument(
@@ -1522,17 +1616,14 @@ def main() -> int:
     if arguments.self_test:
         return self_test()
 
-    builds: dict[str, pathlib.Path | None] = {
-        PIXEL_ONLY.name: arguments.pixel_only_build,
-        PROVENANCE.name: arguments.provenance_build,
-    }
-    complete = all(path is not None for path in builds.values())
+    builds: dict[str, pathlib.Path | None] = {APP.name: arguments.build}
+    complete = arguments.build is not None
 
     if arguments.self_test_products:
         if not complete:
-            print("error: --self-test-products needs both build roots", file=sys.stderr)
+            print("error: --self-test-products needs --build", file=sys.stderr)
             return 2
-        return self_test_products({name: path for name, path in builds.items() if path})
+        return self_test_products(arguments.build)
 
     report = Report()
 
@@ -1541,14 +1632,10 @@ def main() -> int:
     run_static_checks(IOS, report)
 
     if complete:
-        run_product_checks({name: path for name, path in builds.items() if path}, report)
+        run_product_checks(arguments.build, report)
     else:
-        print("Built archives")
-        print(
-            "  skipped: pass --pixel-only-build and --provenance-build to inspect both "
-            "archives. Both are required together, because every archive claim this script "
-            "makes is a comparison between the two compositions."
-        )
+        print("Built archive")
+        print("  skipped: pass --build to inspect the built archive")
 
     if report.observations:
         print()

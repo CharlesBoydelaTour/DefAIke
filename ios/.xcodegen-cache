@@ -3,6 +3,10 @@
 
 # SPEC
 {
+  "configFiles" : {
+    "Debug" : "Local.xcconfig",
+    "Release" : "Local.xcconfig"
+  },
   "configs" : {
     "Debug" : "debug",
     "Release" : "release"
@@ -24,7 +28,7 @@
     }
   },
   "schemes" : {
-    "DefAIkeApp-PixelOnly" : {
+    "DefAIkeApp" : {
       "analyze" : {
         "config" : "Debug"
       },
@@ -33,8 +37,8 @@
       },
       "build" : {
         "targets" : {
-          "DefAIkeApp-PixelOnly" : "all",
-          "DefAIkeShareExtension-PixelOnly" : "all"
+          "DefAIkeApp" : "all",
+          "DefAIkeShareExtension" : "all"
         }
       },
       "profile" : {
@@ -47,36 +51,8 @@
         "config" : "Debug",
         "gatherCoverageData" : true,
         "targets" : [
-          "DefAIkeDeviceValidationTests-PixelOnly",
-          "DefAIkeUITests-PixelOnly"
-        ]
-      }
-    },
-    "DefAIkeApp-PixelPlusProvenance" : {
-      "analyze" : {
-        "config" : "Debug"
-      },
-      "archive" : {
-        "config" : "Release"
-      },
-      "build" : {
-        "targets" : {
-          "DefAIkeApp-PixelPlusProvenance" : "all",
-          "DefAIkeShareExtension-PixelPlusProvenance" : "all"
-        }
-      },
-      "profile" : {
-        "config" : "Release"
-      },
-      "run" : {
-        "config" : "Debug"
-      },
-      "test" : {
-        "config" : "Debug",
-        "gatherCoverageData" : true,
-        "targets" : [
-          "DefAIkeDeviceValidationTests-PixelPlusProvenance",
-          "DefAIkeUITests-PixelPlusProvenance"
+          "DefAIkeDeviceValidationTests",
+          "DefAIkeUITests"
         ]
       }
     }
@@ -86,7 +62,7 @@
       "CODE_SIGN_STYLE" : "Automatic",
       "CURRENT_PROJECT_VERSION" : "1",
       "DEAD_CODE_STRIPPING" : true,
-      "DEVELOPMENT_TEAM" : "",
+      "DEVELOPMENT_TEAM" : "$(DEFAIKE_LOCAL_DEVELOPMENT_TEAM)",
       "ENABLE_USER_SCRIPT_SANDBOXING" : true,
       "IPHONEOS_DEPLOYMENT_TARGET" : "17.0",
       "MARKETING_VERSION" : "0.1.0",
@@ -110,113 +86,36 @@
     }
   },
   "targets" : {
-    "DefAIkeApp-PixelOnly" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app",
-        "appGroupID" : "group.dev.defaike.app",
-        "composition" : "PixelOnly",
-        "compositionDirectory" : "PixelOnly",
-        "compositionProduct" : "DefAIkePixelOnly"
-      },
-      "templates" : [
-        "App"
-      ]
-    },
-    "DefAIkeApp-PixelPlusProvenance" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app.provenance",
-        "appGroupID" : "group.dev.defaike.app.provenance",
-        "composition" : "PixelPlusProvenance",
-        "compositionDirectory" : "PixelPlusProvenance",
-        "compositionProduct" : "DefAIkePixelPlusProvenance"
-      },
-      "templates" : [
-        "App"
-      ]
-    },
-    "DefAIkeDeviceValidationTests-PixelOnly" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app",
-        "composition" : "PixelOnly"
-      },
-      "templates" : [
-        "DeviceValidationTests"
-      ]
-    },
-    "DefAIkeDeviceValidationTests-PixelPlusProvenance" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app.provenance",
-        "composition" : "PixelPlusProvenance"
-      },
-      "templates" : [
-        "DeviceValidationTests"
-      ]
-    },
-    "DefAIkeShareExtension-PixelOnly" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app",
-        "appGroupID" : "group.dev.defaike.app"
-      },
-      "templates" : [
-        "ShareExtension"
-      ]
-    },
-    "DefAIkeShareExtension-PixelPlusProvenance" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app.provenance",
-        "appGroupID" : "group.dev.defaike.app.provenance"
-      },
-      "templates" : [
-        "ShareExtension"
-      ]
-    },
-    "DefAIkeUITests-PixelOnly" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app",
-        "composition" : "PixelOnly"
-      },
-      "templates" : [
-        "UITests"
-      ]
-    },
-    "DefAIkeUITests-PixelPlusProvenance" : {
-      "templateAttributes" : {
-        "appBundleID" : "dev.defaike.app.provenance",
-        "composition" : "PixelPlusProvenance"
-      },
-      "templates" : [
-        "UITests"
-      ]
-    }
-  },
-  "targetTemplates" : {
-    "App" : {
+    "DefAIkeApp" : {
       "dependencies" : [
         {
           "package" : "DefAIkePackage",
-          "product" : "${compositionProduct}"
+          "product" : "DefAIkeAppKit"
         },
         {
-          "target" : "DefAIkeShareExtension-${composition}"
+          "target" : "DefAIkeShareExtension"
         }
       ],
       "platform" : "iOS",
       "settings" : {
         "base" : {
           "CODE_SIGN_ENTITLEMENTS" : "DefAIkeApp\/Support\/DefAIkeApp.entitlements",
-          "DEFAIKE_APP_GROUP_ID" : "${appGroupID}",
+          "DEFAIKE_APP_GROUP_ID" : "group.$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app",
           "INFOPLIST_FILE" : "DefAIkeApp\/Support\/Info.plist",
-          "PRODUCT_BUNDLE_IDENTIFIER" : "${appBundleID}",
+          "PRODUCT_BUNDLE_IDENTIFIER" : "$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app",
           "PRODUCT_NAME" : "DefAIke",
           "TARGETED_DEVICE_FAMILY" : "1"
         },
         "configs" : {
           "Debug" : {
-            "DEFAIKE_APP_BUILD_ID" : "build.local-development.${composition}",
-            "DEFAIKE_CAPABILITY_MANIFEST_ID" : "manifest.local-development.${composition}",
-            "DEFAIKE_EMBEDDED_MODEL_BUNDLE_ID" : "bundle.local-development.${composition}",
+            "DEFAIKE_APP_BUILD_ID" : "build.local-development",
+            "DEFAIKE_CAPABILITY_MANIFEST_ID" : "manifest.local-development",
+            "DEFAIKE_EMBEDDED_MODEL_BUNDLE_ID" : "bundle.local-development",
             "DEFAIKE_PIXEL_ANALYSIS_IMPLEMENTATION_VERSION" : "1.0.0",
-            "DEFAIKE_VERDICT_COPY_CATALOG_ID" : "catalog.local-development.${composition}.verdict-copy"
+            "DEFAIKE_VERDICT_COPY_CATALOG_ID" : "catalog.local-development.verdict-copy"
+          },
+          "Release" : {
+            "EXCLUDED_SOURCE_FILE_NAMES" : "commfor-lowq-384.mlpackage"
           }
         }
       },
@@ -225,23 +124,23 @@
           "path" : "DefAIkeApp\/Shared"
         },
         {
-          "path" : "DefAIkeApp\/${compositionDirectory}"
-        },
-        {
           "buildPhase" : "none",
           "path" : "DefAIkeApp\/Support\/Info.plist"
         },
         {
           "buildPhase" : "none",
           "path" : "DefAIkeApp\/Support\/DefAIkeApp.entitlements"
+        },
+        {
+          "path" : "..\/data\/coreml\/commfor-lowq-384.mlpackage"
         }
       ],
       "type" : "application"
     },
-    "DeviceValidationTests" : {
+    "DefAIkeDeviceValidationTests" : {
       "dependencies" : [
         {
-          "target" : "DefAIkeApp-${composition}"
+          "target" : "DefAIkeApp"
         },
         {
           "package" : "DefAIkePackage",
@@ -251,10 +150,10 @@
       "platform" : "iOS",
       "settings" : {
         "base" : {
-          "PRODUCT_BUNDLE_IDENTIFIER" : "${appBundleID}.devicetests",
+          "PRODUCT_BUNDLE_IDENTIFIER" : "$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app.devicetests",
           "TARGETED_DEVICE_FAMILY" : "1",
           "TEST_HOST" : "",
-          "TEST_TARGET_NAME" : "DefAIkeApp-${composition}"
+          "TEST_TARGET_NAME" : "DefAIkeApp"
         }
       },
       "sources" : [
@@ -264,7 +163,7 @@
       ],
       "type" : "bundle.unit-test"
     },
-    "ShareExtension" : {
+    "DefAIkeShareExtension" : {
       "dependencies" : [
         {
           "package" : "DefAIkePackage",
@@ -275,9 +174,9 @@
       "settings" : {
         "base" : {
           "CODE_SIGN_ENTITLEMENTS" : "DefAIkeShareExtension\/Support\/DefAIkeShareExtension.entitlements",
-          "DEFAIKE_APP_GROUP_ID" : "${appGroupID}",
+          "DEFAIKE_APP_GROUP_ID" : "group.$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app",
           "INFOPLIST_FILE" : "DefAIkeShareExtension\/Support\/Info.plist",
-          "PRODUCT_BUNDLE_IDENTIFIER" : "${appBundleID}.share",
+          "PRODUCT_BUNDLE_IDENTIFIER" : "$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app.share",
           "PRODUCT_NAME" : "DefAIkeShareExtension",
           "TARGETED_DEVICE_FAMILY" : "1"
         }
@@ -297,18 +196,18 @@
       ],
       "type" : "app-extension"
     },
-    "UITests" : {
+    "DefAIkeUITests" : {
       "dependencies" : [
         {
-          "target" : "DefAIkeApp-${composition}"
+          "target" : "DefAIkeApp"
         }
       ],
       "platform" : "iOS",
       "settings" : {
         "base" : {
-          "PRODUCT_BUNDLE_IDENTIFIER" : "${appBundleID}.uitests",
+          "PRODUCT_BUNDLE_IDENTIFIER" : "$(DEFAIKE_LOCAL_BUNDLE_PREFIX).app.uitests",
           "TARGETED_DEVICE_FAMILY" : "1",
-          "TEST_TARGET_NAME" : "DefAIkeApp-${composition}"
+          "TEST_TARGET_NAME" : "DefAIkeApp"
         }
       },
       "sources" : [
@@ -322,12 +221,16 @@
 }
 
 # FILES
-DefAIkeApp/PixelOnly
-DefAIkeApp/PixelOnly/CompiledCapabilityComposition.swift
-DefAIkeApp/PixelPlusProvenance
-DefAIkeApp/PixelPlusProvenance/CompiledCapabilityComposition.swift
+../data/coreml/commfor-lowq-384.mlpackage
+../data/coreml/commfor-lowq-384.mlpackage/Data
+../data/coreml/commfor-lowq-384.mlpackage/Data/com.apple.CoreML
+../data/coreml/commfor-lowq-384.mlpackage/Data/com.apple.CoreML/model.mlmodel
+../data/coreml/commfor-lowq-384.mlpackage/Data/com.apple.CoreML/weights
+../data/coreml/commfor-lowq-384.mlpackage/Data/com.apple.CoreML/weights/weight.bin
+../data/coreml/commfor-lowq-384.mlpackage/Manifest.json
 DefAIkeApp/Shared
 DefAIkeApp/Shared/CapabilityComposition.swift
+DefAIkeApp/Shared/CompiledCapabilityComposition.swift
 DefAIkeApp/Shared/DefAIkeApp.swift
 DefAIkeApp/Shared/DevelopmentDiagnostics.swift
 DefAIkeApp/Shared/DevelopmentModelBundle.swift
@@ -352,6 +255,7 @@ DefAIkeShareExtension/Sources/ShareOutcomePresentation.swift
 DefAIkeShareExtension/Sources/ShareViewController.swift
 DefAIkeShareExtension/Support/DefAIkeShareExtension.entitlements
 DefAIkeShareExtension/Support/Info.plist
+Local.xcconfig
 Tests/DefAIkeDeviceValidationTests
 Tests/DefAIkeDeviceValidationTests/DeviceValidationSuiteTests.swift
 Tests/DefAIkeUITests

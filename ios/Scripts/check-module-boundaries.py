@@ -10,9 +10,9 @@ spec and fails closed when any of them is violated:
 3. The Share Extension composition cannot reach inference, image-pipeline,
    model-bundle, provenance, application, or release-validation code
    (Extension Execution Policy, Requirement 2.6).
-4. The pixel-only composition does not link ``DefAIkeProvenanceC2PA``
-   (Requirements 6.19 and 6.20).
-5. ``DefAIkeReleaseValidation`` is absent from both shipping compositions.
+4. The one application composition links ``DefAIkeProvenanceC2PA``, and no retired
+   per-capability product or target has come back (Requirements 6.19 and 6.20).
+5. ``DefAIkeReleaseValidation`` is absent from every shipping composition.
 6. ``swift-property-based`` is exact-pinned and referenced only by test targets
    (never linked into a shipping executable).
 6a. ``DefAIkeTestSupport`` belongs to no product, no shipping module depends on
@@ -21,8 +21,8 @@ spec and fails closed when any of them is violated:
    dead code.
 7. The declared iOS minimum is 17.0 in both the package and the project spec
    (Requirements 1.2 and 4.2).
-8. Both capability compositions exist as separate Xcode build outputs, each with
-   its own Share Extension, App Group, and bundle identifier.
+8. One app target and one Share Extension target exist, sharing one App Group and
+   one bundle-identifier prefix.
 9. No Xcode target links a module its role forbids.
 10. In the generated project, every target resolves to iPhone-only. Xcode's
     per-target setting presets can silently override a project-level value, so
@@ -80,12 +80,16 @@ EXTENSION_FORBIDDEN_MODULES = {
     "DefAIkeReleaseValidation",
 }
 
-PIXEL_ONLY_PRODUCT = "DefAIkePixelOnly"
-PROVENANCE_PRODUCT = "DefAIkePixelPlusProvenance"
+APP_PRODUCT = "DefAIkeAppKit"
 EXTENSION_PRODUCT = "DefAIkeShareExtensionKit"
 RELEASE_VALIDATION_PRODUCT = "DefAIkeReleaseValidation"
 
-SHIPPING_PRODUCTS = {PIXEL_ONLY_PRODUCT, PROVENANCE_PRODUCT, EXTENSION_PRODUCT}
+SHIPPING_PRODUCTS = {APP_PRODUCT, EXTENSION_PRODUCT}
+
+# Products that must not exist. The pixel-only application composition was merged into
+# the single one, so a manifest that still declares it is a partially reverted merge
+# rather than a harmless leftover: two products would mean two capability sets again.
+RETIRED_PRODUCTS = {"DefAIkePixelOnly", "DefAIkePixelPlusProvenance"}
 
 PROPERTY_BASED_PACKAGE = "swift-property-based"
 PROPERTY_BASED_VERSION = "2.0.0"
@@ -93,10 +97,8 @@ PROPERTY_BASED_PRODUCT = "PropertyBased"
 
 REQUIRED_IOS_MINIMUM = "17.0"
 
-COMPOSITIONS = {
-    "PixelOnly": PIXEL_ONLY_PRODUCT,
-    "PixelPlusProvenance": PROVENANCE_PRODUCT,
-}
+APP_TARGET = "DefAIkeApp"
+EXTENSION_TARGET = "DefAIkeShareExtension"
 
 
 class Failures:
@@ -219,12 +221,7 @@ def check_package(package: dict, failures: Failures) -> None:
 
     # Products.
     products = {product["name"]: product for product in package["products"]}
-    for required in (
-        PIXEL_ONLY_PRODUCT,
-        PROVENANCE_PRODUCT,
-        EXTENSION_PRODUCT,
-        RELEASE_VALIDATION_PRODUCT,
-    ):
+    for required in (APP_PRODUCT, EXTENSION_PRODUCT, RELEASE_VALIDATION_PRODUCT):
         failures.check(required in products, f"missing product {required}")
 
     def product_closure(name: str) -> set[str]:
@@ -243,16 +240,25 @@ def check_package(package: dict, failures: Failures) -> None:
         "Share Extension must run no inference and link no provenance code",
     )
 
-    # 4. Pixel-only composition links no validator.
-    pixel_only_closure = product_closure(PIXEL_ONLY_PRODUCT)
+    # 4. The application composition links the validator; nothing else does.
+    #
+    # This is the declared-closure half of the linkage evidence. The positive claim moved
+    # here from an asymmetry between two application products: while a pixel-only product
+    # existed, its *absence* of the adapter was the measurement and the provenance
+    # product's presence made that absence non-vacuous. One product cannot supply both, so
+    # the negative case is now the Share Extension closure asserted in step 3 above, and
+    # the retired-product check below keeps the second application product from returning.
     failures.check(
-        "DefAIkeProvenanceC2PA" not in pixel_only_closure,
-        f"{PIXEL_ONLY_PRODUCT} reaches DefAIkeProvenanceC2PA; a pixel-only "
-        "build must not link a Content Credential validator",
+        "DefAIkeProvenanceC2PA" in product_closure(APP_PRODUCT),
+        f"{APP_PRODUCT} must link DefAIkeProvenanceC2PA; the application composition is "
+        "the one product that compiles Content Credential validation",
     )
+    still_declared = sorted(RETIRED_PRODUCTS & set(products))
     failures.check(
-        "DefAIkeProvenanceC2PA" in product_closure(PROVENANCE_PRODUCT),
-        f"{PROVENANCE_PRODUCT} must link DefAIkeProvenanceC2PA",
+        not still_declared,
+        f"the manifest still declares {still_declared}; the two capability compositions "
+        f"were merged into {APP_PRODUCT}, and a second application product would restore "
+        "the two capability sets the merge removed",
     )
 
     # 5. Release tooling never ships.
@@ -351,78 +357,81 @@ def check_project_spec(spec: dict, failures: Failures) -> None:
     )
 
     targets = spec.get("targets", {})
-    app_groups: dict[str, str] = {}
-    bundle_ids: dict[str, str] = {}
 
-    for composition, expected_product in COMPOSITIONS.items():
-        app_target = f"DefAIkeApp-{composition}"
-        extension_target = f"DefAIkeShareExtension-{composition}"
+    for name in (APP_TARGET, EXTENSION_TARGET):
+        if name not in targets:
+            failures.add(f"missing Xcode target {name}")
 
-        for name in (app_target, extension_target):
-            if name not in targets:
-                failures.add(f"missing Xcode target {name}")
-
-        app = targets.get(app_target, {})
-        attributes = app.get("templateAttributes", {})
+    # Two targets that must not exist. Their presence means the merged app has been split
+    # again, which restores the two capability sets and the pooled-evidence risk
+    # Requirement 13.20 forbids.
+    for retired in (
+        "DefAIkeApp-PixelOnly",
+        "DefAIkeApp-PixelPlusProvenance",
+        "DefAIkeShareExtension-PixelOnly",
+        "DefAIkeShareExtension-PixelPlusProvenance",
+    ):
         failures.check(
-            attributes.get("compositionProduct") == expected_product,
-            f"{app_target} must link {expected_product}, found "
-            f"{attributes.get('compositionProduct')}",
-        )
-        failures.check(
-            attributes.get("compositionDirectory") == composition,
-            f"{app_target} must compile the {composition} composition directory",
-        )
-        app_groups[app_target] = attributes.get("appGroupID", "")
-        bundle_ids[app_target] = attributes.get("appBundleID", "")
-
-        extension_attributes = targets.get(extension_target, {}).get(
-            "templateAttributes", {}
-        )
-        failures.check(
-            extension_attributes.get("appGroupID") == attributes.get("appGroupID"),
-            f"{extension_target} App Group must match {app_target}",
-        )
-        failures.check(
-            extension_attributes.get("appBundleID") == attributes.get("appBundleID"),
-            f"{extension_target} bundle identifier prefix must match {app_target}",
+            retired not in targets,
+            f"{retired} still exists; the capability compositions were merged into "
+            f"{APP_TARGET}, so a per-composition target would restore two capability sets",
         )
 
-    distinct_groups = {value for value in app_groups.values() if value}
+    app = targets.get(APP_TARGET, {})
+    app_settings = app.get("settings", {}).get("base", {})
+    app_products = {
+        dependency.get("product")
+        for dependency in app.get("dependencies", [])
+        if "product" in dependency
+    }
     failures.check(
-        len(distinct_groups) == len(app_groups),
-        "each capability composition needs its own App Group so two installed "
-        f"builds cannot share a handoff slot, found {sorted(distinct_groups)}",
+        app_products == {APP_PRODUCT},
+        f"{APP_TARGET} must link only {APP_PRODUCT}, found "
+        f"{sorted(product for product in app_products if product)}",
     )
-    distinct_ids = {value for value in bundle_ids.values() if value}
     failures.check(
-        len(distinct_ids) == len(bundle_ids),
-        "each capability composition needs its own bundle identifier, found "
-        f"{sorted(distinct_ids)}",
+        app.get("sources", [{}])[0].get("path") == "DefAIkeApp/Shared",
+        f"{APP_TARGET} must compile DefAIkeApp/Shared, which is where the one "
+        "CompiledCapabilityComposition lives",
+    )
+
+    extension_target = targets.get(EXTENSION_TARGET, {})
+    extension_settings = extension_target.get("settings", {}).get("base", {})
+
+    app_group = app_settings.get("DEFAIKE_APP_GROUP_ID", "")
+    bundle_id = app_settings.get("PRODUCT_BUNDLE_IDENTIFIER", "")
+    failures.check(bool(app_group), f"{APP_TARGET} must declare DEFAIKE_APP_GROUP_ID")
+    failures.check(bool(bundle_id), f"{APP_TARGET} must declare PRODUCT_BUNDLE_IDENTIFIER")
+    failures.check(
+        extension_settings.get("DEFAIKE_APP_GROUP_ID") == app_group,
+        f"{EXTENSION_TARGET} App Group must match {APP_TARGET}; the handoff slot is the "
+        "one namespace both sides address",
+    )
+    failures.check(
+        extension_settings.get("PRODUCT_BUNDLE_IDENTIFIER", "").startswith(
+            f"{bundle_id}."
+        ),
+        f"{EXTENSION_TARGET} bundle identifier must be prefixed by {APP_TARGET}'s",
     )
 
     # 9. Role-forbidden linkage in the Xcode graph.
-    extension_template = spec.get("targetTemplates", {}).get("ShareExtension", {})
+    #
+    # Read off the targets rather than off shared templates: with one app and one extension
+    # the templates were removed, and a template check would silently pass against a spec
+    # that no longer has one.
     extension_products = {
         dependency.get("product")
-        for dependency in extension_template.get("dependencies", [])
+        for dependency in extension_target.get("dependencies", [])
         if "product" in dependency
     }
     failures.check(
         extension_products == {EXTENSION_PRODUCT},
-        f"the ShareExtension template must link only {EXTENSION_PRODUCT}, found "
+        f"{EXTENSION_TARGET} must link only {EXTENSION_PRODUCT}, found "
         f"{sorted(product for product in extension_products if product)}",
     )
-
-    app_template = spec.get("targetTemplates", {}).get("App", {})
-    app_products = {
-        dependency.get("product")
-        for dependency in app_template.get("dependencies", [])
-        if "product" in dependency
-    }
     failures.check(
         RELEASE_VALIDATION_PRODUCT not in app_products,
-        "app targets must not link nonshipping release-validation tooling",
+        "the app target must not link nonshipping release-validation tooling",
     )
 
 

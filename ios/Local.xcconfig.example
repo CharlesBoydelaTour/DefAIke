@@ -1,0 +1,46 @@
+// Local, uncommitted build settings for running DefAIke on your own device.
+//
+// `Scripts/generate-xcode-project.sh` copies this file to `Local.xcconfig` if that
+// file does not exist yet. `Local.xcconfig` is gitignored; this example is not.
+// Edit the copy, never this file.
+//
+// Why a separate file rather than Xcode's Signing & Capabilities tab: the
+// `.xcodeproj` is generated from `project.yml` and is not committed, so anything
+// you set in Xcode's UI is discarded the next time the project is regenerated.
+// Values here survive regeneration.
+//
+// Nothing here is a release value. The Release Process supplies the distributed
+// build identity and signing policy as approved artifacts; every setting below is
+// empty or a development default, and a Release build that read one of these as a
+// release claim would be wrong. `MainAppReleaseProvisioning` reads none of them.
+
+// ---------------------------------------------------------------------------
+// Your Apple Developer team identifier.
+// ---------------------------------------------------------------------------
+//
+// Xcode → Settings → Accounts → select your Apple ID → the team list shows the
+// ten-character Team ID. A free Apple ID appears as "Personal Team" and has one.
+//
+// Leave empty to keep the current behaviour: builds work for the Simulator and
+// cannot be installed on a physical device.
+DEFAIKE_LOCAL_DEVELOPMENT_TEAM =
+
+// ---------------------------------------------------------------------------
+// Bundle identifier prefix.
+// ---------------------------------------------------------------------------
+//
+// The app becomes `<prefix>.app`, the Share Extension `<prefix>.app.share`, and
+// the shared App Group `group.<prefix>.app`. Changing the prefix changes all
+// three together, which matters: the app and the extension must name the same
+// App Group or the consented handoff has no container to meet in.
+//
+// Change it if `dev.defaike` collides with something already provisioned to your
+// account. A reverse-DNS name you control is the convention.
+//
+// One consequence, so it is not a surprise: `check-capability-composition.py` and
+// the release-archive audits identify an archive by its `CFBundleIdentifier` and
+// compare it against their composition table, which names `dev.defaike.app`. A
+// locally re-prefixed build fails that comparison. That is the audit doing its
+// job — it exists so a bundle built from some other spec is not silently audited
+// under this composition's rules — and it is not a reason to avoid changing this.
+DEFAIKE_LOCAL_BUNDLE_PREFIX = dev.defaike

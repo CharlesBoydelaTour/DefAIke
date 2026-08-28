@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Compiles both capability compositions for iOS.
+# Compiles the application for iOS.
 #
 # This is the authoritative check that the app, Share Extension, and every linked
 # module build against the iOS SDK at the iOS 17.0 minimum. It requires Xcode; the
@@ -29,12 +29,12 @@ if [[ ! -d "${IOS_DIR}/DefAIke.xcodeproj" ]]; then
     "${IOS_DIR}/Scripts/generate-xcode-project.sh"
 fi
 
-for scheme in DefAIkeApp-PixelOnly DefAIkeApp-PixelPlusProvenance; do
-    echo "==> xcodebuild build -scheme ${scheme}"
-    xcodebuild build \
-        -workspace "${WORKSPACE}" \
-        -scheme "${scheme}" \
-        -configuration Debug \
-        -destination 'generic/platform=iOS Simulator' \
-        CODE_SIGNING_ALLOWED=NO
-done
+SCHEME=DefAIkeApp
+
+echo "==> xcodebuild build -scheme ${SCHEME}"
+xcodebuild build \
+    -workspace "${WORKSPACE}" \
+    -scheme "${SCHEME}" \
+    -configuration Debug \
+    -destination 'generic/platform=iOS Simulator' \
+    CODE_SIGNING_ALLOWED=NO

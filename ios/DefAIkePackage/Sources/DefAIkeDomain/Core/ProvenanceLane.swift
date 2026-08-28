@@ -20,12 +20,54 @@ public enum ProvenanceCategory: String, Codable, Sendable, CaseIterable {
 /// Unavailable means the installed release cannot validate Content Credentials at
 /// all. It is never a finding about the image, and it must not be presented as
 /// absent, invalid, or authentic (Requirement 8.8).
+///
+/// Three reasons, and they are three different *places* the chain from linked bytes to
+/// usable validator can break, in the order a build encounters them: the module graph,
+/// then the signed manifest, then the approved decisions the adapter needs. Keeping
+/// them apart matters because the application composition links the validator
+/// unconditionally, so "no validator was compiled in" stopped being the answer that
+/// covers every unavailable lane and would be a false statement about the shipped
+/// module graph if reused for the other two.
+///
+/// All three resolve to the same user-facing surface — one approved
+/// `provenanceUnavailable` copy entry — because the distinction is for a release audit
+/// rather than for a reader. A user is told the installed release cannot check Content
+/// Credentials; which link in the chain is missing is not their problem.
 public enum UnavailableReason: String, Codable, Sendable, CaseIterable {
     /// This capability composition links no Content Credential validator.
+    ///
+    /// A compile-time fact about the module graph, and the one reason that outranks
+    /// the signed manifest: a manifest cannot enable a capability whose implementation
+    /// is absent from the binary. The shipped application composition links the
+    /// adapter, so this reason describes the Share Extension's closure and any future
+    /// composition built without it — not the installed app.
     case validatorNotCompiledIntoRelease
+
     /// A validator is compiled in, but the signed Release Capability Manifest does
     /// not enable the capability for this build.
+    ///
+    /// Also the answer when the manifest enables provenance but does not name this
+    /// policy version, this adapter implementation version, or an approved Provenance
+    /// Feasibility decision. Such a manifest has not enabled provenance for *this*
+    /// configuration, which is not the same as having enabled it.
     case capabilityNotEnabledByReleaseCapabilityManifest
+
+    /// A validator is compiled in and the signed manifest enables the capability, but
+    /// no approved decision supplies an analyzer, so nothing can inspect the retained
+    /// bytes.
+    ///
+    /// This is the honest state of a build whose linked adapter cannot yet conform to
+    /// `ProvenanceAnalyzing`: `analyze(_:policy:)` returns evidence unconditionally, so
+    /// a conformance would have to resolve an unanswerable condition by *selecting* a
+    /// state, and no signed artifact says which state answers one. Reporting it as
+    /// `validatorNotCompiledIntoRelease` would misstate the module graph, and reporting
+    /// it as `capabilityNotEnabledByReleaseCapabilityManifest` would misstate the
+    /// manifest; this reason misstates neither.
+    ///
+    /// It is emphatically not `indeterminate`. Indeterminate is an enabled validator's
+    /// finding about specific bytes (Requirements 6.14 and 6.21); this is the absence of
+    /// a validator that can run at all, so it belongs outside the five enabled states.
+    case validatorEnablementUnapproved
 }
 
 /// Binding status reported by a cryptographically validated claim.
@@ -194,9 +236,10 @@ public enum ProvenanceEvidence: Hashable, Codable, Sendable {
 
 /// The provenance source lane of an Evidence Report.
 ///
-/// A pixel-only release always reports ``unavailable``; a provenance-enabled
-/// release reports ``available`` with exactly one of the five enabled states
-/// (Requirements 6.4, 6.9, and 6.20).
+/// A release whose Content Credential validation is not enabled and usable always
+/// reports ``unavailable``, carrying which link in the chain is missing; a
+/// provenance-enabled release reports ``available`` with exactly one of the five
+/// enabled states (Requirements 6.4, 6.9, and 6.20).
 public enum ProvenanceLane: Hashable, Codable, Sendable {
     case unavailable(UnavailableReason)
     case available(ProvenanceEvidence)

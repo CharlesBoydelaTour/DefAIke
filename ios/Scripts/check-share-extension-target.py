@@ -17,17 +17,21 @@ reports 16 hits, all of them comments. An earlier unstripped audit of the reposi
 36 such false positives, and a doc comment naming a type once broke a build. So only code is
 scanned.
 
-Why `--products` takes a directory and warns about attribution: both capability compositions
-build `DefAIkeShareExtension.appex` to the same `Debug-iphonesimulator` path under a shared
-`PRODUCT_NAME`, so a products directory cannot attribute a binary to a scheme on its own. Build
-each scheme with its own `-derivedDataPath` and point this at that build's products directory:
+Why `--products` takes a directory: a products directory cannot attribute a binary to a scheme
+on its own, so point this at a build's own `-derivedDataPath` products directory rather than at
+a shared one that may hold a stale bundle:
 
     xcodebuild build -workspace ios/DefAIke.xcworkspace \\
-        -scheme DefAIkeApp-PixelOnly -configuration Debug \\
+        -scheme DefAIkeApp -configuration Debug \\
         -destination 'generic/platform=iOS Simulator' \\
-        -derivedDataPath /tmp/pixelonly CODE_SIGNING_ALLOWED=NO
+        -derivedDataPath /tmp/defaike CODE_SIGNING_ALLOWED=NO
     ios/Scripts/check-share-extension-target.py \\
-        --products /tmp/pixelonly/Build/Products/Debug-iphonesimulator
+        --products /tmp/defaike/Build/Products/Debug-iphonesimulator
+
+This `.appex` carries more of the linkage evidence than it used to. While a pixel-only
+application archive existed, *it* was the shipping bundle that provably contained no Content
+Credential validator. The two application compositions were merged into one, so the extension is
+now the only shipping module closure whose exclusion of the validator can be measured directly.
 
 What this script deliberately does NOT check: the module *closure* as the package manifest
 declares it across every transitive edge. `ios/Scripts/check-module-boundaries.py` owns that,
@@ -186,18 +190,21 @@ def check_declared_dependencies() -> list[str]:
     """Check that the extension target declares only the transfer composition product."""
     findings: list[str] = []
 
+    # Read from the target rather than a shared template. The per-composition templates were
+    # removed when the two app targets were merged into one, and a template lookup that finds
+    # nothing must be a finding rather than a silent skip.
     yml = PROJECT_YML.read_text(encoding="utf-8")
     match = re.search(
-        r"^  ShareExtension:\n(?P<body>(?:.*\n)*?)(?=^  \w|^\w)", yml, re.MULTILINE
+        r"^  DefAIkeShareExtension:\n(?P<body>(?:.*\n)*?)(?=^  \w|^\w)", yml, re.MULTILINE
     )
     if not match:
-        findings.append("project.yml: no ShareExtension target template found")
+        findings.append("project.yml: no DefAIkeShareExtension target found")
     else:
         body = match.group("body")
         products = re.findall(r"product:\s*(\S+)", body)
         if products != [ALLOWED_PRODUCT]:
             findings.append(
-                f"project.yml ShareExtension template links {products}, "
+                f"project.yml DefAIkeShareExtension target links {products}, "
                 f"expected exactly ['{ALLOWED_PRODUCT}']"
             )
         for module in FORBIDDEN_MODULES:
@@ -206,9 +213,9 @@ def check_declared_dependencies() -> list[str]:
                 code = line.split("#", 1)[0]
                 if re.search(rf"\b{module}\b", code):
                     findings.append(
-                        f"project.yml ShareExtension template references {module}: {line.strip()}"
+                        f"project.yml DefAIkeShareExtension target references {module}: {line.strip()}"
                     )
-        print(f"  project.yml ShareExtension template links {products}")
+        print(f"  project.yml DefAIkeShareExtension target links {products}")
 
     package = PACKAGE_SWIFT.read_text(encoding="utf-8")
     match = re.search(
@@ -242,9 +249,8 @@ def check_products(products: pathlib.Path) -> list[str]:
         return [f"{appex} does not exist; build a scheme with its own -derivedDataPath first"]
 
     print(
-        "  note: both capability compositions build this same path under a shared PRODUCT_NAME.\n"
-        "        This inspection is attributable to a scheme only because you pointed it at a\n"
-        "        per-scheme derived-data products directory."
+        "  note: this inspection is attributable to a build only because you pointed it at\n"
+        "        that build's own derived-data products directory."
     )
 
     # 1. Model artifacts inside the bundle.

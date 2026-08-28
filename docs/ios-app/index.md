@@ -1,17 +1,17 @@
 # DefAIke iOS app
 
-DefAIke Version 1 is an iPhone-only, iOS 17-or-later SwiftUI application that evaluates one supported static image for evidence consistent with whole-image AI generation. Pixel inference runs locally against one bundled Core ML model. Content Credential (C2PA) validation is a separate, conditional, offline evidence lane that ships only in one of two capability compositions. Neither lane is ever presented as proof of authenticity, authorship, intent, editing history, or the absence of localized editing.
+DefAIke Version 1 is an iPhone-only, iOS 17-or-later SwiftUI application that evaluates one supported static image for evidence consistent with whole-image AI generation. Pixel inference runs locally against one bundled Core ML model. Content Credential (C2PA) validation is a separate, conditional, offline evidence lane compiled into the same app, enabled by signed artifacts rather than by which build you installed. Neither lane is ever presented as proof of authenticity, authorship, intent, editing history, or the absence of localized editing.
 
 This section documents the Swift implementation under `ios/`. It is engineering documentation for the app itself, distinct from the [Python benchmark and model-selection evidence](../index.md) that chose the bundled model. For the research and evidence behind the model, see the [shipping model card](../results/shipping-model.md) and the [Core ML deployment gate](../results/coreml.md); this section does not repeat that evidence.
 
 !!! warning "Implemented, not release-ready"
-    Every module, adapter, and release-validation script described here exists and passes its own tests. The app is **not** distributable: it has no signed release artifacts, no physical-device evidence, no approved user-facing copy beyond three fixed labels, and two known defects block a working session in one of its two build configurations. See [Implementation status](status.md) for the complete, current ledger.
+    Every module, adapter, and release-validation script described here exists and passes its own tests. The app is **not** distributable: it has no signed release artifacts, no physical-device evidence, and no approved user-facing copy beyond three fixed labels. A session does complete end to end, with the provenance lane reporting that the installed release cannot check Content Credentials. See [Implementation status](status.md) for the complete, current ledger.
 
 ## What the app does
 
 - Accepts exactly one non-animated JPEG, PNG, or HEIC/HEIF image through the system Photos picker or through the iOS Share Extension.
 - Runs the bundled Core ML model on device and calibrates its raw logit into exactly one of three fixed labels: `Signals consistent with AI generation`, `No strong signal detected`, or `Not enough signal`.
-- Optionally validates a C2PA Content Credential against the exact analyzed bytes, in the build that links the provenance adapter, and shows that result as an independent evidence lane.
+- Validates a C2PA Content Credential against the exact analyzed bytes when the capability is enabled and usable, and shows that result as an independent evidence lane. The lane is shown either way; when validation is unavailable the card says so rather than being hidden.
 - Never fuses the two lanes into a headline verdict unless a release-approved fusion rule exists for that exact combination; both lane cards stay visible either way.
 - Keeps every byte of session data local, ephemeral, and outside analytics, history, and export, and removes it under a versioned cleanup policy at every terminal outcome.
 - Shows honest, determinate-only-when-measured progress for work that can take minutes, and stays safely cancelable throughout.
@@ -64,19 +64,20 @@ flowchart TB
 
 See [Architecture and modules](architecture.md) for the full module table, the port layer, and how release-controlled values are represented.
 
-## Two capability compositions, not a feature flag
+## One capability composition, not a feature flag
 
-The app ships as two separate signed build outputs from the same source. They are never toggled remotely.
+The app ships as one signed build output that compiles both evidence capabilities. Nothing about it is toggled remotely.
 
 | Composition | App scheme | Linked provenance adapter | Bundle identifier |
 |---|---|---|---|
-| Pixel-only | `DefAIkeApp-PixelOnly` | Not linked; provenance lane is structurally unavailable | `dev.defaike.app` |
-| Pixel plus provenance | `DefAIkeApp-PixelPlusProvenance` | `c2pa-swift` 0.0.12, exact-pinned | `dev.defaike.app.provenance` |
+| Pixel plus provenance | `DefAIkeApp` | `c2pa-swift` 0.0.12, exact-pinned | `dev.defaike.app` |
 
-Each composition has its own Share Extension, App Group, UI test target, and device-validation test target, so two installed builds can never share a handoff slot and device evidence can never be pooled across capability sets. Whether the C2PA adapter is linked at all is a compile-time fact about the module graph, checked by `ios/Scripts/check-module-boundaries.py`; linking it is not approval to enable the capability, which is a separate, later release gate.
+This replaces two build outputs — a pixel-only app that linked no validator and a pixel-plus-provenance app that did. The split kept device evidence from being pooled across capability sets (Requirements 13.18–13.22); with one composition there is one capability set, so pooling is not representable.
 
-!!! danger "Known defect: the provenance composition cannot complete a session today"
-    No shipping type conforms to the domain's `ProvenanceAnalyzing` port — the C2PA adapter deliberately does not conform, and `c2pa-swift` 0.0.12 refuses configuration with synthetic trust anchors. Because the session binder reads whether provenance is enabled from the signed capability manifest rather than from whether an analyzer actually resolved, a pixel-plus-provenance build whose manifest enables the capability fails **every** session, on both ingest routes, with a mismatched-evidence-lane fault. See [Implementation status](status.md#known-defects) for the full account and the two candidate fixes.
+Whether the C2PA adapter is linked is still a compile-time fact about the module graph, checked by `ios/Scripts/check-module-boundaries.py`. What changed is which direction that check can measure: the app must now *contain* the adapter, and the Share Extension is the shipping bundle that must not, which is what keeps the measurement non-vacuous. Linking it is not approval to enable the capability, which is a separate, later release gate.
+
+!!! warning "Content Credential validation is compiled but not yet usable"
+    No shipping type conforms to the domain's `ProvenanceAnalyzing` port — the C2PA adapter deliberately does not conform, and `c2pa-swift` 0.0.12 refuses configuration with synthetic trust anchors. So every session completes with the provenance lane reporting `validatorEnablementUnapproved`: linked, enabled by the manifest, and with no approved decision supplying an analyzer. The two owed approvals are enumerated in `UnresolvedProvenanceEnablement`. See [Implementation status](status.md) for the full account.
 
 ## Where to go next
 

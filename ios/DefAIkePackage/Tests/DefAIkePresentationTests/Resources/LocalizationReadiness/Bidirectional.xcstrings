@@ -610,7 +610,7 @@
         "ar-x-bidi": {
           "stringUnit": {
             "state": "translated",
-            "value": "⁧[عربي] This version cannot check Content Credentials. A separate version of DefAIke does, as a second and independent check.⁩"
+            "value": "⁧[عربي] This version cannot check Content Credentials. That is a limit of the installed app, not a finding about the image.⁩"
           }
         }
       }

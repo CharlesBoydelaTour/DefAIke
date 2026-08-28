@@ -36,12 +36,38 @@ struct ModuleWiringTests {
 
     @Test("Compiling the adapter does not by itself produce an enabled provenance lane")
     func linkingIsNotApproval() {
-        // No value in this module conforms to `ProvenanceAnalyzing`, because the port
-        // cannot express a Provenance Feasibility Gate finding and no approved artifact
-        // says which state one becomes. A `nil` analyzer is the pixel-only lane whatever
-        // the signed manifest enables, so a build that links this module still reports the
-        // unavailable state (Requirements 6.3, 6.4, 6.19, and 6.20).
+        // The shipped application composition's exact shape, asserted from the one test
+        // target that actually links this module: the adapter is present, the signed
+        // manifest enables the capability and binds the policy, and there is still no
+        // analyzer — because no value here conforms to `ProvenanceAnalyzing`, the port
+        // cannot express a Provenance Feasibility Gate finding, and no approved artifact
+        // says which state one becomes.
+        //
+        // So the lane is unavailable (Requirements 6.3, 6.4, 6.19, and 6.20), and the
+        // reason is the one that is true of this build rather than the one that used to
+        // cover every unavailable lane when a second composition linked no adapter at all.
         let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: true,
+            analyzer: nil,
+            policy: PolicySample.policy(),
+            manifest: ManifestSample.provenanceEnabled(for: PolicySample.policy())
+        )
+
+        #expect(!provider.isEnabled)
+        #expect(provider.unavailableReason == .validatorEnablementUnapproved)
+        #expect(!provider.canProduceCombinedSummary)
+        #expect(provider.boundPolicyID == nil)
+    }
+
+    @Test("A composition that links no adapter still reports the module-graph reason")
+    func nonLinkageOutranksTheManifest() {
+        // The other direction, kept live even though the shipping app no longer takes it.
+        // `linksValidator: false` outranks a manifest that enables the capability, because
+        // a signed artifact cannot enable an implementation that is absent from the binary.
+        // Asserting it here is what stops `linksValidator` from being a parameter nothing
+        // reads.
+        let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: false,
             analyzer: nil,
             policy: PolicySample.policy(),
             manifest: ManifestSample.provenanceEnabled(for: PolicySample.policy())
@@ -49,7 +75,5 @@ struct ModuleWiringTests {
 
         #expect(!provider.isEnabled)
         #expect(provider.unavailableReason == .validatorNotCompiledIntoRelease)
-        #expect(!provider.canProduceCombinedSummary)
-        #expect(provider.boundPolicyID == nil)
     }
 }

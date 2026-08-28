@@ -13,9 +13,8 @@ ios/
     Sources/                  Eleven modules, listed below
     Tests/                    One test target per module
   DefAIkeApp/                Main app target sources
-    Shared/                   Compiled into both compositions
-    PixelOnly/                Pixel-only composition's own composition root
-    PixelPlusProvenance/      Pixel-plus-provenance composition's own composition root
+    Shared/                   The app target's sources, including its one composition
+
     Support/                  Info.plist, entitlements
   DefAIkeShareExtension/     Share Extension target sources
     Sources/                  Extension composition root, consent, startup gate
@@ -46,8 +45,8 @@ ios/
 
 Three products are built from this graph:
 
-- **`DefAIkePixelOnly`** — the eight shared modules, no provenance adapter.
-- **`DefAIkePixelPlusProvenance`** — the same eight modules plus `DefAIkeProvenanceC2PA`.
+- **`DefAIkeAppKit`** — the eight shared modules plus `DefAIkeProvenanceC2PA`. The one
+  application composition; it compiles both evidence capabilities.
 - **`DefAIkeShareExtensionKit`** — `DefAIkeDomain` + `DefAIkeSharedTransfer` only. No inference, image-pipeline, model-bundle, or provenance module is reachable from it; the Extension Execution Policy and `check-module-boundaries.py` both enforce this.
 
 `DefAIkeReleaseValidation` and `DefAIkeTestSupport` are linked by test targets only and are unreachable from every shipping product — enforced by the same boundary check.
@@ -147,7 +146,7 @@ Two composition roots assemble the whole graph for one target, and each is the s
 
 | File | Role |
 |---|---|
-| `CapabilityComposition.swift` | Protocol both `PixelOnly/` and `PixelPlusProvenance/` implement: which capabilities this build links and its self-reported implementation versions |
+| `CapabilityComposition.swift` | Protocol `CompiledCapabilityComposition` implements: which capabilities this build links and its self-reported implementation versions. Kept generic so the fidelity tests can construct compositions the shipping target does not contain — a build claiming provenance without linking a validator, one attesting a version its module graph contradicts — and exercise the gate's refusals for them |
 | `MainAppReleaseProvisioning.swift` | The release-controlled input set the composition root needs (capability manifest, allowlist, policies) |
 | `MainAppComposition.swift` | `MainAppComposition.start(composition:provisioning:bundle:)` — runs the seven-step `StartupPreflight` gate, and is the only place that constructs an admitted app graph |
 | `MainAppPlatform.swift` | Photos-picker and file-system platform glue |

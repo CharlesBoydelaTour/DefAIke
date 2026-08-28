@@ -606,7 +606,8 @@ enum CompositionGraphFailure: Error, CustomStringConvertible {
 ///     coordinator has no fusion port at all, in *every* composition including the
 ///     fusion-enabled one.
 ///   * `provenance: ProvenanceLaneProvider.resolve(analyzer: nil, ...)` — so the lane is
-///     unavailable in every composition, including the provenance-enabled one.
+///     unavailable in every composition, including the provenance-enabled one, which is what
+///     the shipping composition does today.
 ///   * `cleanup:` over a real `ProtectedSessionDataDeleter` holding the session store alone.
 ///   * `branchExecution:` serial under the admitted validation plan.
 struct CompositionGraph {
@@ -726,7 +727,7 @@ struct CompositionGraph {
         }
 
         // Step: the conditional provenance lane, resolved from whatever the composition's own
-        // analyzer factory supplies. `absent` is what both shipping compositions supply.
+        // analyzer factory supplies. `absent` is what the shipping composition supplies.
         let recorder = release.recorder
         let analyzer: (any ProvenanceAnalyzing)? =
             switch analyzerPresence {
@@ -734,6 +735,10 @@ struct CompositionGraph {
             case .fixture: StubProvenanceAnalyzer(always: provenanceState, recorder: recorder)
             }
         let provenance = ProvenanceLaneProvider.resolve(
+            // Paired with the manifest the way the startup gate requires: preflight refuses a
+            // build whose `linksContentCredentialValidator` disagrees with the manifest's
+            // `enablesProvenance`, so a coherent synthetic release cannot vary them apart.
+            linksValidator: composition.enablesProvenance,
             analyzer: analyzer,
             policy: configuration.provenancePolicy,
             manifest: configuration.capabilityManifest

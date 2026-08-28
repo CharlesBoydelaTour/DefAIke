@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Builds every DefAIkePackage composition product and runs the package test
-# suite on the development host.
+# Builds every DefAIkePackage product and runs the package test suite on the
+# development host.
 #
 # Host results are development checks only. They never satisfy a physical-device
 # release gate, and they do not prove iOS-target compilation: that requires Xcode
@@ -38,8 +38,7 @@ if ! xcodebuild -version >/dev/null 2>&1; then
 fi
 
 for product in \
-    DefAIkePixelOnly \
-    DefAIkePixelPlusProvenance \
+    DefAIkeAppKit \
     DefAIkeShareExtensionKit \
     DefAIkeReleaseValidation
 do

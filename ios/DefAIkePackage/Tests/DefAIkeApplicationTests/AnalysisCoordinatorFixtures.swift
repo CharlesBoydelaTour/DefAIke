@@ -1089,6 +1089,10 @@ struct CoordinatorHarness {
             ? StubProvenanceAnalyzer(always: provenanceState, recorder: recorder)
             : nil
         let provider = ProvenanceLaneProvider.resolve(
+            // Paired with the analyzer above: this fixture models a build whose capability is
+            // off end to end, so the module graph, the manifest, and the analyzer agree and
+            // the lane reports the module-graph reason.
+            linksValidator: release.provenanceEnabled,
             analyzer: analyzer,
             policy: release.admission.configuration.provenancePolicy,
             manifest: release.admission.configuration.capabilityManifest

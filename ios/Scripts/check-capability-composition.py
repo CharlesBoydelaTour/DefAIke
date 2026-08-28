@@ -3,26 +3,29 @@
 
 Task 12.3 has two halves, and they need different kinds of evidence.
 
-**Half one — build isolation.** The pixel-only archive must be structurally incapable of
-containing or instantiating a Content Credential validator, and the provenance-enabled archive
-must require the exact approved adapter version. Three independent layers carry that, and this
-script owns two of them:
+**Half one — linkage and version-pin integrity.** The application archive must contain the
+reviewed Content Credential validator and no other, and must require the exact approved adapter
+version. Three independent layers carry that, and this script owns two of them:
 
   1. *Declared module closure.* ``ios/Scripts/check-module-boundaries.py`` owns this and is not
-     duplicated here: it reads `swift package dump-package` and proves `DefAIkePixelOnly` does
-     not reach `DefAIkeProvenanceC2PA` while `DefAIkePixelPlusProvenance` does.
+     duplicated here: it reads `swift package dump-package` and proves `DefAIkeAppKit` reaches
+     `DefAIkeProvenanceC2PA` while `DefAIkeShareExtensionKit` does not.
+
+     The negative case matters more than it used to. A pixel-only application archive used to
+     supply it, and its deletion is why this script's remaining absence claims rest on the
+     Share Extension and on ``--self-test-products`` rather than on a second app.
   2. *Version-pin coherence.* Four places name the reviewed validator release, and this script
      requires all four to agree: the `exact:` pin in `Package.swift`, the resolved pin in
      `Package.resolved`, `C2PALibraryReader.reviewedImplementationVersion`, and the
      provenance app composition's `linkedImplementationVersions` entry — which must be read from
      the linked module rather than written as a literal, so a build cannot claim a release it
      does not link.
-  3. *Shipped bytes.* Per-composition inspection of a built product: which frameworks it embeds,
-     which module symbols its Mach-O images contain, and — the point of the pin — whether the
-     one archive that is supposed to contain the validator does and the other does not.
+  3. *Shipped bytes.* Inspection of the built product: which frameworks it embeds, which
+     module symbols its Mach-O images contain, and — the point of the pin — whether the archive
+     that is supposed to contain the validator does.
 
-**Half two — an absence proof.** Six dependency classes must be absent from both production
-graphs: network model-update clients, analytics, advertising, account, custom diagnostic
+**Half two — an absence proof.** Six dependency classes must be absent from every production
+graph: network model-update clients, analytics, advertising, account, custom diagnostic
 collection, and third-party crash reporting. They already are, so the deliverable is evidence,
 not a removal. Evidence comes from three angles: the declared external dependency set (a closed
 allowlist of five packages, each justified), a comment-and-string-stripped scan of every
@@ -33,26 +36,26 @@ Usage:
 
     ios/Scripts/check-capability-composition.py                    # static checks only
     ios/Scripts/check-capability-composition.py --products DIR     # + one built archive
-    ios/Scripts/check-capability-composition.py --products DIR --expect pixel-only
+    ios/Scripts/check-capability-composition.py --products DIR --expect pixel-plus-provenance
     ios/Scripts/check-capability-composition.py --json report.json # machine-readable
     ios/Scripts/check-capability-composition.py --self-test        # non-vacuity validation
 
-Attribution — why ``--products`` needs no scheme flag to be trustworthy. Both compositions build
-`DefAIke.app` to the same `Debug-iphonesimulator` path under a shared `PRODUCT_NAME`, so the
-path cannot say which scheme produced a binary and a caller-supplied flag would just be a claim.
-But the two compositions have distinct `PRODUCT_BUNDLE_IDENTIFIER` values, and `Info.plist`
-carries `CFBundleIdentifier` into the built bundle, so **the archive attributes itself**. This
-script reads that identifier and derives the composition from it; `--expect` is a cross-check
-that fails when the caller and the artifact disagree, not the source of truth. A per-scheme
-`-derivedDataPath` is still required, because without one the second build overwrites the first:
+Attribution — why ``--products`` needs no scheme flag to be trustworthy. The path cannot say
+which scheme produced a binary, and a caller-supplied flag would just be a claim. But
+`Info.plist` carries `CFBundleIdentifier` into the built bundle, so **the archive attributes
+itself**. This script reads that identifier and derives the composition from it; `--expect` is a
+cross-check that fails when the caller and the artifact disagree, not the source of truth. It
+retains value with one composition: an archive built from some other spec, or a stale bundle
+left in a shared products directory, is refused rather than silently audited under this
+composition's rules.
 
     export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
     xcodebuild build -workspace ios/DefAIke.xcworkspace \\
-        -scheme DefAIkeApp-PixelOnly -configuration Debug \\
+        -scheme DefAIkeApp -configuration Debug \\
         -destination 'generic/platform=iOS Simulator' \\
-        -derivedDataPath /tmp/pixelonly CODE_SIGNING_ALLOWED=NO
+        -derivedDataPath /tmp/defaike CODE_SIGNING_ALLOWED=NO
     ios/Scripts/check-capability-composition.py \\
-        --products /tmp/pixelonly/Build/Products/Debug-iphonesimulator
+        --products /tmp/defaike/Build/Products/Debug-iphonesimulator
 
 Deliberately out of scope. This script does not run an offline session, inspect result
 persistence or export controls, or audit an `.xcarchive` or SBOM: task 12.5 owns the offline and
@@ -133,19 +136,21 @@ class Composition:
         self.links_validator = links_validator
 
 
+# One composition, and the asymmetry that used to make its linkage measurable is gone.
+#
+# While a pixel-only application archive existed, this list held two entries and the check
+# that mattered was the *difference* between them: one archive had to carry no C2PA payload
+# and the other had to carry some, so a run measured both directions and neither claim could
+# pass vacuously. The two were merged into one app, so the negative case now lives outside
+# this table — in the Share Extension's `.appex`, which `check-share-extension-target.py`
+# audits, and in the declared module closure `check-module-boundaries.py` reads. What is
+# left here is the positive claim, and `--self-test` is what keeps it non-vacuous.
 COMPOSITIONS = [
     Composition(
-        name="pixel-only",
-        bundle_identifier="dev.defaike.app",
-        product="DefAIkePixelOnly",
-        source_directory="PixelOnly",
-        links_validator=False,
-    ),
-    Composition(
         name="pixel-plus-provenance",
-        bundle_identifier="dev.defaike.app.provenance",
-        product="DefAIkePixelPlusProvenance",
-        source_directory="PixelPlusProvenance",
+        bundle_identifier="dev.defaike.app",
+        product="DefAIkeAppKit",
+        source_directory="Shared",
         links_validator=True,
     ),
 ]
@@ -167,7 +172,7 @@ VENDOR_BUNDLE_PATTERNS = ["*C2PA*", "*c2pa*"]
 # nobody has heard of yet. That is what makes it the load-bearing evidence for all six classes.
 ALLOWED_EXTERNAL_PACKAGES = {
     "swift-property-based": "test-only property-based toolchain; linked into no shipping product",
-    "c2pa-swift": "the reviewed Content Credential validator; pixel-plus-provenance only",
+    "c2pa-swift": "the reviewed Content Credential validator; the app composition only",
     "swift-crypto": "transitive dependency of c2pa-swift",
     "swift-certificates": "transitive dependency of c2pa-swift",
     "swift-asn1": "transitive dependency of c2pa-swift and swift-certificates",
@@ -733,14 +738,14 @@ def check_products(products: pathlib.Path, expected: str | None, report: Report)
     report.facts["inspectedBundleIdentifier"] = bundle_identifier
     report.say(f"  archive identifies itself as {composition.name} ({bundle_identifier})")
     report.say(
-        "  note: both compositions build this same path under a shared PRODUCT_NAME. The\n"
-        "        composition above comes from the built Info.plist, not from the path or a\n"
-        "        flag, so it is a fact about the artifact. Per-scheme -derivedDataPath is\n"
-        "        still required so one build does not overwrite the other."
+        "  note: the composition above comes from the built Info.plist, not from the path or\n"
+        "        a flag, so it is a fact about the artifact rather than a caller's claim."
     )
 
-    # 4a. Embedded vendor payload. The pixel-only archive must carry none; the provenance one
-    # must carry some, which is what makes the pixel-only measurement non-vacuous in the same run.
+    # 4a. Embedded vendor payload. The application archive must carry some, which is the
+    # positive half of the linkage claim. It is written as a branch on `links_validator` rather
+    # than as a bare assertion so `--self-test-products` can invert the expectation over the
+    # real bytes and prove this inspection can see a validator at all.
     embedded = sorted(
         {
             str(path.relative_to(app))
@@ -757,15 +762,15 @@ def check_products(products: pathlib.Path, expected: str | None, report: Report)
     if composition.links_validator:
         report.require(
             bool(embedded),
-            f"{composition.name} embeds no C2PA payload; the provenance archive is the one "
-            "build that must contain the reviewed validator, and an archive without it would "
-            "make the pixel-only absence measurement vacuous",
+            f"{composition.name} embeds no C2PA payload; the application archive must "
+            "contain the reviewed validator, and an archive without it would "
+            "make the linkage claim unmeasured",
         )
     else:
         report.require(
             not embedded,
-            f"{composition.name} embeds C2PA payload {embedded}; a pixel-only archive must "
-            "contain no Content Credential validator",
+            f"{composition.name} embeds C2PA payload {embedded}; this composition is held "
+            "to containing no Content Credential validator",
         )
     report.say(f"  embedded C2PA payload: {embedded or 'none'}")
     report.facts["embeddedValidatorPayload"] = embedded
@@ -815,6 +820,25 @@ def check_products(products: pathlib.Path, expected: str | None, report: Report)
             report.require(
                 ADAPTER_MODULE not in defined and ADAPTER_MODULE not in undefined,
                 f"{composition.name}: {relative} references {ADAPTER_MODULE}",
+            )
+
+        # The Share Extension's images, in the archive that *does* link the validator.
+        #
+        # This is the negative case, asserted in the same run as the positive one. It replaces
+        # what a second application archive used to supply: with one app there is no other
+        # archive to compare against, but the extension ships inside this one and the Extension
+        # Execution Policy forbids it any provenance code (Requirement 2.6). So "the inspection
+        # can tell a linked validator from an absent one" is measured here rather than argued.
+        if composition.links_validator and relative.startswith("PlugIns/"):
+            report.require(
+                vendor_symbols == 0,
+                f"{composition.name}: {relative} contains {vendor_symbols} C2PA symbols; the "
+                "Share Extension must link no Content Credential validator",
+            )
+            report.require(
+                ADAPTER_MODULE not in defined and ADAPTER_MODULE not in undefined,
+                f"{composition.name}: {relative} references {ADAPTER_MODULE}; the Share "
+                "Extension must link no Content Credential validator",
             )
 
         # The six classes, in both archives.
@@ -910,8 +934,7 @@ SELF_TESTS: list[tuple[str, str]] = [
     ("version-pin-drift", "reviewed validator release is named inconsistently"),
     ("version-pin-literal", "must not hard-code a version literal"),
     ("version-pin-not-from-module", "must be DefAIkeProvenanceC2PAModule"),
-    ("pixel-only-attests-provenance", "must not attest a content-credential-validation"),
-    ("provenance-attests-nothing", "must attest a content-credential-validation"),
+    ("app-attests-nothing", "must attest a content-credential-validation"),
     ("loose-dependency-requirement", "does not exact-pin c2pa-swift"),
     ("unapproved-package", "declares unapproved external packages"),
     ("unapproved-resolved-package", "pins unapproved packages"),
@@ -928,10 +951,7 @@ def plant(name: str, root: pathlib.Path) -> None:
     package_swift = root / "DefAIkePackage" / "Package.swift"
     resolved = root / "DefAIkePackage" / "Package.resolved"
     reader = root / "DefAIkePackage" / "Sources" / ADAPTER_MODULE / "C2PALibraryReader.swift"
-    pixel_only = root / "DefAIkeApp" / "PixelOnly" / "CompiledCapabilityComposition.swift"
-    provenance = (
-        root / "DefAIkeApp" / "PixelPlusProvenance" / "CompiledCapabilityComposition.swift"
-    )
+    composition = root / "DefAIkeApp" / "Shared" / "CompiledCapabilityComposition.swift"
     domain = root / "DefAIkePackage" / "Sources" / "DefAIkeDomain"
     entitlements = root / "DefAIkeApp" / "Support" / "DefAIkeApp.entitlements"
     info = root / "DefAIkeApp" / "Support" / "Info.plist"
@@ -945,21 +965,20 @@ def plant(name: str, root: pathlib.Path) -> None:
         rewrite(reader, 'reviewedImplementationVersion = "0.0.12"',
                 'reviewedImplementationVersion = "0.0.13"')
     elif name == "version-pin-literal":
-        rewrite(provenance,
+        rewrite(composition,
                 ".contentCredentialValidation: DefAIkeProvenanceC2PAModule"
                 ".reviewedValidatorVersion,",
                 '.contentCredentialValidation: "0.0.12",')
     elif name == "version-pin-not-from-module":
-        rewrite(provenance,
+        rewrite(composition,
                 "DefAIkeProvenanceC2PAModule.reviewedValidatorVersion,",
                 "someOtherConstant,")
-    elif name == "pixel-only-attests-provenance":
-        rewrite(pixel_only,
-                "linkedImplementationVersions: [CapabilityID: String] = [:]",
-                "linkedImplementationVersions: [CapabilityID: String] = "
-                "[.contentCredentialValidation: someConstant]")
-    elif name == "provenance-attests-nothing":
-        rewrite(provenance,
+    elif name == "app-attests-nothing":
+        # The surviving direction of the attestation check, and the only one left after the
+        # merge: an application composition that compiles the capability must attest the
+        # adapter version it links. The removed counterpart planted the opposite violation in
+        # a pixel-only composition that no longer exists.
+        rewrite(composition,
                 ".contentCredentialValidation: DefAIkeProvenanceC2PAModule"
                 ".reviewedValidatorVersion,",
                 "")
@@ -1007,30 +1026,39 @@ def plant(name: str, root: pathlib.Path) -> None:
         raise AssertionError(f"unknown self-test {name}")
 
 
-def self_test_products(
-    pixel_only_products: pathlib.Path, provenance_products: pathlib.Path
-) -> int:
-    """Prove the archive checks can fail, by swapping which rules each archive is held to.
+def self_test_products(products: pathlib.Path) -> int:
+    """Prove the archive checks can fail, against the one built archive.
 
     The static checks can be validated by planting a violation in a copied tree. An archive
     cannot: producing one that embeds a validator it should not would mean building a different
-    project. But two archives already exist that differ in exactly the property under test, so the
-    probe is to hold each to the *other's* rules and require the finding. That also settles the
-    question a single passing run leaves open — whether the probe can see a validator at all.
+    project.
 
-    Only the attribution map is redirected. Every check runs against real bytes.
+    Two archives used to make this easy. They differed in exactly the property under test, so
+    each could be held to the other's rules and the finding had to appear. That probe is gone
+    with the merge, and what replaces it is narrower but answers the same question — *can this
+    inspection see a validator at all?* The composition's own `links_validator` is inverted for
+    the length of one run, so the real bytes are held to the rule that they must contain no
+    C2PA payload, and the payload, symbol, and module-reference checks must all fire.
+
+    Nothing about the bytes is faked. Only the expectation is inverted, and it is restored in
+    `finally`.
+
+    What this can no longer probe is the opposite direction: that an archive genuinely without
+    a validator is reported as missing one. No such application archive is built any more. The
+    Share Extension's `.appex` is the remaining shipping bundle that must contain no validator,
+    and `ios/Scripts/check-share-extension-target.py` is what audits it.
     """
-    global BY_BUNDLE_ID, FORBIDDEN_CLASSES  # noqa: PLW0603 - both restored in `finally`
-    print("Non-vacuity self-test over built archives")
-    pixel_only, provenance = COMPOSITIONS[0], COMPOSITIONS[1]
-    original = dict(BY_BUNDLE_ID)
+    global FORBIDDEN_CLASSES  # noqa: PLW0603 - restored in `finally`
+    print("Non-vacuity self-test over the built archive")
+    composition = COMPOSITIONS[0]
     expectations: list[tuple[str, str, int]] = []
 
+    # Hold the archive that does contain the validator to the rule that it must not.
+    original_linkage = composition.links_validator
     try:
-        # Pixel-only rules over the archive that does contain the validator.
-        BY_BUNDLE_ID = {provenance.bundle_identifier: pixel_only}
+        composition.links_validator = False
         report = Report(quiet=True)
-        check_products(provenance_products, None, report)
+        check_products(products, None, report)
         for expected in [
             "embeds C2PA payload",
             "C2PA symbols",
@@ -1038,60 +1066,42 @@ def self_test_products(
         ]:
             expectations.append(
                 (
-                    f"pixel-only rules over the provenance archive: {expected}",
+                    f"absence rules over the application archive: {expected}",
                     expected,
                     len([f for f in report.findings if expected in f]),
                 )
             )
-
-        # Provenance rules over the archive that does not.
-        BY_BUNDLE_ID = {pixel_only.bundle_identifier: provenance}
-        report = Report(quiet=True)
-        check_products(pixel_only_products, None, report)
-        expectations.append(
-            (
-                "provenance rules over the pixel-only archive: missing validator",
-                "embeds no C2PA payload",
-                len([f for f in report.findings if "embeds no C2PA payload" in f]),
-            )
-        )
     finally:
-        BY_BUNDLE_ID = original
+        composition.links_validator = original_linkage
 
-    # Attribution itself: each archive must refuse the other's name.
-    for products, wrong in [
-        (pixel_only_products, provenance.name),
-        (provenance_products, pixel_only.name),
-    ]:
-        report = Report(quiet=True)
-        check_products(products, wrong, report)
-        expectations.append(
-            (
-                f"--expect {wrong} refused by the other archive",
-                "disagrees with the archive",
-                len([f for f in report.findings if "disagrees with the archive" in f]),
-            )
+    # Attribution itself: the archive must refuse a name that is not its own. `pixel-only` is
+    # used deliberately — it is the retired composition, so this also fails loudly if that name
+    # is ever quietly reintroduced as a valid one.
+    report = Report(quiet=True)
+    check_products(products, "pixel-only", report)
+    expectations.append(
+        (
+            "--expect pixel-only refused by the application archive",
+            "disagrees with the archive",
+            len([f for f in report.findings if "disagrees with the archive" in f]),
         )
+    )
 
-    # The forbidden-framework matcher, against a framework both archives are known to link.
+    # The forbidden-framework matcher, against a framework the archive is known to link.
     saved_classes = FORBIDDEN_CLASSES
     try:
         FORBIDDEN_CLASSES = [
             ForbiddenClass("probe", ["n/a"], "probe", [], [], ["CoreML"], [], [])
         ]
-        for name, products in [
-            (pixel_only.name, pixel_only_products),
-            (provenance.name, provenance_products),
-        ]:
-            report = Report(quiet=True)
-            check_products(products, name, report)
-            expectations.append(
-                (
-                    f"forbidden-framework matcher on {name}",
-                    "links ['CoreML']",
-                    len([f for f in report.findings if "links ['CoreML']" in f]),
-                )
+        report = Report(quiet=True)
+        check_products(products, composition.name, report)
+        expectations.append(
+            (
+                f"forbidden-framework matcher on {composition.name}",
+                "links ['CoreML']",
+                len([f for f in report.findings if "links ['CoreML']" in f]),
             )
+        )
     finally:
         FORBIDDEN_CLASSES = saved_classes
 
@@ -1188,18 +1198,17 @@ def main() -> int:
     )
     parser.add_argument(
         "--self-test-products",
-        nargs=2,
         type=pathlib.Path,
-        metavar=("PIXEL_ONLY_PRODUCTS", "PROVENANCE_PRODUCTS"),
-        help="prove every archive check can fail, by holding each built archive to the other "
-        "composition's rules",
+        metavar="PRODUCTS",
+        help="prove the archive checks can fail, by holding the built archive to the rule "
+        "that it must contain no validator",
     )
     arguments = parser.parse_args()
 
     if arguments.self_test:
         return self_test()
     if arguments.self_test_products:
-        return self_test_products(*arguments.self_test_products)
+        return self_test_products(arguments.self_test_products)
 
     report = Report()
     run_static_checks(IOS, report)

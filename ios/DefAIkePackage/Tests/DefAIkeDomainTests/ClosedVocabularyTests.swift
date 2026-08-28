@@ -342,7 +342,12 @@ struct RequirementFixedVocabularyTests {
         )
         #expect(!ProvenanceCategory.allCases.map(\.rawValue).contains("unavailable"))
         #expect(!ProvenanceStateKey.allCases.map(\.rawValue).contains("unavailable"))
-        #expect(UnavailableReason.allCases.count == 2)
+        // Three reasons, not two: the application composition links the validator
+        // unconditionally, so "no validator was compiled in" stopped covering every
+        // unavailable lane and `validatorEnablementUnapproved` names the linked-but-unusable
+        // case. All three resolve to the one approved `provenanceUnavailable` copy surface, so
+        // adding one was a vocabulary change and not a copy-approval change.
+        #expect(UnavailableReason.allCases.count == 3)
     }
 
     @Test("The two byte-preservation vocabularies name the same three states")

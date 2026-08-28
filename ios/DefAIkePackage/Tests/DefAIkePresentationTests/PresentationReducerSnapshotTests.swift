@@ -602,7 +602,7 @@ struct ProvenanceLaneSnapshotTests {
         let summary: String
     }
 
-    /// The two unavailable reasons and the five enabled categories.
+    /// The three unavailable reasons and the five enabled categories.
     ///
     /// Built through ``ReportFixture/availableLane(_:)`` so the payloads are the same values
     /// every other suite in this target uses, which is what lets the coverage check below
@@ -622,6 +622,20 @@ struct ProvenanceLaneSnapshotTests {
             name: "unavailable/capability-not-enabled",
             lane: .unavailable(.capabilityNotEnabledByReleaseCapabilityManifest),
             state: "unavailable/capabilityNotEnabledByReleaseCapabilityManifest",
+            distinction: "release-cannot-validate",
+            stateCopy: "provenance-unavailable",
+            claimBinding: "not-applicable",
+            screenshot: "not-applicable",
+            summary: "omitted/provenance-lane-unavailable"
+        ),
+        Expectation(
+            name: "unavailable/enablement-unapproved",
+            lane: .unavailable(.validatorEnablementUnapproved),
+            // The shipping composition's own lane. It renders identically to the other two
+            // unavailable reasons, and that is the assertion: the reason is an audit
+            // distinction, so a user is told the installed release cannot check Content
+            // Credentials without being handed which artifact is missing.
+            state: "unavailable/validatorEnablementUnapproved",
             distinction: "release-cannot-validate",
             stateCopy: "provenance-unavailable",
             claimBinding: "not-applicable",
@@ -684,19 +698,21 @@ struct ProvenanceLaneSnapshotTests {
         ),
     ]
 
-    @Test("The table is the whole lane vocabulary: two unavailable reasons and five states")
+    @Test("The table is the whole lane vocabulary: three unavailable reasons and five states")
     func tableIsExhaustive() {
-        #expect(UnavailableReason.allCases.count == 2)
+        #expect(UnavailableReason.allCases.count == 3)
         #expect(ProvenanceCategory.allCases.count == 5)
-        #expect(Self.expectations.count == 7)
+        #expect(Self.expectations.count == 8)
         #expect(
             Self.expectations.count
                 == UnavailableReason.allCases.count + ProvenanceCategory.allCases.count
         )
         #expect(Set(Self.expectations.map(\.lane)) == Set(ReportFixture.allLanes))
-        #expect(Set(Self.expectations.map(\.name)).count == 7)
+        #expect(Set(Self.expectations.map(\.name)).count == 8)
         // Every state's approved copy address is distinct, so no two lane states can be
-        // described by the same sentence (Requirements 6.9 and 8.8).
+        // described by the same sentence (Requirements 6.9 and 8.8). Six addresses for eight
+        // lanes: all three unavailable reasons share the one `provenance-unavailable` entry,
+        // which is deliberate — the reason is not a user-facing distinction.
         #expect(Set(Self.expectations.map(\.stateCopy)).count == 6)
     }
 
@@ -777,7 +793,7 @@ struct ProvenanceLaneSnapshotTests {
         }
     }
 
-    @Test("The three distinctions partition the seven lane states exactly")
+    @Test("The three distinctions partition the eight lane states exactly")
     func distinctionsPartitionTheVocabulary() throws {
         var byDistinction: [ProvenanceLaneDistinction: [String]] = [:]
         for expected in Self.expectations {
@@ -787,7 +803,10 @@ struct ProvenanceLaneSnapshotTests {
         }
 
         #expect(ProvenanceLaneDistinction.allCases.count == 3)
-        #expect(byDistinction[.releaseCannotValidate]?.count == 2)
+        // All three unavailable reasons land in one distinction, which is what keeps the reason
+        // an audit detail: a reader is told the release cannot validate, not which artifact is
+        // missing.
+        #expect(byDistinction[.releaseCannotValidate]?.count == 3)
         #expect(byDistinction[.enabledValidatorResult]?.count == 4)
         #expect(byDistinction[.enabledValidatorInconclusive]?.count == 1)
         #expect(Set(byDistinction.keys) == Set(ProvenanceLaneDistinction.allCases))
@@ -837,16 +856,21 @@ struct LaneIndependenceSnapshotTests {
             }
         }
 
-        #expect(combinations == 21)
+        #expect(combinations == 24)
         #expect(pixelLinesByLabel.count == 3)
-        #expect(provenanceLinesByLane.count == 7)
-        // No two labels and no two lane states project the same lines, so the independence
-        // above is not independence by everything being identical.
+        #expect(provenanceLinesByLane.count == 8)
+        // No two labels project the same lines, so the independence above is not independence
+        // by everything being identical.
         #expect(Set(pixelLinesByLabel.values.map { $0.joined(separator: "\n") }).count == 3)
-        #expect(Set(provenanceLinesByLane.values.map { $0.joined(separator: "\n") }).count == 7)
+        // And no two lane states do either. All eight are distinct here because the snapshot
+        // records the lane's own discriminator, including which unavailable reason it is — that
+        // is a test projection, not display text. What the three unavailable reasons *share* is
+        // the approved copy address, which `tableIsExhaustive` pins at six distinct addresses
+        // for eight lanes.
+        #expect(Set(provenanceLinesByLane.values.map { $0.joined(separator: "\n") }).count == 8)
     }
 
-    @Test("Both cards exist for all twenty-one combinations")
+    @Test("Both cards exist for all twenty-four combinations")
     func bothCardsAlwaysExist() throws {
         // `EvidenceCardPair` has two non-optional members of two different types, so this
         // cannot fail without the type changing. Asserted over the whole cross product anyway,
@@ -863,7 +887,7 @@ struct LaneIndependenceSnapshotTests {
                 checked += 1
             }
         }
-        #expect(checked == 21)
+        #expect(checked == 24)
     }
 }
 
@@ -1893,7 +1917,7 @@ struct ExactCopySnapshotTests {
             #expect(sentenceShaped.isEmpty, "\(name)")
             shapes += 1
         }
-        #expect(shapes == 29)
+        #expect(shapes == 32)
 
         // The three fixed strings are reachable only through the closed label vocabulary, and
         // none of them is a localization key, so a rendered key can never be mistaken for one.
@@ -1973,9 +1997,9 @@ struct ForbiddenControlSnapshotTests {
             audited += 1
         }
 
-        // 21 label-by-lane combinations, 3 fused, 3 byte statuses, and 2 contradiction shapes.
-        #expect(audited == 29)
-        #expect(presentations.count == 29)
+        // 24 label-by-lane combinations, 3 fused, 3 byte statuses, and 2 contradiction shapes.
+        #expect(audited == 32)
+        #expect(presentations.count == 32)
     }
 
     @Test("Every error screen passes both audits")

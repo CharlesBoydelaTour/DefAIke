@@ -2,6 +2,11 @@
 *.xcodeproj/
 .xcodegen-cache/
 
+# Local signing and bundle-identifier overrides. Created from
+# Local.xcconfig.example by Scripts/generate-xcode-project.sh. Holds a developer's
+# own Apple team identifier, which is personal and is not a release value.
+Local.xcconfig
+
 # SwiftPM and Xcode build products.
 .build/
 .swiftpm/

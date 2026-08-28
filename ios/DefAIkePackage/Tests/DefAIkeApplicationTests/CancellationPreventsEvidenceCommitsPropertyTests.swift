@@ -1066,6 +1066,7 @@ private struct CancellationRun {
         let sessionID = PortValue.sessionID("session-0001")
         let contractID = CoordinatorSample.artifact(CoordinatorSample.preprocessingContractID)
         let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: true,
             analyzer: RendezvousProvenanceAnalyzer(
                 state: .absent,
                 recorder: recorder,

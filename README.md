@@ -40,6 +40,7 @@ Start with:
 - [Reproducing the work](docs/engineering/reproduce.md)
 - [Known limitations](docs/project/limitations.md)
 - [Primary references](docs/references.md)
+- [Loading the iOS app onto an iPhone](ON_IPHONE_SETUP.md)
 
 ## Benchmark quick start
 

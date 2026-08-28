@@ -33,7 +33,7 @@ Runs XcodeGen against `project.yml`, then reports whether Xcode is active. Open 
 ios/Scripts/host-test.sh
 ```
 
-Builds all four SwiftPM products (`DefAIkePixelOnly`, `DefAIkePixelPlusProvenance`, `DefAIkeShareExtensionKit`, `DefAIkeReleaseValidation`) and runs the whole package test suite with `swift test`. This is the fastest, most complete correctness check and the one to run after any Swift change. It does not compile the Xcode-only app/extension/UI/device-validation targets — those require `build-ios.sh`.
+Builds all three SwiftPM products (`DefAIkeAppKit`, `DefAIkeShareExtensionKit`, `DefAIkeReleaseValidation`) and runs the whole package test suite with `swift test`. This is the fastest, most complete correctness check and the one to run after any Swift change. It does not compile the Xcode-only app/extension/UI/device-validation targets — those require `build-ios.sh`.
 
 The script supplies Swift Testing's framework and interop search paths explicitly when Xcode is not the active developer directory, since the Command Line Tools install of `Testing.framework` lacks the paths SwiftPM passes when Xcode is active.
 
@@ -45,14 +45,14 @@ Property tests in this suite are real generative tests (via `swift-property-base
 ios/Scripts/build-ios.sh
 ```
 
-Compiles both schemes (`DefAIkeApp-PixelOnly`, `DefAIkeApp-PixelPlusProvenance`) for `generic/platform=iOS Simulator` with `CODE_SIGNING_ALLOWED=NO`, Debug configuration. Requires Xcode. Both schemes build into the **same shared default derived-data path**, so the second build overwrites the first product — this is fine for a compile check but means the script alone cannot produce two inspectable archives at once (see the release-audit scripts below, which need exactly that).
+Compiles the `DefAIkeApp` scheme for `generic/platform=iOS Simulator` with `CODE_SIGNING_ALLOWED=NO`, Debug configuration. Requires Xcode. It builds into the default derived-data path; the release-audit scripts below want a dedicated `-derivedDataPath` so a stale bundle from another build cannot be inspected by mistake.
 
-For a Release build, or to keep both compositions' archives simultaneously, invoke `xcodebuild` directly with per-scheme derived-data paths:
+For a Release build, or to keep an archive in its own products directory for the audit scripts, invoke `xcodebuild` directly with a dedicated derived-data path:
 
 ```bash
 xcodebuild build \
   -workspace ios/DefAIke.xcworkspace \
-  -scheme DefAIkeApp-PixelOnly \
+  -scheme DefAIkeApp \
   -configuration Release \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath /tmp/pixelonly \
@@ -69,7 +69,7 @@ To compile the UI and device-validation test bundles without running them (`buil
 .venv/bin/python ios/Scripts/check-module-boundaries.py --require-xcode-project
 ```
 
-Reads `swift package dump-package` and the Xcode project spec, and fails closed on any of ten rules: every design module exists; `DefAIkeDomain` has no dependencies; the Share Extension composition cannot reach inference, image-pipeline, model-bundle, provenance, application, or release-validation code; the pixel-only composition does not link `DefAIkeProvenanceC2PA`; `DefAIkeReleaseValidation` is absent from both shipping compositions; `swift-property-based` is exact-pinned and test-only; `DefAIkeTestSupport` belongs to no product and is used by at least one test target; the declared iOS minimum is 17.0 everywhere; both capability compositions exist as separate build outputs; no Xcode target links a module its role forbids; and, with `--require-xcode-project`, every generated target resolves to iPhone-only (Xcode's per-target presets can silently override a project-level device-family setting, so the generated result is checked directly rather than only the spec).
+Reads `swift package dump-package` and the Xcode project spec, and fails closed on any of ten rules: every design module exists; `DefAIkeDomain` has no dependencies; the Share Extension composition cannot reach inference, image-pipeline, model-bundle, provenance, application, or release-validation code; the application composition links `DefAIkeProvenanceC2PA` and no retired per-capability product or target has returned; `DefAIkeReleaseValidation` is absent from every shipping composition; `swift-property-based` is exact-pinned and test-only; `DefAIkeTestSupport` belongs to no product and is used by at least one test target; the declared iOS minimum is 17.0 everywhere; one app target and one Share Extension target exist sharing one App Group; no Xcode target links a module its role forbids; and, with `--require-xcode-project`, every generated target resolves to iPhone-only (Xcode's per-target presets can silently override a project-level device-family setting, so the generated result is checked directly rather than only the spec).
 
 Requires PyYAML (`uv pip install -e ".[docs]"` in the repository dev environment provides it).
 
@@ -81,35 +81,32 @@ Four Python scripts under `ios/Scripts/` audit the built archives for evidence a
 |---|---|---|
 | `check-share-extension-target.py` | The `.appex`: declared dependency set, comment-stripped source scan, and (with `--products`) forbidden frameworks/symbols/bundled model artifacts in the built extension | — |
 | `check-capability-composition.py` | Adapter version-pin coherence across four locations, the closed five-package external-dependency allowlist, a 219-file production-source scan for six forbidden dependency classes, both targets' `Info.plist`/entitlements, and per-composition archive self-attribution via `CFBundleIdentifier` | — |
-| `check-offline-privacy-archive.py` | Per-compiled-object symbol attribution over *every* object file in both builds (not just whole-module blobs), the pixel-only/provenance network-symbol asymmetry, an archive endpoint inventory, and a seventh forbidden class: result persistence and export | Runs both scripts above |
-| `audit-release-archives.py` | A CycloneDX 1.6 Software Bill of Materials per composition, revision-level dependency reconciliation, binary-artifact digests, total module-to-package attribution, and a typed release-record input for `DefAIkeReleaseValidation` to consume | Runs `check-offline-privacy-archive.py` (which runs the two above) |
+| `check-offline-privacy-archive.py` | Per-compiled-object symbol attribution over *every* object file in the build (not just whole-module blobs), the app/Share-Extension network-symbol split, an archive endpoint inventory, and a seventh forbidden class: result persistence and export | Runs both scripts above |
+| `audit-release-archives.py` | A CycloneDX 1.6 Software Bill of Materials for the composition, revision-level dependency reconciliation, binary-artifact digests, total module-to-package attribution, and a typed release-record input for `DefAIkeReleaseValidation` to consume | Runs `check-offline-privacy-archive.py` (which runs the two above) |
 
-Each script needs both compositions' built products, so build each scheme into its own derived-data directory first:
+Each script needs the built products, so build the scheme into its own derived-data directory first:
 
 ```bash
-xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme DefAIkeApp-PixelOnly \
+xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme DefAIkeApp \
   -configuration Debug -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath /tmp/pixelonly CODE_SIGNING_ALLOWED=NO
-
-xcodebuild build -workspace ios/DefAIke.xcworkspace -scheme DefAIkeApp-PixelPlusProvenance \
-  -configuration Debug -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath /tmp/provenance CODE_SIGNING_ALLOWED=NO
+  -derivedDataPath /tmp/defaike CODE_SIGNING_ALLOWED=NO
 
 ios/Scripts/check-share-extension-target.py \
-  --products /tmp/pixelonly/Build/Products/Debug-iphonesimulator
+  --products /tmp/defaike/Build/Products/Debug-iphonesimulator
 
 ios/Scripts/check-capability-composition.py \
-  --products /tmp/pixelonly/Build/Products/Debug-iphonesimulator --expect pixel-only
+  --products /tmp/defaike/Build/Products/Debug-iphonesimulator \
+  --expect pixel-plus-provenance
 
 ios/Scripts/check-offline-privacy-archive.py \
-  --pixel-only-build /tmp/pixelonly --provenance-build /tmp/provenance --json /tmp/offline.json
+  --build /tmp/defaike --json /tmp/offline.json
 
 ios/Scripts/audit-release-archives.py \
-  --pixel-only-build /tmp/pixelonly --provenance-build /tmp/provenance \
+  --build /tmp/defaike \
   --sbom-directory /tmp/sbom --json /tmp/audit.json --release-input /tmp/release-input.json
 ```
 
-`check-offline-privacy-archive.py` and `audit-release-archives.py` require **Debug** build roots specifically — they read `Build/Products/Debug-iphonesimulator` and `Intermediates.noindex/**/Objects-normal/<arch>/`.
+`check-offline-privacy-archive.py` and `audit-release-archives.py` require a **Debug** build root specifically — they read `Build/Products/Debug-iphonesimulator` and `Intermediates.noindex/**/Objects-normal/<arch>/`.
 
 Each script has one or more self-test modes that plant a real violation and require the check to fire, rather than trusting a script that has only ever reported zero findings:
 
@@ -155,7 +152,7 @@ ios/Scripts/host-test.sh
 # Enforce module and target boundaries
 .venv/bin/python ios/Scripts/check-module-boundaries.py --require-xcode-project
 
-# Compile both compositions against the iOS SDK (Debug, simulator)
+# Compile the app against the iOS SDK (Debug, simulator)
 ios/Scripts/build-ios.sh
 
 # Full noninteractive pipeline: builds, boundary check, host suite, archive audits
@@ -164,7 +161,9 @@ ios/Scripts/release-pipeline.py
 
 ## Known project quirks
 
-**Device-validation bundles are un-hosted logic bundles.** `DefAIkeDeviceValidationTests-PixelOnly` and `DefAIkeDeviceValidationTests-PixelPlusProvenance` set `TEST_HOST: ""` with `TEST_TARGET_NAME` pointing at their app scheme, rather than a real hosted path. A real `TEST_HOST` path resolves to `DefAIke.app`, and **both compositions build the same product name**, so Xcode's implicit dependency resolution pulls the wrong app target into the graph and fails with `Multiple commands produce .../DefAIke.app`. Hosting them inside the app for real would require the two compositions to build distinct product names, which is a release-visible change and has not been made. Consequence: a device-validation test cannot observe in-app behavior today, only whatever it can reach as a standalone logic bundle linked against `DefAIkeReleaseValidation`.
+**The device-validation bundle is an un-hosted logic bundle.** `DefAIkeDeviceValidationTests` sets `TEST_HOST: ""` with `TEST_TARGET_NAME` pointing at the app target, rather than a real hosted path. XcodeGen otherwise injects `TEST_HOST = $(BUILT_PRODUCTS_DIR)/DefAIkeApp.app/DefAIkeApp`, and the app target overrides `PRODUCT_NAME` to `DefAIke`, so that path never exists and build-for-testing fails with "Could not find test host". `$(PRODUCT_NAME)` cannot be substituted either: inside a test target it is the test bundle's own name. Hosting it for real would mean spelling `DefAIke.app` literally and coupling this target to the app's `PRODUCT_NAME`, which has not been done. Consequence: a device-validation test cannot observe in-app behavior today, only whatever it can reach as a standalone logic bundle linked against `DefAIkeReleaseValidation`.
+
+(A second reason applied while two app targets built the same `DefAIke.app`: any `TEST_HOST` path matched both, so implicit-dependency resolution pulled both into one graph and the build failed with `Multiple commands produce .../DefAIke.app`. That reason went away with the second target; the `PRODUCT_NAME` reason did not.)
 
 **Both compositions share `PRODUCT_NAME: DefAIke`.** This is also why every archive-audit script above needs a per-scheme `-derivedDataPath` and why `check-share-extension-target.py`/`check-capability-composition.py` require an explicit `--expect` cross-check against the archive's own `CFBundleIdentifier` rather than trusting the invocation.
 

@@ -2,9 +2,9 @@ import SwiftUI
 
 /// Scene composition and dependency assembly for the main iPhone app.
 ///
-/// This target holds no evidence semantics. Both capability compositions compile this file; each
-/// also compiles exactly one of `PixelOnly/` or `PixelPlusProvenance/`, which supplies
-/// `CompiledCapabilityComposition`.
+/// This target holds no evidence semantics. It compiles one capability composition,
+/// `CompiledCapabilityComposition`, which declares both evidence capabilities and links the
+/// Content Credential validator.
 ///
 /// The scene passes the compiled composition and, in a Release build, nothing else. This
 /// repository carries no release-controlled input set, so `MainAppComposition.start(...)` refuses

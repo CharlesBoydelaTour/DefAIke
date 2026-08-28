@@ -138,15 +138,18 @@ struct CompositionRootWiringFidelityTests {
 struct CompositionFaithfulFlowTests {
 
     @Test(
-        "Each route reaches one report on the pixel-only composition",
-        arguments: FlowRoute.allCases
+        "Each route reaches one report on every composition",
+        arguments: FlowRoute.allCases,
+        FlowComposition.allCases
     )
-    func aRouteCompletesUnderTheCompositionRootsWiring(route: FlowRoute) async throws {
-        // Pixel-only, because it is the only composition whose sessions can complete under the
-        // composition root's own wiring today. See
-        // `CompositionProvenanceLaneTests.aProvenanceCompositionCannotCompleteASessionAtAll`
-        // for what the other two do and why.
-        let graph = try await CompositionGraph.make(.pixelOnly)
+    func aRouteCompletesUnderTheCompositionRootsWiring(
+        route: FlowRoute,
+        composition: FlowComposition
+    ) async throws {
+        // Every composition, which it did not used to be. While an unavailable lane could not
+        // sit beside a policy-bound session, the two provenance compositions failed every
+        // session at `evidenceJoining` and this arm could only be run on pixel-only.
+        let graph = try await CompositionGraph.make(composition)
         defer { graph.removeHostRoots() }
         let run = try await graph.run(route)
 
@@ -189,18 +192,32 @@ struct CompositionFaithfulFlowTests {
         defer { graph.removeHostRoots() }
         let run = try await graph.run(route)
 
+        // Every composition completes, and the provenance-enabled ones now do too.
+        //
+        // They did not. While `checkProvenanceAttribution` refused an unavailable lane in a
+        // policy-bound session, a provenance-enabled composition failed every session at
+        // `evidenceJoining` with `model-load-error`: the binding named the policy the signed
+        // manifest enabled, the lane resolved from a `nil` analyzer named none, and the two had
+        // to agree. This arm pinned that behaviour rather than endorsing it.
+        //
+        // Merging the two capability compositions into one made that unshippable — the single
+        // application composition links the validator, so its manifest enables provenance and
+        // *every* session would have failed. The refusal was relaxed in the direction that was
+        // no longer true: a session may bind a policy and still carry an unavailable lane,
+        // because linkage plus manifest approval does not imply an analyzer exists.
+        #expect(run.session.outcome.isCompleted)
+        #expect(run.session.error == nil)
+        let report = try #require(run.session.evidenceReport)
+        #expect(!report.provenance.isAvailable)
+        #expect(report.combinedSummary == nil)
         if composition.enablesProvenance {
-            // Not a route difference and not a stub artefact: the session binding names the
-            // Provenance Policy the signed manifest enabled, the lane resolved from a `nil`
-            // analyzer names none, and the evidence join refuses a mismatch rather than
-            // misattributing evidence.
-            #expect(run.session.outcome.isFailed)
-            #expect(run.session.error == .modelLoadError)
-            let failure = try #require(run.session.outcome.failure)
-            #expect(failure.stage == .evidenceJoining)
+            // Linked, enabled by the manifest, no analyzer. The reason names the missing
+            // approval rather than claiming the validator was never compiled in.
+            #expect(report.provenance.unavailableReason == .validatorEnablementUnapproved)
+            #expect(report.binding.provenancePolicyID != nil)
         } else {
-            #expect(run.session.outcome.isCompleted)
-            #expect(run.session.error == nil)
+            #expect(report.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
+            #expect(report.binding.provenancePolicyID == nil)
         }
         // Whatever the terminal, the session's material is gone and the branch execution is
         // the approved one.
@@ -435,10 +452,10 @@ struct CompositionTerminalPathTests {
     }
 }
 
-// MARK: - 4. Pixel-only and provenance compositions
+// MARK: - 4. The provenance lane the shipping composition actually gets
 
 @Suite(
-    "Composition graph: the provenance lane both shipping compositions actually get",
+    "Composition graph: the provenance lane the shipping composition actually gets",
     .tags(.compositionRootFidelity)
 )
 struct CompositionProvenanceLaneTests {
@@ -456,13 +473,20 @@ struct CompositionProvenanceLaneTests {
         #expect(!graph.provenance.isEnabled)
         #expect(graph.provenance.boundPolicyID == nil)
         #expect(!graph.provenance.canProduceCombinedSummary)
-        // The reason is the same in all three, including the two whose signed manifest enables
-        // the capability: a `nil` analyzer is the pixel-only lane regardless of the manifest.
-        #expect(graph.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
+
+        // The lane is unavailable in all three, and the reason is no longer the same in all
+        // three. It used to be: a `nil` analyzer reported `validatorNotCompiledIntoRelease`
+        // whatever the manifest said, which was a false statement about a build that links
+        // `DefAIkeProvenanceC2PA`. Now the reason names which link in the chain is missing.
+        if composition.enablesProvenance {
+            #expect(graph.provenance.unavailableReason == .validatorEnablementUnapproved)
+        } else {
+            #expect(graph.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
+        }
     }
 
     @Test(
-        "The manifest still enables provenance in the two provenance compositions",
+        "A manifest that enables what the binary cannot supply names the missing approval",
         arguments: FlowComposition.allCases
     )
     func theManifestStillEnablesWhatTheBinaryCannotSupply(
@@ -471,24 +495,26 @@ struct CompositionProvenanceLaneTests {
         let graph = try await CompositionGraph.make(composition, analyzer: .absent)
         defer { graph.removeHostRoots() }
 
-        // This is the pair that makes the reason wrong for a provenance build: the manifest
-        // enables the capability and binds a policy, and the lane still reports that no
-        // validator was compiled in — while the pixel-plus-provenance build *does* link
-        // `DefAIkeProvenanceC2PA`. The honest reason would be "a validator is linked and does
-        // not conform to the analysis port", and `UnavailableReason` has no case for it.
+        // This is the pair that used to make the reason wrong: the manifest enables the
+        // capability and binds a policy, the build links the adapter, and the lane reported
+        // that no validator was compiled in. The honest reason — "a validator is linked and
+        // the manifest enables it, and no approved decision supplies an analyzer" — is now
+        // `UnavailableReason.validatorEnablementUnapproved`.
         #expect(graph.configuration.capabilityManifest.enablesProvenance
             == composition.enablesProvenance)
         if composition.enablesProvenance {
             #expect(graph.configuration.provenancePolicy != nil)
-            #expect(graph.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
+            #expect(graph.provenance.unavailableReason == .validatorEnablementUnapproved)
         }
-        // Pinned so the gap is auditable: adding a third reason is a copy-approval change.
-        let reasons = UnavailableReason.allCases
-        #expect(reasons.count == 2)
+        // Pinned so the vocabulary stays auditable. All three reasons resolve to the one
+        // approved `provenanceUnavailable` copy surface, so a fourth would be a vocabulary
+        // change rather than a copy-approval change — but it would still have to be a real
+        // fourth place the chain can break, not a synonym for one of these.
+        #expect(UnavailableReason.allCases.count == 3)
     }
 
     @Test(
-        "The pixel-only report carries the unavailable lane and no bound policy",
+        "A report with no linked validator carries the unavailable lane and no bound policy",
         arguments: FlowRoute.allCases
     )
     func theReportCarriesTheUnavailableLane(route: FlowRoute) async throws {
@@ -499,56 +525,38 @@ struct CompositionProvenanceLaneTests {
 
         #expect(!report.provenance.isAvailable)
         #expect(report.combinedSummary == nil)
-        // The binding names no policy either, which is what makes the lane and the binding
-        // agree — and is exactly what a provenance-enabled build cannot arrange today.
+        // A composition whose manifest does not enable provenance binds no policy, so the lane
+        // and the binding agree here without the coordinator having to require it.
         #expect(report.binding.provenancePolicyID == nil)
         #expect(report.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
     }
 
     @Test(
-        "A provenance composition cannot complete a session at all, on either route",
-        arguments: FlowRoute.allCases,
-        [FlowComposition.provenanceEnabled, .provenanceAndFusion]
+        "A provenance-enabled report completes with a bound policy beside an unavailable lane",
+        arguments: FlowRoute.allCases
     )
-    func aProvenanceCompositionCannotCompleteASessionAtAll(
-        route: FlowRoute,
-        composition: FlowComposition
-    ) async throws {
-        // **Defect, reported and not fixed here.**
+    func aProvenanceEnabledReportCompletesWithABoundPolicy(route: FlowRoute) async throws {
+        // The shipping configuration, end to end through the real coordinator: the adapter is
+        // linked, the manifest enables the capability, the session binds the policy, and the
+        // lane is unavailable because no approved decision supplies an analyzer.
         //
-        // `AnalysisSessionBinder` takes `provenancePolicyID` from `admission.enablesProvenance`
-        // — a signed-manifest fact — so every session in a provenance-enabled build is bound to
-        // a Provenance Policy. `ProvenanceLaneProvider.resolve(analyzer: nil, ...)` reports no
-        // bound policy, because a `nil` analyzer is the pixel-only lane regardless of the
-        // manifest. `EvidenceLaneJoin` then refuses "an unavailable lane in a session bound to
-        // one" and the coordinator commits `model-load-error` at `evidenceJoining`.
-        //
-        // `CapabilityComposition.provenanceAnalyzer(store:policy:)` returns `nil` in *both*
-        // shipping compositions, because `C2PAProvenanceValidator` deliberately does not conform
-        // to `ProvenanceAnalyzing`. So as shipped, a pixel-plus-provenance build whose signed
-        // manifest enables the capability cannot complete a single Analysis Session: every
-        // session on both routes ends with an Analysis Error, and the "unavailable lane"
-        // presentation is never reached at all.
-        //
-        // That is a stronger statement than the already-known one about the *reason* being
-        // wrong: the reason is never displayed, because there is no completed report to display
-        // it in. Resolving it is a release-configuration or adapter-conformance decision, not a
-        // test change, so this arm pins the current behaviour rather than asserting the
-        // behaviour anyone wants.
-        let graph = try await CompositionGraph.make(composition, analyzer: .absent)
+        // The session *completes*. That is the whole point of relaxing the attribution rule:
+        // this configuration used to fail every session with `model-load-error`.
+        let graph = try await CompositionGraph.make(.provenanceEnabled, analyzer: .absent)
         defer { graph.removeHostRoots() }
         let run = try await graph.run(route)
+        let report = try #require(run.session.evidenceReport)
 
-        #expect(run.session.evidenceReport == nil)
-        #expect(run.session.error == .modelLoadError)
-        let failure = try #require(run.session.outcome.failure)
-        #expect(failure.stage == .evidenceJoining)
-        // The two halves that disagree, each read from its own side.
-        let binder = graph.presentationBinder
-        let bound = try await binder.bind(accepting: run.asset)
-        await binder.release(run.asset.sessionID)
-        #expect(bound.binding.provenancePolicyID == graph.configuration.provenancePolicy?.id)
-        #expect(graph.provenance.boundPolicyID == nil)
+        #expect(run.session.outcome.isCompleted)
+        #expect(report.provenance == .unavailable(.validatorEnablementUnapproved))
+        #expect(report.binding.provenancePolicyID != nil)
+        #expect(report.combinedSummary == nil)
+        #expect(report.apparentInconsistency == nil)
+
+        // And the user reaches a completed screen rather than an Analysis Error.
+        let copy = try await graph.copyBinding(for: run.asset)
+        let screen = try graph.screen(for: run.session, copy: copy)
+        #expect(screen.family == .completed)
     }
 
     @Test(
@@ -567,10 +575,19 @@ struct CompositionProvenanceLaneTests {
             #expect(graph.provenance.boundPolicyID == graph.configuration.provenancePolicy?.id)
             #expect(graph.provenance.unavailableReason == nil)
         } else {
-            // A validator compiled into a build whose manifest does not enable it.
+            // A supplied analyzer in a composition that links no validator, which is
+            // incoherent — and the module-graph fact is the one that decides, so the reason is
+            // non-linkage rather than the manifest.
+            //
+            // `capabilityNotEnabledByReleaseCapabilityManifest` is deliberately not reachable
+            // from this harness. It would need a build that links the validator while its
+            // manifest does not enable the capability, and the startup gate refuses exactly
+            // that pair (`PreflightFailure.provenanceLinkageMismatch`), so a post-gate graph
+            // cannot hold it. The reachable route to that reason is the provider's stricter
+            // manifest checks — an unbound policy, a mismatched adapter version, a rejected
+            // feasibility decision — which `UnavailableProvenanceLaneTests` covers directly.
             #expect(!graph.provenance.isEnabled)
-            #expect(graph.provenance.unavailableReason
-                == .capabilityNotEnabledByReleaseCapabilityManifest)
+            #expect(graph.provenance.unavailableReason == .validatorNotCompiledIntoRelease)
         }
     }
 
@@ -615,14 +632,18 @@ struct CompositionNoSummaryTests {
     }
 
     @Test(
-        "The only composition that completes a session omits the summary for the lane",
-        arguments: FlowRoute.allCases
+        "Every composition omits the summary for the unavailable lane",
+        arguments: FlowRoute.allCases,
+        FlowComposition.allCases
     )
-    func theSummaryIsOmittedForTheUnavailableLane(route: FlowRoute) async throws {
-        // Pixel-only only. The two provenance compositions reach no completed screen at all
-        // under the composition root's wiring, for the reason
-        // `aProvenanceCompositionCannotCompleteASessionAtAll` records.
-        let graph = try await CompositionGraph.make(.pixelOnly, analyzer: .absent)
+    func theSummaryIsOmittedForTheUnavailableLane(
+        route: FlowRoute,
+        composition: FlowComposition
+    ) async throws {
+        // Every composition, including the two that enable provenance: with no analyzer the lane
+        // is unavailable whatever the manifest says, and `provenanceLaneUnavailable` is the
+        // omission reason in all three.
+        let graph = try await CompositionGraph.make(composition, analyzer: .absent)
         defer { graph.removeHostRoots() }
         let run = try await graph.run(route)
         let copy = try await graph.copyBinding(for: run.asset)

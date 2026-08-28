@@ -49,11 +49,17 @@ import Testing
 // ## The asymmetry between the two compositions, stated rather than glossed
 //
 // The archive audit measures something this file cannot, and it matters enough to write down
-// here too. The two built archives are **not** symmetric:
+// here too. The one built archive is **not** uniform across the bundles inside it:
 //
-//   * The **pixel-only** archive references zero network symbols in every Mach-O image it
-//     carries, and contains zero URL-like strings. Its offline guarantee is *absence*.
-//   * The **provenance-enabled** archive's `DefAIke.debug.dylib` references ten — `URLSession`,
+//   * The **Share Extension**'s `.appex` images reference zero network symbols and contain zero
+//     URL-like strings, once the code-signing DOCTYPE URL is excluded — `codesign` embeds the
+//     entitlements as an XML plist whose DOCTYPE names the property-list DTD, so a signed build
+//     carries that one string in every image with an entitlements blob and an unsigned build
+//     carries none. Its offline guarantee is *absence*, and it is the absence case that keeps
+//     the application's non-zero counts a measurement rather than the only observation in a run.
+//     (A second application archive used to supply that case, before the two capability
+//     compositions were merged into one.)
+//   * The **application**'s `DefAIke.debug.dylib` references ten — `URLSession`,
 //     `NSURLSession`, `URLRequest`, `NSURLRequest`, and the POSIX `socket`, `connect`,
 //     `sendto`, `recvfrom`, `socketpair`, `getaddrinfo` — because it statically links the
 //     reviewed validator. The Swift-level four are attributable to `C2PA.o`, the vendor wrapper;
@@ -64,7 +70,7 @@ import Testing
 //     `remoteManifestFetch: false`, `ocspFetch: false`, `allowedNetworkHosts: []` — and not
 //     absence.
 //
-// No DefAIke module references any of them, in either composition. That is what makes the
+// No DefAIke module references any of them. That is what makes the
 // difference a Provenance Feasibility Gate security-review input rather than a violation of this
 // task: nothing here added the capability, and removing it means removing the reviewed
 // validator.

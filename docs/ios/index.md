@@ -36,7 +36,7 @@ Bench decides *what* is claimable; the app decides *whether it may claim it on t
 | `ios/DefAIkeShareExtension/` | Share Extension sources, 10 files |
 | `ios/Tests/DefAIkeUITests/` | Xcode-only UI test bundle |
 | `ios/Tests/DefAIkeDeviceValidationTests/` | Xcode-only device-validation bundle, run un-hosted |
-| `ios/project.yml` | XcodeGen spec: targets, templates, both compositions, both schemes |
+| `ios/project.yml` | XcodeGen spec: the app, Share Extension, UI-test and device-validation targets, and the one scheme |
 | `ios/DefAIke.xcodeproj`, `ios/DefAIke.xcworkspace` | Generated project and the workspace to open |
 | `ios/Scripts/` | Host test, iOS build, project generation, five audit scripts, release pipeline |
 
@@ -44,26 +44,30 @@ The 11 modules are `DefAIkeDomain`, `DefAIkeApplication`, `DefAIkeImagePipeline`
 
 A repository remote is not configured in this workspace, so the paths above are copyable source references rather than links to a guessed host.
 
-## The two capability compositions
+## The one capability composition
 
-Two signed build outputs from one source tree. This is a link-time decision, never a remotely toggled flag.
+One signed build output from one source tree, compiling both evidence capabilities. This is a link-time decision, never a remotely toggled flag.
 
-| | `DefAIkeApp-PixelOnly` | `DefAIkeApp-PixelPlusProvenance` |
-|---|---|---|
-| Bundle identifier | `dev.defaike.app` | `dev.defaike.app.provenance` |
-| `PRODUCT_NAME` | `DefAIke` | `DefAIke` |
-| Package product linked | `DefAIkePixelOnly` | `DefAIkePixelPlusProvenance` |
-| Content Credential validator | not linked | `DefAIkeProvenanceC2PA` linked |
-| Declared capabilities | `pixelAnalysis` | `pixelAnalysis`, `contentCredentialValidation` |
-| Measured C2PA symbols in archive | 0 | ~20,843, in an embedded `C2PAC.framework` |
-| Measured network symbol references | 0 | — |
+| | `DefAIkeApp` |
+|---|---|
+| Bundle identifier | `dev.defaike.app` |
+| `PRODUCT_NAME` | `DefAIke` |
+| Package product linked | `DefAIkeAppKit` |
+| Content Credential validator | `DefAIkeProvenanceC2PA` linked |
+| Declared capabilities | `pixelAnalysis`, `contentCredentialValidation` |
+| Measured C2PA symbols in archive | 18,226 in `DefAIke.debug.dylib`, plus an embedded `C2PAC.framework` |
+| Measured C2PA symbols in the `.appex` | 0 |
+| Measured network symbol references in the `.appex` | 0 |
+| Measured URL-like strings in the `.appex` | 0, excluding the code-signing DOCTYPE URL |
 
-Both compositions build the same product name and differ only by bundle identifier, which is verifiable in `ios/project.yml` (the shared `App` target template sets `PRODUCT_NAME: DefAIke`; the per-target `appBundleID` attribute supplies the rest). That shared product name is not cosmetic — it is why the device-validation bundles run un-hosted and why archive audits need a per-invocation derived-data path.
+This replaces two build outputs, `DefAIkeApp-PixelOnly` (`dev.defaike.app`, no validator linked) and `DefAIkeApp-PixelPlusProvenance` (`dev.defaike.app.provenance`, validator linked). The split existed so device evidence could not be pooled across capability sets; one composition means one capability set, so pooling is not representable.
 
-`c2pa-swift` **is** declared, exact-pinned to `0.0.12` at `ios/DefAIkePackage/Package.swift:102-104`, and reachable from `DefAIkeProvenanceC2PA` alone.
+The trade is worth stating plainly. "This build cannot validate Content Credentials" used to be checkable with `nm` on a shipped archive. It is not any more — the app links the adapter, and the validator is kept inactive by `ProvenanceLaneProvider.resolve(...)`, the signed Release Capability Manifest, and the startup gate. The Share Extension's `.appex` is the remaining shipping bundle whose exclusion is measurable from the bytes, and the two zeros above are what keep the app's non-zero counts a measurement rather than the only observation in a run.
+
+`c2pa-swift` **is** declared, exact-pinned to `0.0.12` in `ios/DefAIkePackage/Package.swift`, and reachable from `DefAIkeProvenanceC2PA` alone.
 
 !!! warning "Linking the validator is not enabling it"
-    Both compositions' `provenanceAnalyzer(store:policy:)` currently return `nil`. In the pixel-only build that is structural — there is no validator type in the module closure. In the provenance build it is a deliberate fail-closed choice: two approvals are still owed, enumerated as values in `UnresolvedProvenanceEnablement` (`feasibility-finding-state-mapping` and `approved-offline-trust-store`). Details in [gaps-and-decisions.md](gaps-and-decisions.md).
+    `CompiledCapabilityComposition.provenanceAnalyzer(store:policy:)` returns `nil`. That is a deliberate fail-closed choice, not an oversight: two approvals are still owed, enumerated as values in `UnresolvedProvenanceEnablement` (`feasibility-finding-state-mapping` and `approved-offline-trust-store`). The provenance lane therefore reports `validatorEnablementUnapproved` — linked, enabled by the manifest, no analyzer — which is the one unavailable reason that misstates neither the module graph nor the manifest. Details in [gaps-and-decisions.md](gaps-and-decisions.md).
 
 ## Current verified state
 
@@ -71,16 +75,24 @@ Measured in this workspace with the toolchain below.
 
 | Check | Result |
 |---|---|
-| `ios/Scripts/host-test.sh` | 2,882 tests in 363 suites, 0 failures; reproduced across four sequential runs, one from a cleaned `.build` |
-| Both schemes, Debug and Release | Build with zero errors |
-| `xcodebuild build-for-testing`, both schemes | Succeeds; requires `CODE_SIGNING_ALLOWED=NO` |
-| `check-module-boundaries.py` | Passes |
-| Five audit scripts | Behave as documented; self-test probe counts 13/13, 8/8, 12/12, 8/8, 7/7, 16/16, 42/42, 28/28 |
+| `ios/Scripts/host-test.sh` | 2,905 tests in 367 suites, 0 failures |
+| `DefAIkeApp` scheme, Debug | Builds with zero errors, for the simulator and with signing |
+| `check-module-boundaries.py --require-xcode-project` | Passes |
+| `check-capability-composition.py` | Passes; `--self-test` 12/12, `--self-test-products` 5/5 |
+| `check-share-extension-target.py` | Passes (no self-test mode) |
+| `check-offline-privacy-archive.py` | Passes; `--self-test` 12/12, `--self-test-products` 6/6 |
+| `audit-release-archives.py` | Exits 1, correctly; `--self-test` 7/7, `--self-test-archives` 16/16 |
+| `release-pipeline.py` | `--self-test` 41/42, `--self-test-commands` 28/28 |
 | Design properties | 36 numbered properties, one dedicated tagged property-test file each, 40 property tests in total |
-| `release-pipeline.py` | Exits 1: 15 owed release-controlled inputs, two **provisional** evidence scopes |
-| `audit-release-archives.py` | Exits 1, correctly |
+| App on Simulator (iPhone 17 Pro, iOS 26.5) | Startup gate passes, a Photos ingest completes, and both lane cards render |
 
-Both non-zero exits are the intended behaviour, not a regression: the pipeline reports what is owed and refuses to emit a non-provisional artefact while anything is missing.
+`audit-release-archives.py`'s non-zero exit is the intended behaviour, not a regression: it reports what is owed and refuses to emit a non-provisional artefact while anything is missing.
+
+Two measurements need their qualifiers stated rather than buried:
+
+- **Release configuration and `build-for-testing` were not re-measured** after the capability compositions were merged. Only Debug simulator builds were.
+- **`release-pipeline.py --self-test` fails one probe of 42**, `appBuild reason names the placeholder identity`. It expects `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` to be the `0.0.0`/`0` placeholder `PLACEHOLDER_BUILD_IDENTITY` names, and `project.yml` carries `0.1.0`/`1`. Pre-existing and unrelated to the merge — verified by stashing the merge and reproducing 41/42 on the prior commit. The build identity is still not a release-approved `AppBuildID` either way, so the gate's conclusion is right and only its stated reason is wrong.
+- **The App Group entitlement is stripped by `CODE_SIGNING_ALLOWED=NO`.** An app installed from such a build refuses startup with `appGroupContainerUnresolvable`, and `StartupBlockedView` renders `Color.clear`, so the symptom is a blank white screen with no diagnostic on screen. Build with signing (an ad-hoc simulator signature is enough) before installing. The refusal reaches the DEBUG console only at `log stream --level debug --predicate 'subsystem == "dev.defaike.development"'`; `log show` does not persist debug-level messages.
 
 ### What is not established
 
@@ -97,12 +109,13 @@ Both non-zero exits are the intended behaviour, not a regression: the pipeline r
 | Swift | 6.3.3 |
 | Installed SDK and runtime | iOS 26.5 only |
 | Deployment target | iOS 17.0, iPhone-only |
-| `xcode-select -p` | Points at CommandLineTools |
+| XcodeGen | 2.46.0 |
+| `xcode-select -p` | `/Applications/Xcode.app/Contents/Developer` |
 
-Because `xcode-select` points at CommandLineTools, every Xcode invocation needs `export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
+`xcode-select` now points at Xcode, so `export DEVELOPER_DIR=…` is no longer required for an Xcode invocation. It is still harmless, and the audit scripts' documented commands keep it so they work on a machine where `xcode-select` points at CommandLineTools.
 
-!!! danger "Never delete `ios/DefAIke.xcodeproj`"
-    The directory is gitignored (`ios/.gitignore:2`) yet present on disk, so it is not recoverable from source control. Regenerating it needs a working XcodeGen at the spec's `minimumXcodeGenVersion: "2.42.0"`, which has not been demonstrated in this environment — `release-pipeline.py` records XcodeGen as unavailable and treats `project.yml` as unregenerable. Deleting the project is therefore assumed irreversible.
+!!! note "`ios/DefAIke.xcodeproj` is generated and regenerable"
+    The directory is gitignored (`ios/.gitignore:2`) yet present on disk, so it is not recoverable from source control — but it no longer needs to be. `ios/Scripts/generate-xcode-project.sh` regenerates it from `project.yml`, and this was demonstrated in this environment with XcodeGen 2.46.0, above the spec's `minimumXcodeGenVersion: "2.42.0"`. `release-pipeline.py` may still record XcodeGen as unavailable depending on how its `PATH` resolves; that is a pipeline observation, not a fact about the toolchain.
 
 ## Where to start
 

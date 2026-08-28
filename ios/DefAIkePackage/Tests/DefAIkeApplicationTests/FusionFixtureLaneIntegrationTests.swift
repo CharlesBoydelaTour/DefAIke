@@ -324,6 +324,7 @@ struct FusionFixturePipelineRunner {
         // The full path: analyzer -> provider -> lane -> join -> coordinator -> report.
         let analyzer = RecordingProvenanceAnalyzer(returning: declaredEvidence)
         let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: true,
             analyzer: analyzer,
             policy: policy,
             manifest: manifest
@@ -667,43 +668,58 @@ struct FusionOmissionReportIntegrationTests {
         }
     }
 
-    /// The pixel-only composition never reaches a validator, and its lane omits the summary.
+    /// An unavailable composition never reaches a validator, and its lane omits the summary.
     ///
     /// Property 19 owns the general claim over generated compositions. What is added is the
-    /// one integration step it does not take: the pixel-only lane travels through the join
+    /// one integration step it does not take: the unavailable lane travels through the join
     /// into a real report, and the report carries the unavailable lane and no summary.
-    @Test("The pixel-only composition produces an unavailable lane and no summary")
-    func pixelOnlyCompositionProducesNoSummary() async throws {
-        let provider = ProvenanceLaneProvider.pixelOnly
-        #expect(!provider.isEnabled)
-        #expect(!provider.canProduceCombinedSummary)
-        #expect(provider.boundPolicyID == nil)
-        #expect(provider.inspectionRequest(for: ProvenanceSample.asset()) == nil)
-
-        let lane = await provider.lane(for: ProvenanceSample.asset())
-        #expect(lane == .unavailable(.validatorNotCompiledIntoRelease))
-
-        let coordinator = try FusionScenario.coordinator(
-            fusionRuleID: nil,
-            provenancePolicyID: nil
-        )
-        for label in PixelLabelKey.allCases {
-            let lanes = try #require(
-                EvidenceLaneJoin.unresolved
-                    .resolving(pixel: label.pixelEvidence)?
-                    .resolving(provenance: lane)?
-                    .resolvedLanes
+    ///
+    /// Run over all three unavailable reasons crossed with all three pixel labels, because
+    /// Requirement 7.10 turns on the lane being unavailable and says nothing about why. The
+    /// shipping composition's own reason is one of the three, so this covers the real
+    /// configuration without a separate case for it.
+    @Test("Every unavailable composition produces an unavailable lane and no summary")
+    func unavailableCompositionProducesNoSummary() async throws {
+        for reason in UnavailableReason.allCases {
+            let provider = switch reason {
+            case .validatorNotCompiledIntoRelease: ProvenanceLaneProvider.validatorNotLinked
+            case .capabilityNotEnabledByReleaseCapabilityManifest:
+                ProvenanceLaneProvider.capabilityNotEnabled
+            case .validatorEnablementUnapproved: ProvenanceLaneProvider.enablementUnapproved
+            }
+            #expect(!provider.isEnabled, "\(reason.rawValue)")
+            #expect(!provider.canProduceCombinedSummary, "\(reason.rawValue)")
+            #expect(provider.boundPolicyID == nil, "\(reason.rawValue)")
+            #expect(
+                provider.inspectionRequest(for: ProvenanceSample.asset()) == nil,
+                "\(reason.rawValue)"
             )
-            let report = try coordinator.report(
-                lanes: lanes,
-                combinedSummary: nil,
-                bytePreservationStatus: .originalBytes,
-                inputQuality: SessionSample.inputQuality,
-                onDeviceProcessing: true
+
+            let lane = await provider.lane(for: ProvenanceSample.asset())
+            #expect(lane == .unavailable(reason))
+
+            let coordinator = try FusionScenario.coordinator(
+                fusionRuleID: nil,
+                provenancePolicyID: nil
             )
-            #expect(report.combinedSummary == nil)
-            #expect(report.provenance == .unavailable(.validatorNotCompiledIntoRelease))
-            #expect(report.pixel == label.pixelEvidence)
+            for label in PixelLabelKey.allCases {
+                let lanes = try #require(
+                    EvidenceLaneJoin.unresolved
+                        .resolving(pixel: label.pixelEvidence)?
+                        .resolving(provenance: lane)?
+                        .resolvedLanes
+                )
+                let report = try coordinator.report(
+                    lanes: lanes,
+                    combinedSummary: nil,
+                    bytePreservationStatus: .originalBytes,
+                    inputQuality: SessionSample.inputQuality,
+                    onDeviceProcessing: true
+                )
+                #expect(report.combinedSummary == nil)
+                #expect(report.provenance == .unavailable(reason))
+                #expect(report.pixel == label.pixelEvidence)
+            }
         }
     }
 }

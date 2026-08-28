@@ -52,12 +52,17 @@ import Foundation
 // MARK: - What one immutable capability composition drives
 //
 // `CapabilityComposition` (this target's protocol) is a compile-time fact per build output.
-// Both schemes compile this file; each compiles exactly one composition. The composition
-// contributes its identifier, its capability set, and whether a Content Credential validator
-// is linked, and the preflight compares all three against the signed manifest in both
-// directions. The provenance lane is then resolved from the composition's own analyzer
-// factory, so a pixel-only build has no analyzer to pass and no adapter module linked to
-// supply one from.
+// The one shipping composition compiles both evidence capabilities and links the Content
+// Credential validator. The composition contributes its identifier, its capability set, and
+// whether a validator is linked, and the preflight compares all three against the signed
+// manifest in both directions.
+//
+// The provenance lane is then resolved from the composition's own analyzer factory *and* its
+// linkage fact, because those two answer different questions. Linkage says whether a validator
+// could exist in these bytes; the factory says whether an approved decision lets one be built.
+// A build that links the adapter and still supplies no analyzer is the state this app is in
+// today, and it is reported as `validatorEnablementUnapproved` rather than as an uncompiled
+// validator, which would be a false statement about the module graph.
 
 // MARK: - Startup refusals
 
@@ -621,11 +626,16 @@ enum MainAppComposition {
         }
         let calibrator = CalibrationEvaluator(activatedWith: activated)
 
-        // The conditional provenance lane. A pixel-only composition has no analyzer to supply
-        // and no adapter module linked to supply one from; a provenance composition supplies
-        // whatever its linked adapter can honestly provide, and a `nil` analyzer is the
-        // unavailable lane regardless of what the signed manifest enables.
+        // The conditional provenance lane.
+        //
+        // `linksValidator` is passed separately from the analyzer, and that separation is the
+        // point: this composition links the reviewed adapter, so a `nil` analyzer no longer
+        // means "no validator was compiled in" and must not be reported as such. The provider
+        // needs both facts to name the right reason — the module graph, then the manifest, then
+        // whether an approved decision supplies an analyzer at all. Every path short of all
+        // three is the unavailable lane, and none of them can reach a validator.
         let provenance = ProvenanceLaneProvider.resolve(
+            linksValidator: composition.linksProvenanceValidator,
             analyzer: composition.provenanceAnalyzer(
                 store: sessionStore,
                 policy: configuration.provenancePolicy

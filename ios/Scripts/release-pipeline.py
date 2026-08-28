@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The noninteractive build-and-validation entry point for both release compositions.
+"""The noninteractive build-and-validation entry point for the release composition.
 
 Task 15.1. Checkpoint 13 recorded the gap this closes: five verification scripts exist,
 all of them pass or fail for good reasons, and **nothing runs any of them**. There is no
@@ -40,7 +40,7 @@ of the thing that had to be delivered rather than a preference:
    scheme pre-actions can shell out, but they run inside Xcode as hidden side effects,
    which is the opposite of an auditable entry point.
 4. **The two existing schemes are already correct and are used unchanged.** This script
-   drives `DefAIkeApp-PixelOnly` and `DefAIkeApp-PixelPlusProvenance` exactly as
+   drives `DefAIkeApp` exactly as
    `project.yml` declares them. No `.xcscheme` file, no `project.pbxproj`, no `project.yml`,
    and no `Package.swift` edit was needed or made, so `build-ios.sh`, `host-test.sh`, and
    all five checks are untouched and keep working.
@@ -186,18 +186,16 @@ class Composition:
     expect: str
 
 
+# One composition. The pixel-only entry was merged into it, so this table has one row and the
+# per-composition loops below run once — kept as a loop rather than inlined, because the
+# per-composition *scoping* of every gate report is what Requirement 13.20 turns on and
+# flattening it would make a second capability set harder to reintroduce correctly than to
+# reintroduce wrongly.
 COMPOSITIONS = (
     Composition(
-        name="pixel-only",
-        scheme="DefAIkeApp-PixelOnly",
-        bundle_identifier="dev.defaike.app",
-        capabilities=("pixel-analysis", "share-extension-handoff"),
-        expect="pixel-only",
-    ),
-    Composition(
         name="pixel-plus-provenance",
-        scheme="DefAIkeApp-PixelPlusProvenance",
-        bundle_identifier="dev.defaike.app.provenance",
+        scheme="DefAIkeApp",
+        bundle_identifier="dev.defaike.app",
         capabilities=(
             "pixel-analysis",
             "share-extension-handoff",
@@ -886,7 +884,7 @@ class Pipeline:
         # `Intermediates.noindex/**/Objects-normal/<arch>/`, so the archive audits require a
         # Debug root. 14.6 already records that a Debug simulator build is not a
         # distribution artifact.
-        self.say("Compile both compositions (Debug)")
+        self.say("Compile the composition (Debug)")
         self._build("build", "Debug", "build-debug")
 
     def stage_build_release(self) -> None:
@@ -894,7 +892,7 @@ class Pipeline:
         # `GCC_TREAT_WARNINGS_AS_ERRORS` are on (`project.yml:68-70`), so a warning that
         # Debug tolerates fails here. Compiling both configurations is the only way that
         # difference is ever observed.
-        self.say("Compile both compositions (Release, warnings are errors)")
+        self.say("Compile the composition (Release, warnings are errors)")
         self._build("build", "Release", "build-release")
 
     def stage_build_for_testing(self) -> None:
@@ -1026,9 +1024,7 @@ class Pipeline:
             [
                 sys.executable,
                 str(SCRIPTS / "check-offline-privacy-archive.py"),
-                "--pixel-only-build",
-                str(debug_roots["pixel-only"]),
-                "--provenance-build",
+                "--build",
                 str(debug_roots["pixel-plus-provenance"]),
                 "--json",
                 str(offline_report),
@@ -1036,8 +1032,9 @@ class Pipeline:
             "check-offline-privacy-archive.log",
             IOS,
         )
-        # This report covers both compositions, so it is bound to both scopes rather than
-        # to one of them, and a consumer that has only one scope cannot join it.
+        # Bound to every composition scope rather than to a chosen one, so a consumer that
+        # holds only one scope cannot join it. With one composition that is one scope; the
+        # binding is written over `COMPOSITIONS` so it stays correct if a second returns.
         self.bind_artifact(offline_report, *[composition.name for composition in COMPOSITIONS])
         self.record(
             GateResult(
@@ -1056,9 +1053,7 @@ class Pipeline:
             [
                 sys.executable,
                 str(SCRIPTS / "audit-release-archives.py"),
-                "--pixel-only-build",
-                str(debug_roots["pixel-only"]),
-                "--provenance-build",
+                "--build",
                 str(debug_roots["pixel-plus-provenance"]),
                 "--sbom-directory",
                 str(sbom_directory),
@@ -1395,7 +1390,7 @@ def self_test() -> int:
     def check(name: str, condition: bool, note: str = "") -> None:
         checks.append((name, condition, note))
 
-    base = observe_scope(COMPOSITIONS[1])
+    base = observe_scope(COMPOSITIONS[0])
     base_dict = base.as_dict()
 
     # 1. The observed tuple is provisional today, and the reason is the placeholder build.
@@ -1471,8 +1466,21 @@ def self_test() -> int:
 
     check("refuses a payload with no scope at all", refuses({"payload": {}}))
 
-    other_composition = observe_scope(COMPOSITIONS[0]).as_dict()
-    check("refuses the other composition's scope", refuses(other_composition))
+    # A scope from a different capability composition must never join one from this composition.
+    #
+    # This used to read the second real composition. There is one now, so the probe synthesizes a
+    # different one rather than being deleted: Requirement 13.20's prohibition on combining gate
+    # evidence across capability sets is exactly what `require_joinable` enforces, and a merge
+    # that quietly stopped measuring it would be the merge silently weakening the gate.
+    other_composition = observe_scope(
+        dataclasses.replace(
+            COMPOSITIONS[0],
+            name="other-capability-set",
+            capabilities=("pixel-analysis", "share-extension-handoff"),
+            expect="other-capability-set",
+        )
+    ).as_dict()
+    check("refuses another capability set's scope", refuses(other_composition))
 
     # 4. Outcome arithmetic: owed and not-executed never pass.
     check(
@@ -1627,10 +1635,10 @@ def self_test() -> int:
     directory = pathlib.Path(tempfile.mkdtemp(prefix="t151-bind-"))
     try:
         binder = Pipeline(run_directory=directory, stages=(), release_artifacts=None, quiet=True)
-        binder.scopes[COMPOSITIONS[1].name] = base
+        binder.scopes[COMPOSITIONS[0].name] = base
         target = directory / "report.json"
         target.write_text(json.dumps({"findings": []}), encoding="utf-8")
-        binder.bind_artifact(target, COMPOSITIONS[1].name)
+        binder.bind_artifact(target, COMPOSITIONS[0].name)
         bound = json.loads(target.read_text(encoding="utf-8"))
         check("a bound artifact carries its evidence scope", "evidenceScope" in bound)
         check("a bound artifact keeps its payload", bound.get("payload") == {"findings": []})
@@ -1639,7 +1647,7 @@ def self_test() -> int:
             "a bound artifact's scope is joinable with the run that produced it",
             not refuses(bound["evidenceScope"][0]),
         )
-        binder.bind_artifact(target, COMPOSITIONS[1].name)
+        binder.bind_artifact(target, COMPOSITIONS[0].name)
         rebound = json.loads(target.read_text(encoding="utf-8"))
         check("binding is idempotent", rebound == bound)
 
@@ -1649,7 +1657,7 @@ def self_test() -> int:
         sbom = sidecar_directory / "sbom-probe.cdx.json"
         sbom_body = json.dumps({"bomFormat": "CycloneDX", "specVersion": "1.6"})
         sbom.write_text(sbom_body, encoding="utf-8")
-        binder.bind_sidecar(sidecar_directory, COMPOSITIONS[1].name)
+        binder.bind_sidecar(sidecar_directory, COMPOSITIONS[0].name)
         sidecar = json.loads((sidecar_directory / "evidence-scope.json").read_text(encoding="utf-8"))
         check(
             "sidecar binding does not rewrite the bound document",
@@ -1669,7 +1677,7 @@ def self_test() -> int:
         check("sidecar carries the evidence scope", "evidenceScope" in sidecar)
         check("sidecar is marked provisional today", sidecar["provisional"] is True)
         sbom.write_text(sbom_body + " ", encoding="utf-8")
-        binder.bind_sidecar(sidecar_directory, COMPOSITIONS[1].name)
+        binder.bind_sidecar(sidecar_directory, COMPOSITIONS[0].name)
         rebound_sidecar = json.loads(
             (sidecar_directory / "evidence-scope.json").read_text(encoding="utf-8")
         )
@@ -1824,8 +1832,8 @@ def print_plan() -> int:
         "host-test.sh",
         "check-share-extension-target.py --products <products>   (per composition)",
         "check-capability-composition.py --products <products> --expect <composition> --json",
-        "check-offline-privacy-archive.py --pixel-only-build <root> --provenance-build <root> --json",
-        "audit-release-archives.py --pixel-only-build <root> --provenance-build <root> "
+        "check-offline-privacy-archive.py --build <root> --json",
+        "audit-release-archives.py --build <root> "
         "--sbom-directory <dir> --json --release-input <file>",
     ):
         print(f"ios/Scripts/{script}")

@@ -15,16 +15,24 @@ import Testing
 //
 // The statement is two-sided, and both sides are asserted on every generated case:
 //
-//   * **only a complete passing exact implementation enables provenance.** Five
-//     conditions are jointly necessary — the implementation is compiled in, the signed
-//     Release Capability Manifest enables the capability, it binds exactly this
-//     Provenance Policy, it records exactly this implementation version, and the policy
-//     carries an approved Provenance Feasibility decision. The generated combination of
-//     those conditions is compared against an expectation read off the requirement, and a
-//     complete baseline is then knocked down one condition at a time, so "exact" means
-//     each condition is individually necessary rather than jointly sufficient;
+//   * **only a complete passing exact implementation enables provenance.** Seven
+//     conditions are jointly necessary — the validator adapter is linked, an approved
+//     decision supplies a port conformance, the signed Release Capability Manifest enables
+//     the capability, it binds exactly this Provenance Policy, it records exactly this
+//     implementation version, and the policy carries an approved Provenance Feasibility
+//     decision. The generated combination of those conditions is compared against an
+//     expectation read off the requirement, and a complete baseline is then knocked down
+//     one condition at a time, so "exact" means each condition is individually necessary
+//     rather than jointly sufficient.
+//
+//     Linkage and the port conformance are counted separately because they are separate
+//     facts with separate answers, and because the shipping application composition
+//     satisfies the first and not the second: it links the reviewed adapter and still has
+//     no analyzer to supply. Collapsing them would leave the state the real app is in
+//     unquantified and would make a linked build report that its own validator was never
+//     compiled;
 //   * **every other eligible composition stays pixel-only with no Combined Summary.**
-//     For each non-enabling composition: the lane is one of the two unavailable states
+//     For each non-enabling composition: the lane is one of the three unavailable states
 //     and nothing else, the analyzer records zero calls, no inspection is described, and
 //     the report for the generated completed pixel result exists without a Combined
 //     Summary while a report *with* one is unrepresentable.
@@ -72,8 +80,8 @@ import Testing
 // The conditional C2PA adapter deliberately does not conform to `ProvenanceAnalyzing`,
 // because the port returns evidence unconditionally and cannot express "no approved input
 // answers this". That is a recorded open question, not a defect, and it is fail-closed:
-// `ProvenanceLaneProvider.resolve(analyzer:policy:manifest:)` treats a `nil` analyzer as
-// the pixel-only lane whatever the signed manifest says. So "the exact implementation is
+// `ProvenanceLaneProvider.resolve(linksValidator:analyzer:policy:manifest:)` treats a `nil`
+// analyzer as an unavailable lane whatever the signed manifest says. So "the exact implementation is
 // compiled into the build" is quantified here as the presence of a port conformance, with
 // a recording double standing in for it, and the property asserts nothing about which
 // concrete adapter supplies one.
@@ -138,8 +146,16 @@ struct ProvenanceCapabilitySelectionPropertyTests {
 /// the signed manifest has not enabled for it reports the manifest. Collapsing the two
 /// would let a provenance build claim it never compiled a validator.
 private enum EnablingCondition: String, Hashable, Sendable, CaseIterable {
-    /// The port conformance is compiled into this build's module graph.
-    case implementationCompiled
+    /// The validator adapter is present in this build's module graph.
+    ///
+    /// Split from ``analyzerSupplied`` because they are different facts about a build and
+    /// have different answers. Linkage is decided by the module graph; whether a linked
+    /// adapter may be *used* is decided by an approved artifact. The shipping application
+    /// composition satisfies this condition and not the next one, so collapsing the two
+    /// would leave the state the real app is in unquantified.
+    case validatorLinked
+    /// An approved decision supplies a port conformance the provider can invoke.
+    case analyzerSupplied
     /// The signed manifest compiles the capability for this build.
     case capabilityEnabledByManifest
     /// A Provenance Policy resolved for this session.
@@ -152,12 +168,17 @@ private enum EnablingCondition: String, Hashable, Sendable, CaseIterable {
     case feasibilityApproved
 
     /// The lane state a build missing only this condition must report.
+    ///
+    /// Three answers for seven conditions, because the conditions group by which artifact
+    /// failed to answer: the module graph, the signed manifest, or the approved decision the
+    /// adapter needs.
     var unavailableReason: UnavailableReason {
         switch self {
-        case .implementationCompiled: .validatorNotCompiledIntoRelease
+        case .validatorLinked: .validatorNotCompiledIntoRelease
         case .capabilityEnabledByManifest, .policyResolved, .manifestBindsThisPolicy,
             .manifestRecordsThisVersion, .feasibilityApproved:
             .capabilityNotEnabledByReleaseCapabilityManifest
+        case .analyzerSupplied: .validatorEnablementUnapproved
         }
     }
 }
@@ -177,7 +198,7 @@ private enum EnablingCondition: String, Hashable, Sendable, CaseIterable {
 /// A property whose baseline is one composition with a flag flipped asserts one example a
 /// hundred times over, so every dimension the arms depend on is generated:
 ///
-///   * each of the six enabling conditions, drawn independently at a rate that reaches
+///   * each of the seven enabling conditions, drawn independently at a rate that reaches
 ///     both a complete composition and every single-condition failure, so the free
 ///     combination covers enabled and disabled builds and the partial failures between;
 ///   * the completed pixel result, over all three labels, because Requirements 6.4 and
@@ -199,7 +220,8 @@ private struct CapabilityShape: Sendable, CustomStringConvertible {
     /// and stays coherent without a cross-reference table.
     let seed: Int
 
-    let compilesImplementation: Bool
+    let linksValidator: Bool
+    let suppliesAnalyzer: Bool
     let manifestEnablesCapability: Bool
     let policyResolved: Bool
     let manifestBindsThisPolicy: Bool
@@ -266,7 +288,8 @@ private struct CapabilityShape: Sendable, CustomStringConvertible {
     /// Whether this condition holds in the freely generated composition.
     func satisfies(_ condition: EnablingCondition) -> Bool {
         switch condition {
-        case .implementationCompiled: compilesImplementation
+        case .validatorLinked: linksValidator
+        case .analyzerSupplied: suppliesAnalyzer
         case .capabilityEnabledByManifest: manifestEnablesCapability
         case .policyResolved: policyResolved
         case .manifestBindsThisPolicy: manifestBindsThisPolicy
@@ -287,19 +310,34 @@ private struct CapabilityShape: Sendable, CustomStringConvertible {
     /// The unavailable state the generated composition must report, or `nil` when the
     /// requirement enables provenance for it.
     ///
-    /// A build with no compiled implementation reports that regardless of what its manifest
-    /// says: a signed artifact cannot enable a capability whose implementation is absent
-    /// from the binary.
+    /// Three tiers, in the order a build encounters them, because more than one condition
+    /// can be absent at once and the reason has to be the *first* thing that was missing:
+    ///
+    ///   1. No linked validator outranks everything, whatever the manifest says: a signed
+    ///      artifact cannot enable a capability whose implementation is absent from the
+    ///      binary.
+    ///   2. Then the manifest's four conditions, which are one answer between them — a
+    ///      manifest that does not enable, does not bind this policy, does not record this
+    ///      version, or carries no approved feasibility decision has not enabled provenance
+    ///      for this configuration.
+    ///   3. Then the analyzer. Linked, enabled, and still no port conformance is the state
+    ///      the shipping composition is actually in.
     var requiredUnavailableReason: UnavailableReason? {
         guard !requiresEnabledProvenance else { return nil }
-        return compilesImplementation
-            ? .capabilityNotEnabledByReleaseCapabilityManifest
-            : .validatorNotCompiledIntoRelease
+        guard linksValidator else { return .validatorNotCompiledIntoRelease }
+        let manifestConditions: [EnablingCondition] = [
+            .capabilityEnabledByManifest, .policyResolved, .manifestBindsThisPolicy,
+            .manifestRecordsThisVersion, .feasibilityApproved,
+        ]
+        guard manifestConditions.allSatisfy(satisfies) else {
+            return .capabilityNotEnabledByReleaseCapabilityManifest
+        }
+        return .validatorEnablementUnapproved
     }
 
     var description: String {
         """
-        seed \(seed), compiled \(compilesImplementation), \
+        seed \(seed), linked \(linksValidator), analyzer \(suppliesAnalyzer), \
         manifestEnables \(manifestEnablesCapability), policy \(policyResolved), \
         bindsPolicy \(manifestBindsThisPolicy), bindsVersion \(manifestRecordsThisVersion), \
         feasibility \(feasibilityApproved), enabled \(requiresEnabledProvenance), \
@@ -328,12 +366,13 @@ private struct CapabilityShape: Sendable, CustomStringConvertible {
         .map { raw in
             CapabilityShape(
                 seed: raw.0,
-                compilesImplementation: raw.1.0,
-                manifestEnablesCapability: raw.1.1,
-                policyResolved: raw.1.2,
-                manifestBindsThisPolicy: raw.1.3,
-                manifestRecordsThisVersion: raw.1.4,
-                feasibilityApproved: raw.1.5,
+                linksValidator: raw.1.0,
+                suppliesAnalyzer: raw.1.1,
+                manifestEnablesCapability: raw.1.2,
+                policyResolved: raw.1.3,
+                manifestBindsThisPolicy: raw.1.4,
+                manifestRecordsThisVersion: raw.1.5,
+                feasibilityApproved: raw.1.6,
                 pixelIndex: raw.2,
                 stateIndex: raw.3,
                 controlStateIndex: raw.4,
@@ -349,23 +388,24 @@ private struct CapabilityShape: Sendable, CustomStringConvertible {
         .eraseToAny()
     }
 
-    /// The six enabling conditions, each drawn independently.
+    /// The seven enabling conditions, each drawn independently.
     ///
     /// The rate is deliberate. At an even coin the all-true combination arrives with
-    /// probability `1/64`, so about one run in five would generate no enabled composition
-    /// at all and the witness assertion that both answers occurred would fail as noise
-    /// rather than as a defect. At this rate a complete composition arrives about a quarter
-    /// of the time and each individual condition is still absent in roughly one case in
-    /// five, so both directions of the biconditional and every single-condition failure are
-    /// reached with margin.
+    /// probability `1/128`, so most runs would generate no enabled composition at all and
+    /// the witness assertion that both answers occurred would fail as noise rather than as a
+    /// defect. At this rate a complete composition arrives about a fifth of the time and
+    /// each individual condition is still absent in roughly one case in five, so both
+    /// directions of the biconditional and every single-condition failure are reached with
+    /// margin.
     ///
-    /// Weighted, not narrowed: all 64 combinations remain reachable, and the shrinker still
+    /// Weighted, not narrowed: all 128 combinations remain reachable, and the shrinker still
     /// reduces `true` toward `false`, so a failure shrinks to the smallest set of conditions
     /// that reproduces it.
     private static var conditions: Generator<
-        (Bool, Bool, Bool, Bool, Bool, Bool), AnySequence<Any>
+        (Bool, Bool, Bool, Bool, Bool, Bool, Bool), AnySequence<Any>
     > {
         zip(
+            Gen.bool(Self.conditionRate),
             Gen.bool(Self.conditionRate),
             Gen.bool(Self.conditionRate),
             Gen.bool(Self.conditionRate),
@@ -430,6 +470,7 @@ private struct CapabilitySelectionScenario {
             returning: artifacts.evidence(for: shape.controlState)
         )
         let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: true,
             analyzer: analyzer,
             policy: artifacts.policy,
             manifest: artifacts.completeManifest
@@ -486,10 +527,11 @@ private struct CapabilitySelectionScenario {
     /// ``CapabilityShape/requiresEnabledProvenance``, which is the requirement restated over
     /// the generated conditions rather than a second copy of the seam's logic.
     func checkGeneratedCompositionMatchesTheRequirement() async {
-        let analyzer: RecordingProvenanceAnalyzer? = shape.compilesImplementation
+        let analyzer: RecordingProvenanceAnalyzer? = shape.suppliesAnalyzer
             ? RecordingProvenanceAnalyzer(returning: artifacts.evidence(for: shape.state))
             : nil
         let provider = ProvenanceLaneProvider.resolve(
+            linksValidator: shape.linksValidator,
             analyzer: analyzer,
             policy: artifacts.generatedPolicy,
             manifest: artifacts.generatedManifest
@@ -509,7 +551,7 @@ private struct CapabilitySelectionScenario {
             return
         }
 
-        await checkPixelOnlyComposition(
+        await checkUnavailableComposition(
             "the generated composition",
             provider: provider,
             analyzer: analyzer,
@@ -522,27 +564,33 @@ private struct CapabilitySelectionScenario {
     /// Removing any single enabling condition from a complete composition disables it.
     ///
     /// The generated combination above quantifies over the whole space, but a space visited
-    /// at random can leave a condition that never mattered looking necessary. These six arms
-    /// start from a composition that *does* enable provenance and remove exactly one
+    /// at random can leave a condition that never mattered looking necessary. These seven
+    /// arms start from a composition that *does* enable provenance and remove exactly one
     /// condition, which is what makes each one individually necessary — and each removal
-    /// keeps the analyzer present wherever the condition is not about compilation, so the
-    /// nonoccurrence claim is about a validator that exists and was not called.
+    /// keeps the analyzer present wherever the condition is not about the analyzer itself, so
+    /// the nonoccurrence claim is about a validator that exists and was not called.
     func checkEachMissingConditionDisablesProvenance() async {
         for condition in EnablingCondition.allCases {
-            // Present for every condition except the one about compilation, so five of the
-            // six arms are the strictly harder configuration: a linked, instantiable
-            // validator that the selection must still refuse to invoke.
-            let analyzer: RecordingProvenanceAnalyzer? = condition == .implementationCompiled
+            // The analyzer is withheld only for the arm that is *about* withholding it, so
+            // six of the seven arms are the strictly harder configuration: a linked,
+            // instantiable validator the selection must still refuse to invoke.
+            //
+            // Note that the `.validatorLinked` arm keeps the analyzer. That is the point of
+            // splitting the two conditions: a build claiming no linkage while holding an
+            // invocable analyzer is incoherent, and the provider must refuse it on the
+            // module-graph fact rather than quietly trust the value it was handed.
+            let analyzer: RecordingProvenanceAnalyzer? = condition == .analyzerSupplied
                 ? nil
                 : RecordingProvenanceAnalyzer(returning: artifacts.evidence(for: shape.state))
 
             let provider = ProvenanceLaneProvider.resolve(
+                linksValidator: condition != .validatorLinked,
                 analyzer: analyzer,
                 policy: condition == .policyResolved ? nil : artifacts.policy(missing: condition),
                 manifest: artifacts.manifest(missing: condition)
             )
 
-            await checkPixelOnlyComposition(
+            await checkUnavailableComposition(
                 "a composition missing \(condition.rawValue)",
                 provider: provider,
                 analyzer: analyzer,
@@ -551,15 +599,15 @@ private struct CapabilitySelectionScenario {
         }
     }
 
-    // MARK: The pixel-only consequences
+    // MARK: The unavailable-lane consequences
 
-    /// The four coupled statements of a pixel-only composition, asserted together.
+    /// The four coupled statements of an unavailable composition, asserted together.
     ///
     /// Requirements 6.4, 6.19, 6.20, and 7.10 are one configuration seen from four sides,
     /// so they are checked in one place: separating them would let a change satisfy the
     /// lane state while quietly invoking the validator, or leave a Combined Summary beside
     /// an unavailable lane.
-    private func checkPixelOnlyComposition(
+    private func checkUnavailableComposition(
         _ label: String,
         provider: ProvenanceLaneProvider,
         analyzer: RecordingProvenanceAnalyzer?,
@@ -598,7 +646,7 @@ private struct CapabilitySelectionScenario {
         )
         #expect(analyzer?.inspectedSessions.isEmpty ?? true, "\(label) [\(shape)]")
 
-        checkEveryPixelOnlyReportOmitsTheCombinedSummary(label, lane: lane)
+        checkEveryUnavailableReportOmitsTheCombinedSummary(label, lane: lane)
     }
 
     /// Requirements 6.4 and 7.10: every report of the generated completed pixel result uses
@@ -608,7 +656,7 @@ private struct CapabilitySelectionScenario {
     /// and the report *with* one is not a value the domain will build. The second is the
     /// stronger statement — a presenter cannot show a summary that cannot be represented —
     /// and it is why the first is not merely a description of this call site.
-    private func checkEveryPixelOnlyReportOmitsTheCombinedSummary(
+    private func checkEveryUnavailableReportOmitsTheCombinedSummary(
         _ label: String,
         lane: ProvenanceLane
     ) {
@@ -983,7 +1031,11 @@ private struct CapabilitySelectionArtifacts {
                 recordedVersion: mismatchedVersion,
                 fusionRule: nil
             ) ?? completeManifest
-        case .implementationCompiled, .policyResolved, .feasibilityApproved:
+        case .validatorLinked, .analyzerSupplied, .policyResolved, .feasibilityApproved:
+            // None of these four is a manifest fact, so each arm withholds its condition
+            // elsewhere — in the linkage flag, the analyzer, the policy argument, or the
+            // policy's own feasibility decision — against a manifest that is fully complete.
+            // That is what makes those arms refusals the manifest did not cause.
             return completeManifest
         }
     }
@@ -1355,7 +1407,7 @@ private final class CapabilitySelectionVariationWitness: @unchecked Sendable {
 
         #expect(cases >= 100, "the design requires at least 100 generated cases; ran \(cases)")
 
-        // Each of the six conditions has to be seen both holding and absent, or the
+        // Each of the seven conditions has to be seen both holding and absent, or the
         // "if and only if" is asserted in one direction only.
         let allConditions = Set(EnablingCondition.allCases.map(\.rawValue))
         #expect(

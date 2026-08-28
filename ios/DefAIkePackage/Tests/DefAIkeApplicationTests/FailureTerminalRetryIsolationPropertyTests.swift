@@ -540,6 +540,7 @@ private func runIsolationCase(_ shape: IsolationShape, witness: IsolationWitness
             recorder: release.recorder
         ),
         provenance: ProvenanceLaneProvider.resolve(
+            linksValidator: true,
             analyzer: StubProvenanceAnalyzer(always: .absent, recorder: release.recorder),
             policy: release.admission.configuration.provenancePolicy,
             manifest: release.admission.configuration.capabilityManifest

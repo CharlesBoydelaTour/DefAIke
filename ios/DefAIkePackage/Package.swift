@@ -8,21 +8,33 @@
 // generated from `ios/project.yml`; they are thin shells that link exactly one
 // composition product from this package.
 //
+// DefAIke ships one application composition. It compiles both Version 1 evidence
+// capabilities — pixel analysis and Content Credential validation — so a single
+// installed app carries both source lanes rather than splitting them across two
+// signed archives. Compiling the validator is not approval to use it: the signed
+// Release Capability Manifest, the Provenance Feasibility Gate, and
+// `ProvenanceLaneProvider.resolve(...)` each have to agree before a validator is
+// reachable, and any one of them short of that is the unavailable lane.
+//
 // Dependency rules enforced here and re-checked by
 // `ios/Scripts/check-module-boundaries.py`:
 //
 //   * `DefAIkeDomain` has no target dependencies (pure core).
 //   * The Share Extension composition links only `DefAIkeDomain` and
 //     `DefAIkeSharedTransfer`; no inference, model-bundle, image-pipeline, or
-//     provenance module is reachable from it.
-//   * `DefAIkeProvenanceC2PA` is reachable only from the
-//     pixel-plus-provenance composition.
+//     provenance module is reachable from it. This is the negative case that keeps
+//     the application composition's positive linkage measurement non-vacuous now
+//     that no second application archive supplies one.
+//   * `DefAIkeProvenanceC2PA` is reachable only from `DefAIkeAppKit`.
 //   * `DefAIkeReleaseValidation` is not part of any shipping composition.
 //   * `PropertyBased` (swift-property-based) is referenced only by test targets.
 
 import PackageDescription
 
-/// Modules present in both capability compositions.
+/// Modules the application composition links regardless of capability.
+///
+/// Separate from the conditional adapter below so the one module whose presence is a
+/// capability claim stays visible at the composition's declaration site.
 let sharedAppModules: [String] = [
     "DefAIkeDomain",
     "DefAIkeSharedTransfer",
@@ -62,16 +74,17 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
-        // Pixel-only capability composition: no provenance validator is linked.
+        // The application composition. Compiles both evidence capabilities: pixel
+        // analysis, and Content Credential validation through the conditional
+        // provenance adapter.
+        //
+        // Linking the adapter is what makes the provenance lane *possible*, and
+        // nothing more. Producing provenance evidence additionally requires the
+        // Provenance Feasibility Gate to pass and the signed Release Capability
+        // Manifest to enable the capability, bind the policy version, and name this
+        // exact adapter release.
         .library(
-            name: "DefAIkePixelOnly",
-            targets: sharedAppModules
-        ),
-        // Pixel-plus-provenance capability composition: adds the conditional
-        // provenance adapter. Enabling it for distribution additionally requires
-        // the Provenance Feasibility Gate to pass.
-        .library(
-            name: "DefAIkePixelPlusProvenance",
+            name: "DefAIkeAppKit",
             targets: sharedAppModules + ["DefAIkeProvenanceC2PA"]
         ),
         // Share Extension composition: staging and transfer only.
@@ -92,7 +105,7 @@ let package = Package(
         ),
         // The reviewed Content Credential validator, exact-pinned to the release the
         // design names. Referenced by `DefAIkeProvenanceC2PA` alone, so it is absent
-        // from the pixel-only and Share Extension compositions' module closures.
+        // from the Share Extension composition's module closure.
         //
         // Exact-pinning this dependency is not approval to enable the capability: the
         // Provenance Feasibility Gate (implementation feasibility, correctness fixtures,
@@ -192,7 +205,7 @@ let package = Package(
 
         // Bounded in-memory fakes and call spies for every application port. It
         // belongs to no product, so it cannot be linked into the app, the Share
-        // Extension, or either capability composition; only test targets may depend
+        // Extension, or the application composition; only test targets may depend
         // on it, and `check-module-boundaries.py` enforces both rules.
         .target(
             name: "DefAIkeTestSupport",
@@ -227,7 +240,7 @@ let package = Package(
         // the real coordinator, to a real presentation value. The three modules are
         // siblings in the shipping graph — none of them depends on another — so this edge
         // exists only in the test target that has to observe all three at once. No
-        // production dependency is added: the compositions still link what they linked,
+        // production dependency is added: the composition still links what it linked,
         // `DefAIkePresentation` still depends on `DefAIkeDomain` alone, and
         // `check-module-boundaries.py` constrains regular targets and products rather than
         // test targets for exactly this reason.

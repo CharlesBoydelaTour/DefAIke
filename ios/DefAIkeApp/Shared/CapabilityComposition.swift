@@ -3,11 +3,18 @@ import DefAIkeProvenanceAPI
 
 /// The compile-time capability composition of one signed build output.
 ///
-/// DefAIke ships two compositions from the same source: pixel-only and
-/// pixel-plus-provenance. They are separate signed build outputs, never a remotely toggled
-/// feature flag. Whether a Content Credential validator exists is therefore a fact about the
-/// linked module graph: the pixel-only app target does not link `DefAIkeProvenanceC2PA`, so
-/// the validator cannot be instantiated (Requirements 6.19 and 6.20).
+/// DefAIke ships one app, and `CompiledCapabilityComposition` is its composition: pixel
+/// analysis and Content Credential validation from the same binary, never a remotely toggled
+/// feature flag.
+///
+/// This protocol survives the collapse from two compositions to one, and not out of habit.
+/// Keeping composition facts behind a protocol is what makes them *comparable*: the startup
+/// gate's whole job is to check a build's compiled facts against a signed artifact, and a
+/// generic seam is how the fidelity tests reach that check with compositions the shipping
+/// target does not contain — a build that claims provenance without linking a validator, one
+/// that links a validator without claiming it, one that attests a version its module graph
+/// contradicts. Those shapes have to stay constructible somewhere, or the refusals for them
+/// are untested (Requirements 6.19 and 6.20).
 ///
 /// A compiled composition is not a release approval. `MainAppComposition.start(...)` compares
 /// this value against the signed Release Capability Manifest and the version-bound device
@@ -44,9 +51,11 @@ protocol CapabilityComposition: Sendable {
 
     /// This composition's provenance analyzer, or `nil` when it has none.
     ///
-    /// `nil` is the pixel-only lane regardless of what the signed manifest enables: a manifest
-    /// cannot enable a capability whose implementation is absent from the binary
-    /// (`ProvenanceLaneProvider.resolve(analyzer:policy:manifest:)`).
+    /// `nil` is always an unavailable lane, and which reason it reports depends on
+    /// ``linksProvenanceValidator`` rather than on this member alone: a build that links no
+    /// adapter has none to supply, while a build that links one and still supplies `nil` has
+    /// an adapter no approved decision lets it use
+    /// (`ProvenanceLaneProvider.resolve(linksValidator:analyzer:policy:manifest:)`).
     ///
     /// The `store` is where ingest retained the exact encoded bytes; a validator inspects those
     /// and nothing else (Requirement 6.6). The `policy` is the signed Provenance Policy the

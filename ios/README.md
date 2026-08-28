@@ -17,11 +17,10 @@ tasks 1.1 through 1.4.
 ios/
   DefAIke.xcworkspace/       Entry point (open this)
   project.yml                 Xcode target graph; the .xcodeproj is generated
+  Local.xcconfig.example      Template for local signing settings; copy is gitignored
   DefAIkePackage/            Every reusable module and its tests
   DefAIkeApp/                Main app target sources
-    Shared/                   Compiled into both compositions
-    PixelOnly/                Pixel-only composition
-    PixelPlusProvenance/      Pixel-plus-provenance composition
+    Shared/                   The app target's sources, including its one composition
   DefAIkeShareExtension/     Share Extension target sources
   Tests/                      Xcode-only UI and physical-device test targets
   Scripts/                    Generation, host test, iOS build, boundary check
@@ -104,19 +103,110 @@ Bundle verification, device allowlisting, resource-plan completeness, and releas
 readiness are separate gates in later tasks. Nothing in this layer approves a device, a
 bundle, or a distribution.
 
-## Capability compositions
+## Running on your own iPhone
 
-Two separate signed build outputs from the same source, never a remotely toggled
-feature flag:
+Full step-by-step version, with the failure diagnostics:
+[ON_IPHONE_SETUP.md](../ON_IPHONE_SETUP.md). Summary below.
+
+A Debug build installs and runs on a physical iPhone. It is a development build in
+every sense: the device allowlist is derived from whatever device it observes, the
+Model Bundle's activation receipt is fabricated, and the calibration is unapproved,
+so the on-screen notice saying nothing below is a verdict about any image is the
+literal truth. See `DevelopmentProvisioning.swift`.
+
+**1. Add your Apple ID to Xcode.** Xcode → Settings → Accounts → **+** → Apple ID.
+A free Apple ID appears as *Personal Team* and is enough to install on your own
+device. Note the ten-character Team ID shown beside it.
+
+**2. Enable Developer Mode on the iPhone.** Settings → Privacy & Security →
+Developer Mode → on, then restart and confirm. (The entry appears only after a
+development build has been installed once, or after Xcode has seen the device.)
+
+**3. Set your team ID.** Edit `ios/Local.xcconfig`, which
+`Scripts/generate-xcode-project.sh` creates for you from `Local.xcconfig.example`
+and `.gitignore` excludes:
+
+```
+DEFAIKE_LOCAL_DEVELOPMENT_TEAM = ABCDE12345
+```
+
+Set it here rather than in Xcode's Signing & Capabilities tab: the `.xcodeproj` is
+generated and not committed, so anything set in the UI is discarded the next time
+the project is regenerated. Change `DEFAIKE_LOCAL_BUNDLE_PREFIX` in the same file
+if `dev.defaike` collides with something already provisioned to your account — it
+moves the app, the Share Extension, and the App Group together, which they need.
+
+**4. Regenerate and run.**
+
+```bash
+ios/Scripts/generate-xcode-project.sh
+open ios/DefAIke.xcworkspace
+```
+
+Select your iPhone as the destination and Run. A free-provisioned build expires
+after seven days and needs reinstalling.
+
+### What to expect, and the one thing that may block you
+
+The pixel model **is** bundled: `ios/project.yml` names the tracked
+`data/coreml/commfor-lowq-384.mlpackage` in the app target's Debug resource phase,
+and Xcode's Core ML compiler puts `commfor-lowq-384.mlmodelc` in the app bundle.
+Measured with Xcode 26.6, its `weights/weight.bin` is byte-identical to the
+`RequiredPixelModel` digest the domain pins. So inference runs on device from the
+app's own bundle, and a fresh clone on another machine needs no extra artifact.
+A **Release** build carries no model, deliberately — see the note in `project.yml`.
+
+The likely blocker is the **App Group**. Both the app and the Share Extension
+declare `group.<prefix>.app`, and App Groups may not be provisionable with a free
+Personal Team. If it is not, `SessionStorageRoots` cannot resolve the container and
+startup refuses with `appGroupContainerUnresolvable` — which renders as a **blank
+white screen**, because `StartupBlockedView` deliberately shows no unapproved text.
+Confirm the cause rather than guessing:
+
+```bash
+xcrun devicectl list devices          # find your device
+# then, with the app launched, watch the DEBUG diagnostic channel:
+#   log stream --level debug --predicate 'subsystem == "dev.defaike.development"'
+```
+
+The refusal is logged at **debug** level, so `log show` will not display it —
+`log stream --level debug` is required. The same blank screen appears for a
+Simulator build made with `CODE_SIGNING_ALLOWED=NO`, for the same reason: no
+entitlements blob, so no App Group.
+
+If the App Group cannot be provisioned, the options are a paid Apple Developer
+Program membership, or a DEBUG-only fallback to an app-private container — which
+would disable the Share Extension handoff and weaken a deliberate fail-closed
+guarantee, so it is not in the tree.
+
+## Capability composition
+
+One app, one signed build output, both evidence capabilities. Whether Content
+Credential validation is *usable* is decided by signed artifacts and gates, never
+by a remotely toggled feature flag:
 
 | Composition | App target | Linked product | Provenance |
 |---|---|---|---|
-| Pixel-only | `DefAIkeApp-PixelOnly` | `DefAIkePixelOnly` | Unavailable lane; no validator linked |
-| Pixel plus provenance | `DefAIkeApp-PixelPlusProvenance` | `DefAIkePixelPlusProvenance` | Conditional C2PA adapter linked |
+| Pixel plus provenance | `DefAIkeApp` | `DefAIkeAppKit` | Conditional C2PA adapter linked |
 
-Each composition has its own Share Extension, bundle identifier, App Group, UI
-test target, and device-validation target, so two installed builds cannot share a
-handoff slot and gate evidence can never be pooled across capability sets.
+This replaces two build outputs — a pixel-only app that linked no validator and a
+pixel-plus-provenance app that did — with one. The split existed so gate evidence
+could not be pooled across capability sets (Requirements 13.18–13.22); with one
+composition there is one capability set, so there is nothing to pool.
+
+What that cost, stated because it is real: "the installed release cannot validate
+Content Credentials" used to be a fact about the linked bytes, checkable with `nm`
+on a shipped archive. The app links the adapter now, so keeping the validator
+inactive is the job of `ProvenanceLaneProvider.resolve(...)`, the signed Release
+Capability Manifest, and the startup gate — code and artifacts rather than
+absence. The Share Extension is the remaining shipping bundle whose exclusion of
+the validator can still be measured from outside the source, which is what keeps
+the app's linkage measurement non-vacuous.
+
+The provenance lane is still unavailable in every build today, and reports
+`validatorEnablementUnapproved`: the adapter is linked and the manifest enables the
+capability, and no approved decision supplies an analyzer. The two owed approvals
+are enumerated in `UnresolvedProvenanceEnablement`.
 
 Whether a Content Credential validator exists is a fact about the linked module
 graph, checked at compile time. Linking the adapter is not approval to enable the
@@ -135,7 +225,7 @@ ios/Scripts/host-test.sh
 # Generate the Xcode project, then open ios/DefAIke.xcworkspace.
 ios/Scripts/generate-xcode-project.sh
 
-# Compile both compositions against the iOS SDK.
+# Compile the app against the iOS SDK.
 ios/Scripts/build-ios.sh
 ```
 
