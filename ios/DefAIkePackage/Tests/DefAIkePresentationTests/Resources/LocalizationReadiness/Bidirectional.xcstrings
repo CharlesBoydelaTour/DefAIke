@@ -1,114 +1,631 @@
 {
-  "sourceLanguage" : "ar-x-bidi",
-  "strings" : {
-    "copy.chrome.analysis-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Analyzing this image on your device⁩"
+  "sourceLanguage": "ar-x-bidi",
+  "strings": {
+    "copy.analysis-error.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The result could not be turned into one of this app's three labels, so no result is being shown.⁩"
           }
         }
       }
     },
-    "copy.chrome.cancellation-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Stop analyzing⁩"
+    "copy.analysis-error.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] That image could not be read. The file may be incomplete or damaged.⁩"
           }
         }
       }
     },
-    "copy.chrome.cancelled-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] You stopped the analysis, so there is no result⁩"
+    "copy.analysis-error.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The image shared from the other app did not arrive intact, so it was not analysed.⁩"
           }
         }
       }
     },
-    "copy.chrome.development-build-notice" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Development build. Its calibration is not approved, so nothing below is a verdict about any image.⁩"
+    "copy.analysis-error.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The analysis did not finish running on this device, so no result was produced.⁩"
           }
         }
       }
     },
-    "copy.chrome.image-selection-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Choose an image to analyze⁩"
+    "copy.analysis-error.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The model returned something this app could not use, so no result is being shown.⁩"
           }
         }
       }
     },
-    "copy.chrome.import-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Getting the image you chose⁩"
+    "copy.analysis-error.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The on-device model could not be loaded, so no analysis ran.⁩"
           }
         }
       }
     },
-    "copy.pixel-label.no-strong-signal-detected" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] No strong signal detected⁩"
+    "copy.analysis-error.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The image could not be prepared for analysis, so no result was produced.⁩"
           }
         }
       }
     },
-    "copy.pixel-label.not-enough-signal" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Not enough signal⁩"
+    "copy.analysis-error.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Analysis stopped because it needed more memory or time than this app is allowed to use on this device.⁩"
           }
         }
       }
     },
-    "copy.pixel-label.signals-consistent-with-ai-generation" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar-x-bidi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⁧[عربي] Signals consistent with AI generation⁩"
+    "copy.analysis-error.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] That file is not a still image, so there was nothing for this app to analyse.⁩"
+          }
+        }
+      }
+    },
+    "copy.analysis-error.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] That image format is not supported. This app analyses JPEG, PNG, and HEIC images.⁩"
+          }
+        }
+      }
+    },
+    "copy.apparent-inconsistency": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The two checks above point in different directions. Both are shown exactly as they were found. This app does not decide between them.⁩"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.original-bytes": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] The exact file you chose was analysed, with no changes.⁩"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.platform-transformed-copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] iOS supplied a converted copy rather than the original file. Converting an image can remove the patterns this app looks for, so treat this result with extra caution.⁩"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This app could not confirm whether it received the original file or a converted copy. If it was converted, some patterns may have been lost.⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.analysis-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Analyzing this image on your device⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Stop analyzing⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] You stopped the analysis, so there is no result⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Development build. Its calibration is not approved, so nothing below is a verdict about any image.⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-collapsed-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Hidden⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-expanded-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Showing⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose an image to analyze⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Getting the image you chose⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-about-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] How this app works⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Information⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-dismiss-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Done⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-limitations-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] What this cannot tell you⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Information⁩"
+          }
+        }
+      }
+    },
+    "copy.chrome.limitations-disclosure-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] What this cannot tell you⁩"
+          }
+        }
+      }
+    },
+    "copy.correction-channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] You can report a result that looks wrong. Your image is never included in a report.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose an image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose another image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Share the image again, or choose it from your photos to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose an image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose an image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose an image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose another image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Close other apps to free up memory, then choose an image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose a still image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Choose a JPEG, PNG, or HEIC image to start again.⁩"
+          }
+        }
+      }
+    },
+    "copy.evidence-scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This app looks for signs that an entire image was generated. It does not detect edited regions, composites, face swaps, retouching, video, or audio, and it does not identify which tool was used.⁩"
+          }
+        }
+      }
+    },
+    "copy.false-result-limitation": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Both kinds of mistake happen. A real photograph can be reported as showing AI signals, and an AI-generated image can be reported as showing none. Do not rely on this result on its own.⁩"
+          }
+        }
+      }
+    },
+    "copy.model-information": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] One model runs on your device. It is not perfect, and it is never updated over the network.⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.no-strong-signal-detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This app did not find the patterns it looks for. That is not a finding that the image is real or unedited. Resaving, cropping, or screenshotting an image can remove those patterns, so an AI-generated image can also look like this.⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.not-enough-signal": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] There was not enough usable signal in this image to report either way. Heavy compression, a small image, or a screenshot can all cause this.⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.signals-consistent-with-ai-generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This image contains patterns that often appear in images generated entirely by AI. That is not proof of how it was made. This app cannot tell you who made it, what it was made for, or whether any part of it was edited.⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] No strong signal detected⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Not enough signal⁩"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Right-to-left isolate around mixed-direction text so a layout or reading order that assumes left-to-right fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Signals consistent with AI generation⁩"
+          }
+        }
+      }
+    },
+    "copy.privacy-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Your image is analysed on this device. It is never uploaded, saved, or shared.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.absent": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This image carries no Content Credential. Most images do not, so this says nothing about how the image was made.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.indeterminate": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This app could not finish checking this image's Content Credential, so there is no result from that source.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This image carries a Content Credential that does not match the bytes analysed. The image may have been changed after it was signed, or the credential may have been altered.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This image carries credential data that this app cannot read.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.validated": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This image carries a Content Credential that matches the exact bytes analysed. That confirms the credential belongs to these bytes. It does not confirm that what the credential says about the image is true.⁩"
+          }
+        }
+      }
+    },
+    "copy.provenance-unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] This version cannot check Content Credentials. A separate version of DefAIke does, as a second and independent check.⁩"
+          }
+        }
+      }
+    },
+    "copy.screenshot-provenance-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar-x-bidi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⁧[عربي] Taking a screenshot creates a new image and usually removes any Content Credential the original had. A missing credential on a screenshot tells you nothing about the original image.⁩"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

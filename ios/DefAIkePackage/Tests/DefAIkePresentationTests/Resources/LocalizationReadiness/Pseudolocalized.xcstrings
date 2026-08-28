@@ -1,114 +1,631 @@
 {
-  "sourceLanguage" : "en-x-pseudo",
-  "strings" : {
-    "copy.chrome.analysis-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Àņàľýžīņģ ţhīş īmàģē ōņ ýōūŗ ďēvīçē]"
+  "sourceLanguage": "en-x-pseudo",
+  "strings": {
+    "copy.analysis-error.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē ŗēşūľţ çōūľď ņōţ bē ţūŗņēď īņţō ōņē ōf ţĥīş àpp'ş ţĥŗēē ľàbēľş, şō ņō ŗēşūľţ īş bēīņģ şĥōŵņ.]"
           }
         }
       }
     },
-    "copy.chrome.cancellation-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Şţōp àņàľýžīņģ]"
+    "copy.analysis-error.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥàţ īmàģē çōūľď ņōţ bē ŗēàď. Tĥē fīľē màý bē īņçōmpľēţē ōŗ ďàmàģēď.]"
           }
         }
       }
     },
-    "copy.chrome.cancelled-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Ýōū şţōppēď ţhē àņàľýşīş, şō ţhēŗē īş ņō ŗēşūľţ]"
+    "copy.analysis-error.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē īmàģē şĥàŗēď fŗōm ţĥē ōţĥēŗ àpp ďīď ņōţ àŗŗīvē īņţàçţ, şō īţ ŵàş ņōţ àņàľýşēď.]"
           }
         }
       }
     },
-    "copy.chrome.development-build-notice" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Ďēvēľōpmēņţ būīľď. Īţş çàľībŗàţīōņ īş ņōţ àppŗōvēď, şō ņōţhīņģ bēľōw īş à vēŗďīçţ àbōūţ àņý īmàģē.]"
+    "copy.analysis-error.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē àņàľýşīş ďīď ņōţ fīņīşĥ ŗūņņīņģ ōņ ţĥīş ďēvīçē, şō ņō ŗēşūľţ ŵàş pŗōďūçēď.]"
           }
         }
       }
     },
-    "copy.chrome.image-selection-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Çhōōşē àņ īmàģē ţō àņàľýžē]"
+    "copy.analysis-error.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē mōďēľ ŗēţūŗņēď şōmēţĥīņģ ţĥīş àpp çōūľď ņōţ ūşē, şō ņō ŗēşūľţ īş bēīņģ şĥōŵņ.]"
           }
         }
       }
     },
-    "copy.chrome.import-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Ģēţţīņģ ţhē īmàģē ýōū çhōşē]"
+    "copy.analysis-error.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē ōņ-ďēvīçē mōďēľ çōūľď ņōţ bē ľōàďēď, şō ņō àņàľýşīş ŗàņ.]"
           }
         }
       }
     },
-    "copy.pixel-label.no-strong-signal-detected" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Ņō şţŗōņģ şīģņàľ ďēţēçţēď]"
+    "copy.analysis-error.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē īmàģē çōūľď ņōţ bē pŗēpàŗēď fōŗ àņàľýşīş, şō ņō ŗēşūľţ ŵàş pŗōďūçēď.]"
           }
         }
       }
     },
-    "copy.pixel-label.not-enough-signal" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Ņōţ ēņōūģĥ şīģņàľ]"
+    "copy.analysis-error.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Àņàľýşīş şţōppēď bēçàūşē īţ ņēēďēď mōŗē mēmōŗý ōŗ ţīmē ţĥàņ ţĥīş àpp īş àľľōŵēď ţō ūşē ōņ ţĥīş ďēvīçē.]"
           }
         }
       }
     },
-    "copy.pixel-label.signals-consistent-with-ai-generation" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-pseudo" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "[Şīģņàľş çōņşīşţēņţ ŵīţĥ ÀĨ ģēņēŗàţīōņ]"
+    "copy.analysis-error.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥàţ fīľē īş ņōţ à şţīľľ īmàģē, şō ţĥēŗē ŵàş ņōţĥīņģ fōŗ ţĥīş àpp ţō àņàľýşē.]"
+          }
+        }
+      }
+    },
+    "copy.analysis-error.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥàţ īmàģē fōŗmàţ īş ņōţ şūppōŗţēď. Tĥīş àpp àņàľýşēş JPEĢ, PŅĢ, àņď HEĪÇ īmàģēş.]"
+          }
+        }
+      }
+    },
+    "copy.apparent-inconsistency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē ţŵō çĥēçkş àbōvē pōīņţ īņ ďīffēŗēņţ ďīŗēçţīōņş. Bōţĥ àŗē şĥōŵņ ēxàçţľý àş ţĥēý ŵēŗē fōūņď. Tĥīş àpp ďōēş ņōţ ďēçīďē bēţŵēēņ ţĥēm.]"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.original-bytes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥē ēxàçţ fīľē ýōū çĥōşē ŵàş àņàľýşēď, ŵīţĥ ņō çĥàņģēş.]"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.platform-transformed-copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[īOŞ şūppľīēď à çōņvēŗţēď çōpý ŗàţĥēŗ ţĥàņ ţĥē ōŗīģīņàľ fīľē. Çōņvēŗţīņģ àņ īmàģē çàņ ŗēmōvē ţĥē pàţţēŗņş ţĥīş àpp ľōōkş fōŗ, şō ţŗēàţ ţĥīş ŗēşūľţ ŵīţĥ ēxţŗà çàūţīōņ.]"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş àpp çōūľď ņōţ çōņfīŗm ŵĥēţĥēŗ īţ ŗēçēīvēď ţĥē ōŗīģīņàľ fīľē ōŗ à çōņvēŗţēď çōpý. Īf īţ ŵàş çōņvēŗţēď, şōmē pàţţēŗņş màý ĥàvē bēēņ ľōşţ.]"
+          }
+        }
+      }
+    },
+    "copy.chrome.analysis-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Àņàľýžīņģ ţhīş īmàģē ōņ ýōūŗ ďēvīçē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Şţōp àņàľýžīņģ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ýōū şţōppēď ţhē àņàľýşīş, şō ţhēŗē īş ņō ŗēşūľţ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ďēvēľōpmēņţ būīľď. Īţş çàľībŗàţīōņ īş ņōţ àppŗōvēď, şō ņōţhīņģ bēľōw īş à vēŗďīçţ àbōūţ àņý īmàģē.]"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-collapsed-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Hīďďēņ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-expanded-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Şĥōŵīņģ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çhōōşē àņ īmàģē ţō àņàľýžē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ģēţţīņģ ţhē īmàģē ýōū çhōşē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-about-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Hōŵ ţĥīş àpp ŵōŗkş]"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Īņfōŗmàţīōņ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-dismiss-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ďōņē]"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-limitations-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Wĥàţ ţĥīş çàņņōţ ţēľľ ýōū]"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Īņfōŗmàţīōņ]"
+          }
+        }
+      }
+    },
+    "copy.chrome.limitations-disclosure-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Wĥàţ ţĥīş çàņņōţ ţēľľ ýōū]"
+          }
+        }
+      }
+    },
+    "copy.correction-channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ýōū çàņ ŗēpōŗţ à ŗēşūľţ ţĥàţ ľōōkş ŵŗōņģ. Ýōūŗ īmàģē īş ņēvēŗ īņçľūďēď īņ à ŗēpōŗţ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņōţĥēŗ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Şĥàŗē ţĥē īmàģē àģàīņ, ōŗ çĥōōşē īţ fŗōm ýōūŗ pĥōţōş ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē àņōţĥēŗ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çľōşē ōţĥēŗ àppş ţō fŗēē ūp mēmōŗý, ţĥēņ çĥōōşē àņ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē à şţīľľ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Çĥōōşē à JPEĢ, PŅĢ, ōŗ HEĪÇ īmàģē ţō şţàŗţ àģàīņ.]"
+          }
+        }
+      }
+    },
+    "copy.evidence-scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş àpp ľōōkş fōŗ şīģņş ţĥàţ àņ ēņţīŗē īmàģē ŵàş ģēņēŗàţēď. Īţ ďōēş ņōţ ďēţēçţ ēďīţēď ŗēģīōņş, çōmpōşīţēş, fàçē şŵàpş, ŗēţōūçĥīņģ, vīďēō, ōŗ àūďīō, àņď īţ ďōēş ņōţ īďēņţīfý ŵĥīçĥ ţōōľ ŵàş ūşēď.]"
+          }
+        }
+      }
+    },
+    "copy.false-result-limitation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Bōţĥ kīņďş ōf mīşţàkē ĥàppēņ. À ŗēàľ pĥōţōģŗàpĥ çàņ bē ŗēpōŗţēď àş şĥōŵīņģ ÀĪ şīģņàľş, àņď àņ ÀĪ-ģēņēŗàţēď īmàģē çàņ bē ŗēpōŗţēď àş şĥōŵīņģ ņōņē. Ďō ņōţ ŗēľý ōņ ţĥīş ŗēşūľţ ōņ īţş ōŵņ.]"
+          }
+        }
+      }
+    },
+    "copy.model-information": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Oņē mōďēľ ŗūņş ōņ ýōūŗ ďēvīçē. Īţ īş ņōţ pēŗfēçţ, àņď īţ īş ņēvēŗ ūpďàţēď ōvēŗ ţĥē ņēţŵōŗk.]"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.no-strong-signal-detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş àpp ďīď ņōţ fīņď ţĥē pàţţēŗņş īţ ľōōkş fōŗ. Tĥàţ īş ņōţ à fīņďīņģ ţĥàţ ţĥē īmàģē īş ŗēàľ ōŗ ūņēďīţēď. Rēşàvīņģ, çŗōppīņģ, ōŗ şçŗēēņşĥōţţīņģ àņ īmàģē çàņ ŗēmōvē ţĥōşē pàţţēŗņş, şō àņ ÀĪ-ģēņēŗàţēď īmàģē çàņ àľşō ľōōk ľīkē ţĥīş.]"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.not-enough-signal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥēŗē ŵàş ņōţ ēņōūģĥ ūşàbľē şīģņàľ īņ ţĥīş īmàģē ţō ŗēpōŗţ ēīţĥēŗ ŵàý. Hēàvý çōmpŗēşşīōņ, à şmàľľ īmàģē, ōŗ à şçŗēēņşĥōţ çàņ àľľ çàūşē ţĥīş.]"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.signals-consistent-with-ai-generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş īmàģē çōņţàīņş pàţţēŗņş ţĥàţ ōfţēņ àppēàŗ īņ īmàģēş ģēņēŗàţēď ēņţīŗēľý bý ÀĪ. Tĥàţ īş ņōţ pŗōōf ōf ĥōŵ īţ ŵàş màďē. Tĥīş àpp çàņņōţ ţēľľ ýōū ŵĥō màďē īţ, ŵĥàţ īţ ŵàş màďē fōŗ, ōŗ ŵĥēţĥēŗ àņý pàŗţ ōf īţ ŵàş ēďīţēď.]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ņō şţŗōņģ şīģņàľ ďēţēçţēď]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ņōţ ēņōūģĥ şīģņàľ]"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Accented characters inside boundary brackets so a clipped, truncated, or hard-coded English string fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Şīģņàľş çōņşīşţēņţ ŵīţĥ ÀĨ ģēņēŗàţīōņ]"
+          }
+        }
+      }
+    },
+    "copy.privacy-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Ýōūŗ īmàģē īş àņàľýşēď ōņ ţĥīş ďēvīçē. Īţ īş ņēvēŗ ūpľōàďēď, şàvēď, ōŗ şĥàŗēď.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.absent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş īmàģē çàŗŗīēş ņō Çōņţēņţ Çŗēďēņţīàľ. Mōşţ īmàģēş ďō ņōţ, şō ţĥīş şàýş ņōţĥīņģ àbōūţ ĥōŵ ţĥē īmàģē ŵàş màďē.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.indeterminate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş àpp çōūľď ņōţ fīņīşĥ çĥēçkīņģ ţĥīş īmàģē'ş Çōņţēņţ Çŗēďēņţīàľ, şō ţĥēŗē īş ņō ŗēşūľţ fŗōm ţĥàţ şōūŗçē.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş īmàģē çàŗŗīēş à Çōņţēņţ Çŗēďēņţīàľ ţĥàţ ďōēş ņōţ màţçĥ ţĥē býţēş àņàľýşēď. Tĥē īmàģē màý ĥàvē bēēņ çĥàņģēď àfţēŗ īţ ŵàş şīģņēď, ōŗ ţĥē çŗēďēņţīàľ màý ĥàvē bēēņ àľţēŗēď.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş īmàģē çàŗŗīēş çŗēďēņţīàľ ďàţà ţĥàţ ţĥīş àpp çàņņōţ ŗēàď.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.validated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş īmàģē çàŗŗīēş à Çōņţēņţ Çŗēďēņţīàľ ţĥàţ màţçĥēş ţĥē ēxàçţ býţēş àņàľýşēď. Tĥàţ çōņfīŗmş ţĥē çŗēďēņţīàľ bēľōņģş ţō ţĥēşē býţēş. Īţ ďōēş ņōţ çōņfīŗm ţĥàţ ŵĥàţ ţĥē çŗēďēņţīàľ şàýş àbōūţ ţĥē īmàģē īş ţŗūē.]"
+          }
+        }
+      }
+    },
+    "copy.provenance-unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tĥīş vēŗşīōņ çàņņōţ çĥēçk Çōņţēņţ Çŗēďēņţīàľş. À şēpàŗàţē vēŗşīōņ ōf ĎēfÀĪkē ďōēş, àş à şēçōņď àņď īņďēpēņďēņţ çĥēçk.]"
+          }
+        }
+      }
+    },
+    "copy.screenshot-provenance-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-pseudo": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "[Tàkīņģ à şçŗēēņşĥōţ çŗēàţēş à ņēŵ īmàģē àņď ūşūàľľý ŗēmōvēş àņý Çōņţēņţ Çŗēďēņţīàľ ţĥē ōŗīģīņàľ ĥàď. À mīşşīņģ çŗēďēņţīàľ ōņ à şçŗēēņşĥōţ ţēľľş ýōū ņōţĥīņģ àbōūţ ţĥē ōŗīģīņàľ īmàģē.]"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

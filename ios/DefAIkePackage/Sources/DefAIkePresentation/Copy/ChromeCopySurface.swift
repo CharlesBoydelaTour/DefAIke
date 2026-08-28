@@ -90,6 +90,41 @@ public enum ChromeCopySurface: String, Hashable, Sendable, CaseIterable,
     /// naming a failure.
     case cancelledStatus = "cancelled-status"
 
+    /// The control that expands and collapses the limitation statements.
+    ///
+    /// Chrome rather than verdict copy, and the distinction is the same one this file already
+    /// draws: the limitations *themselves* describe what the evidence does and does not cover, so
+    /// they are Model-Bundle-bound `VerdictCopySurface` content. The word on the control that
+    /// reveals them describes what the *application* is doing, names no outcome, and does not
+    /// change meaning when the Model Bundle changes.
+    case limitationsDisclosureAction = "limitations-disclosure-action"
+
+    /// The state a disclosure control announces while its group is revealed.
+    ///
+    /// Requirement 12.7 forbids a state that travels only as a glyph, and SwiftUI's
+    /// `AccessibilityTraits` has no expanded member to lean on - so the state is a word, addressed
+    /// like every other word in this application. The view picks which of these two to resolve from
+    /// its own expansion state; it does not compose the sentence.
+    case disclosureExpandedState = "disclosure-expanded-state"
+
+    /// The state a disclosure control announces while its group is hidden.
+    case disclosureCollapsedState = "disclosure-collapsed-state"
+
+    /// The control that opens the information screen.
+    case informationAction = "information-action"
+
+    /// The title of the information screen.
+    case informationTitle = "information-title"
+
+    /// The control that dismisses the information screen.
+    case informationDismissAction = "information-dismiss-action"
+
+    /// The heading introducing the limitation statements on the information screen.
+    case informationLimitationsHeading = "information-limitations-heading"
+
+    /// The heading introducing the privacy, model, and correction statements.
+    case informationAboutHeading = "information-about-heading"
+
     /// The notice a development build shows about its own unapproved inputs.
     ///
     /// Present in the shipping vocabulary so its wording is coverage-checked and auditable
@@ -113,6 +148,10 @@ public enum ChromeCopySurface: String, Hashable, Sendable, CaseIterable,
         case .analysisInProgressStatus: "12.1, 12.5, 15.1"
         case .cancellationAction: "12.1, 15.5"
         case .cancelledStatus: "11.17, 12.1"
+        case .limitationsDisclosureAction: "8.10, 8.11, 12.1"
+        case .disclosureExpandedState, .disclosureCollapsedState: "12.2, 12.7"
+        case .informationAction, .informationTitle, .informationDismissAction: "12.1"
+        case .informationLimitationsHeading, .informationAboutHeading: "12.1, 12.3"
         case .developmentBuildNotice: "8.4, 8.13"
         }
     }

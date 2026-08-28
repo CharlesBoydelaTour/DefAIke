@@ -152,21 +152,41 @@ struct StringCatalogCoverageTests {
 
     @Test("The shipped catalog does not yet cover a release's approved copy")
     func shippedCatalogCoversOnlyWhatIsFixed() throws {
-        // Honest state of the repository: Requirement 8.2 fixes three display strings, and
-        // every other Version 1 sentence is external approved content that has not been
-        // decided. The gate reports the gap by key. It does not fill it, and nothing
-        // renders a key in its place.
+        // Honest state of the repository, updated. Requirement 8.2 fixes three display strings; every
+        // other Version 1 sentence is external approved content, and the ones a pixel-only release
+        // reaches now carry proposed English marked as unapproved in the catalog itself. So a
+        // pixel-only release's coverage gate passes, and the remaining gap is the Combined Summary,
+        // whose keys an approved Evidence Fusion Rule would name.
+        //
+        // The gate is unchanged. It still reports by key, still fills nothing, and nothing renders a
+        // key in place of a sentence.
         let binding = try CopyFixture.pixelOnlyBinding()
+        let fusion = try CopyFixture.fusionBinding()
         let shipped = try EnglishStringCatalog.loadShippedCatalog()
 
         let missing = StringCatalogCoverage.missingValues(in: shipped, for: binding)
         let fixedLabelKeys = Set(EnglishStringCatalog.fixedPixelLabelKeys.values)
 
-        #expect(missing.isEmpty == false)
+        #expect(missing.isEmpty)
         #expect(Set(missing).isDisjoint(with: fixedLabelKeys))
-        #expect(missing.contains(CopyFixture.localizationKey(for: .evidenceScope)))
-        #expect(throws: StringCatalogError.missingApprovedValues(missing)) {
+        #expect(throws: Never.self) {
             try StringCatalogCoverage.audit(shipped, for: binding)
+        }
+
+        // The evidence scope in particular now resolves; it used to be this test's witness that the
+        // gap was real.
+        #expect(
+            shipped.singleValue(
+                forKey: CopyFixture.localizationKey(for: .evidenceScope).rawValue,
+                language: EnglishStringCatalog.requiredLanguageTag
+            )?.isEmpty == false
+        )
+
+        // A fusion-enabled release is still refused, so the gate demonstrably still bites.
+        let fusionMissing = StringCatalogCoverage.missingValues(in: shipped, for: fusion)
+        #expect(fusionMissing.isEmpty == false)
+        #expect(throws: StringCatalogError.missingApprovedValues(fusionMissing)) {
+            try StringCatalogCoverage.audit(shipped, for: fusion)
         }
     }
 }

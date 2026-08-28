@@ -1,114 +1,631 @@
 {
-  "sourceLanguage" : "en-x-longword",
-  "strings" : {
-    "copy.chrome.analysis-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyzingthisimageonyourdeviceunbreakablesinglewordtoken"
+  "sourceLanguage": "en-x-longword",
+  "strings": {
+    "copy.analysis-error.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theresultcouldnotbeturnedintooneofthisappsthreelabelssonoresultisbeingshownunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.chrome.cancellation-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "StopanalyzingStopanalyzingunbreakablesinglewordtoken"
+    "copy.analysis-error.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThatimagecouldnotbereadThefilemaybeincompleteordamagedunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.chrome.cancelled-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Youstoppedtheanalysissothereisnoresultunbreakablesinglewordtoken"
+    "copy.analysis-error.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theimagesharedfromtheotherappdidnotarriveintactsoitwasnotanalysedunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.chrome.development-build-notice" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "DevelopmentbuildItscalibrationisnotapprovedsonothingbelowisaverdictaboutanyimageunbreakablesinglewordtoken"
+    "copy.analysis-error.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theanalysisdidnotfinishrunningonthisdevicesonoresultwasproducedunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.chrome.image-selection-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chooseanimagetoanalyzeunbreakablesinglewordtoken"
+    "copy.analysis-error.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Themodelreturnedsomethingthisappcouldnotusesonoresultisbeingshownunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.chrome.import-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gettingtheimageyouchoseunbreakablesinglewordtoken"
+    "copy.analysis-error.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theondevicemodelcouldnotbeloadedsonoanalysisranunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.pixel-label.no-strong-signal-detected" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nostrongsignaldetectedunbreakablesinglewordtoken"
+    "copy.analysis-error.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theimagecouldnotbepreparedforanalysissonoresultwasproducedunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.pixel-label.not-enough-signal" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notenoughsignalunbreakablesinglewordtoken"
+    "copy.analysis-error.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysisstoppedbecauseitneededmorememoryortimethanthisappisallowedtouseonthisdeviceunbreakablesinglewordtoken"
           }
         }
       }
     },
-    "copy.pixel-label.signals-consistent-with-ai-generation" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-longword" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signalsconsistentwithaigenerationunbreakabletoken"
+    "copy.analysis-error.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thatfileisnotastillimagesotherewasnothingforthisapptoanalyseunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.analysis-error.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThatimageformatisnotsupportedThisappanalysesJPEGPNGandHEICimagesunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.apparent-inconsistency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThetwochecksabovepointindifferentdirectionsBothareshownexactlyastheywerefoundThisappdoesnotdecidebetweenthemunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.original-bytes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Theexactfileyouchosewasanalysedwithnochangesunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.platform-transformed-copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOSsuppliedaconvertedcopyratherthantheoriginalfileConvertinganimagecanremovethepatternsthisapplooksforsotreatthisresultwithextracautionunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisappcouldnotconfirmwhetheritreceivedtheoriginalfileoraconvertedcopyIfitwasconvertedsomepatternsmayhavebeenlostunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.analysis-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzingthisimageonyourdeviceunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "StopanalyzingStopanalyzingunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Youstoppedtheanalysissothereisnoresultunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DevelopmentbuildItscalibrationisnotapprovedsonothingbelowisaverdictaboutanyimageunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-collapsed-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HiddenHiddenHiddenunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-expanded-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ShowingShowingunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanimagetoanalyzeunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gettingtheimageyouchoseunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-about-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Howthisappworksunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "InformationInformationunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-dismiss-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DoneDoneDoneDoneunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-limitations-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whatthiscannottellyouunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "InformationInformationunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.chrome.limitations-disclosure-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whatthiscannottellyouunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.correction-channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YoucanreportaresultthatlookswrongYourimageisneverincludedinareportunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanotherimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharetheimageagainorchooseitfromyourphotostostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseanotherimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closeotherappstofreeupmemorythenchooseanimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chooseastillimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ChooseaJPEGPNGorHEICimagetostartagainunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.evidence-scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisapplooksforsignsthatanentireimagewasgeneratedItdoesnotdetecteditedregionscompositesfaceswapsretouchingvideooraudioanditdoesnotidentifywhichtoolwasusedunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.false-result-limitation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BothkindsofmistakehappenArealphotographcanbereportedasshowingAIsignalsandanAIgeneratedimagecanbereportedasshowingnoneDonotrelyonthisresultonitsownunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.model-information": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OnemodelrunsonyourdeviceItisnotperfectanditisneverupdatedoverthenetworkunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.no-strong-signal-detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisappdidnotfindthepatternsitlooksforThatisnotafindingthattheimageisrealoruneditedResavingcroppingorscreenshottinganimagecanremovethosepatternssoanAIgeneratedimagecanalsolooklikethisunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.not-enough-signal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TherewasnotenoughusablesignalinthisimagetoreporteitherwayHeavycompressionasmallimageorascreenshotcanallcausethisunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.signals-consistent-with-ai-generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisimagecontainspatternsthatoftenappearinimagesgeneratedentirelybyAIThatisnotproofofhowitwasmadeThisappcannottellyouwhomadeitwhatitwasmadefororwhetheranypartofitwaseditedunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nostrongsignaldetectedunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notenoughsignalunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. One unbreakable token so a layout that relies on word wrapping to fit fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signalsconsistentwithaigenerationunbreakabletoken"
+          }
+        }
+      }
+    },
+    "copy.privacy-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YourimageisanalysedonthisdeviceItisneveruploadedsavedorsharedunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.absent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisimagecarriesnoContentCredentialMostimagesdonotsothissaysnothingabouthowtheimagewasmadeunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.indeterminate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisappcouldnotfinishcheckingthisimagesContentCredentialsothereisnoresultfromthatsourceunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisimagecarriesaContentCredentialthatdoesnotmatchthebytesanalysedTheimagemayhavebeenchangedafteritwassignedorthecredentialmayhavebeenalteredunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thisimagecarriescredentialdatathatthisappcannotreadunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.validated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisimagecarriesaContentCredentialthatmatchestheexactbytesanalysedThatconfirmsthecredentialbelongstothesebytesItdoesnotconfirmthatwhatthecredentialsaysabouttheimageistrueunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.provenance-unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ThisversioncannotcheckContentCredentialsAseparateversionofDefAIkedoesasasecondandindependentcheckunbreakablesinglewordtoken"
+          }
+        }
+      }
+    },
+    "copy.screenshot-provenance-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-longword": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TakingascreenshotcreatesanewimageandusuallyremovesanyContentCredentialtheoriginalhadAmissingcredentialonascreenshottellsyounothingabouttheoriginalimageunbreakablesinglewordtoken"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

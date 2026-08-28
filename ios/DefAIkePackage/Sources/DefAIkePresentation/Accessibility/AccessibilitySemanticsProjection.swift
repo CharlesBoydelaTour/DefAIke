@@ -363,6 +363,21 @@ extension AccessibilitySemanticsSnapshot {
 
         // Every report states these three, so they are appended unconditionally and there is no
         // branch that could drop one.
+        // The control that reveals the three statements below. Emitted before them so the reading
+        // order matches the screen: the disclosure, then what it discloses.
+        //
+        // The statements stay in this list whether the group is open or closed. The snapshot
+        // describes the screen with its optional groups disclosed, which is what keeps
+        // `limitationReview` a completable workflow - and that workflow now also requires this
+        // control, because activating it is genuinely what a user has to do.
+        elements.append(
+            AccessibleElement(
+                identity: .limitationsDisclosure,
+                role: .disclosureControl,
+                label: .approvedChromeCopy(ChromeCopyReference(.limitationsDisclosureAction))
+            )
+        )
+
         elements.append(
             AccessibleElement(
                 identity: .evidenceScopeLimitation,
@@ -390,16 +405,28 @@ extension AccessibilitySemanticsSnapshot {
 
         blocked += technicalDetailBlockages(report.technicalDetails)
 
-        // The three onward paths, each an operable control whose label is its approved copy.
-        for path in ReportDisclosurePath.allCases {
-            elements.append(
-                AccessibleElement(
-                    identity: identity(for: path),
-                    role: .navigatingControl,
-                    label: .approvedCopy(report.disclosurePaths.reference(for: path))
-                )
+        // One onward path, not three.
+        //
+        // This used to emit a row per `ReportDisclosurePath`, each labelled with that path's own
+        // approved copy - which meant three full sentences about privacy, the model, and the
+        // correction channel sat on every report, saying the same thing for every image. They were
+        // also the longest rows on the screen, because the copy they address has to work as a
+        // statement on its destination screen as well as a label here.
+        //
+        // The statements now live on the information screen, which is where standing text belongs,
+        // and this is the single control that opens it. Its label is chrome copy, because "open the
+        // information screen" names an application action rather than an evidence outcome - so it
+        // needs no session binding and cannot change meaning when the Model Bundle does.
+        //
+        // Nothing is lost from the report: every one of those sentences is on the destination, and
+        // `InformationScreenView` renders all four.
+        elements.append(
+            AccessibleElement(
+                identity: .informationPath,
+                role: .navigatingControl,
+                label: .approvedChromeCopy(ChromeCopyReference(.informationAction))
             )
-        }
+        )
 
         // The recovery action every terminal screen offers, last in the reading order so it
         // follows the report rather than interrupting it (Requirement 3.13). Chrome copy, not
@@ -421,14 +448,6 @@ extension AccessibilitySemanticsSnapshot {
         )
     }
 
-    /// The identity of one onward path's control. Total switch, no `default`.
-    private static func identity(for path: ReportDisclosurePath) -> AccessibleElementIdentity {
-        switch path {
-        case .modelInformation: .modelInformationPath
-        case .privacyBehavior: .privacyPath
-        case .correctionChannel: .correctionChannelPath
-        }
-    }
 
     /// Every technical-details element, all of them blocked.
     ///

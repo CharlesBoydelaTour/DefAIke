@@ -168,7 +168,7 @@ struct CopyCompatiblePresentationPropertyTests {
             run.checkNoRenderedProseIsStoredAnywhere()
             run.checkACoveringCatalogCoversEveryResolvableKey()
             run.checkOneMissingValueIsNamedRatherThanRendered()
-            run.checkTheShippedCatalogApprovesOnlyTheThreeFixedLabels()
+            run.checkTheShippedCatalogApprovesEverythingButTheCombinedSummary()
             run.checkAnIncompatibleRecordIsRefusedInsteadOfRendered()
             run.checkAnotherSessionsBindingIsRefused()
             run.checkEveryBlockedSurfaceIsRecordedRatherThanInvented()
@@ -1248,14 +1248,17 @@ private struct PresentationCase {
         )
     }
 
-    /// The shipped catalogue approves the three fixed labels and nothing else, and everything
-    /// else is reported as a named gap.
+    /// The shipped catalogue approves every reachable surface except a Combined Summary, and
+    /// whatever it does not approve is reported as a named gap rather than rendered.
     ///
-    /// The honest state of the repository. Requirement 8.2 fixes three display strings, and
-    /// every other Version 1 sentence is external approved content that has not been decided.
-    /// So "exact labels" is asserted over what the catalogue actually approves, and the rest
-    /// is asserted to be a named blocked key rather than a rendered string.
-    func checkTheShippedCatalogApprovesOnlyTheThreeFixedLabels() {
+    /// The honest state of the repository, updated. Requirement 8.2 fixes three display strings;
+    /// the unconditional verdict surfaces and the five enabled provenance states now carry
+    /// proposed English marked unapproved in the catalog itself. What is left is the Combined
+    /// Summary, whose key an approved Evidence Fusion Rule would name.
+    ///
+    /// The property being checked is unchanged in kind: whatever has no approved value is a
+    /// *named key*, never a rendered string. Only the size of that set moved.
+    func checkTheShippedCatalogApprovesEverythingButTheCombinedSummary() {
         let fixedKeys = Set(EnglishStringCatalog.fixedPixelLabelKeys.values)
 
         #expect(
@@ -1267,12 +1270,8 @@ private struct PresentationCase {
             "every pinned label key must be one the binding resolves [\(shape)]"
         )
         #expect(
-            Set(shippedMissing) == Set(resolvableKeys).subtracting(fixedKeys),
-            "the shipped catalogue must approve exactly the three fixed labels; unexpected difference \(Set(shippedMissing).symmetricDifference(Set(resolvableKeys).subtracting(fixedKeys)).map(\.rawValue).sorted()) [\(shape)]"
-        )
-        #expect(
-            shippedMissing.isEmpty == false,
-            "the gap is real and reported, not empty [\(shape)]"
+            shippedMissing.allSatisfy { $0.rawValue.hasPrefix("copy.combined-summary") },
+            "only a Combined Summary may lack an approved value; got \(shippedMissing.map(\.rawValue).sorted()) [\(shape)]"
         )
         #expect(
             Set(shippedMissing).isDisjoint(with: fixedKeys),
@@ -2140,13 +2139,26 @@ private final class PresentationWitness: @unchecked Sendable {
             coveringCatalogsThatCovered == cases,
             "\(cases - coveringCatalogsThatCovered) cases could not be covered at all, so the shipped gap is a statement about the gate rather than the catalogue"
         )
+        // These two floors used to require a gap on *every* case and at least thirty missing keys
+        // per case. Both were non-vacuity guards: they existed so a passing audit could not be a
+        // statement about an empty report, back when the shipped catalogue approved three strings.
+        //
+        // The shipped catalogue now approves every reachable surface except a Combined Summary, so
+        // requiring a gap everywhere would require the gap to stay open, which is the opposite of
+        // what the floor was for. What still has to hold is that the gate is *exercised in both
+        // directions* by this run: some cases report a gap and some report none, and a case that
+        // reports one reports at least the key it is missing.
         #expect(
-            shippedCatalogsWithARealGap == cases,
-            "\(cases - shippedCatalogsWithARealGap) cases reported no gap in the shipped catalogue"
+            shippedCatalogsWithARealGap > 0,
+            "no case reported a gap, so the audit was never exercised against a missing value"
         )
         #expect(
-            reportedGapKeys >= 30 * cases,
-            "keys the shipped catalogue does not approve: \(reportedGapKeys) for \(cases) cases"
+            shippedCatalogsWithARealGap < cases,
+            "every case reported a gap, so no case exercised a fully covered catalogue"
+        )
+        #expect(
+            reportedGapKeys >= shippedCatalogsWithARealGap,
+            "a case with a gap must report at least one key: \(reportedGapKeys) keys across \(shippedCatalogsWithARealGap) cases"
         )
 
         // Every absence was measured beside a presence.

@@ -80,6 +80,14 @@ final class MainAppModel {
     /// Whether the picker is presented. Driven by the ingest control, cleared when it closes.
     var isPickerPresented = false
 
+    /// Whether the information screen is presented.
+    ///
+    /// The three onward rows on a report used to be wired to an empty closure, because navigating to
+    /// a disclosure *screen* needs a Release Readiness Record no installed artifact supplies. They
+    /// now open this instead, which needs no record: it renders the limitation and disclosure copy
+    /// the report already resolved, and nothing else.
+    var isInformationPresented = false
+
     /// The items the picker binding writes. Registered, then handed to the domain as tokens.
     var pickedItems: [PhotosPickerItem] = []
 
@@ -120,6 +128,16 @@ final class MainAppModel {
             // pending handoff is not hidden behind a ready screen.
             await resumePendingShareHandoff(app)
         }
+    }
+
+    /// The assembled report of the completed screen, or `nil` on every other family.
+    ///
+    /// The information screen reads its limitation and disclosure copy from this. `nil` before any
+    /// analysis has run, in which case that screen renders its headings over nothing and therefore
+    /// renders nothing at all — the same fail-closed rule the rest of the presentation layer follows.
+    var completedReport: EvidenceReportPresentation? {
+        guard case let .completed(report) = screenInput else { return nil }
+        return report
     }
 
     /// The admitted application, or `nil` while startup is pending or refused.
@@ -507,14 +525,26 @@ struct MainAppRootView<Composition: CapabilityComposition>: View {
                     actions: AnalysisScreenActions(
                         selectImage: { model.presentPicker() },
                         requestCancellation: { Task { await model.requestCancellation() } },
-                        // The four disclosure destinations are projected from
-                        // `AdmittedMainApp.disclosureInput(for:scope:copy:)`. Navigating to one
-                        // needs the Release Readiness Record, which no installed artifact
-                        // supplies, so no path is opened rather than a screen being shown with
-                        // records it does not have.
-                        openDisclosurePath: { _ in }
+                        // The four *disclosure screens* are projected from
+                        // `AdmittedMainApp.disclosureInput(for:scope:copy:)` and still need the
+                        // Release Readiness Record no installed artifact supplies, so none of them
+                        // is shown. The information screen needs no record: it renders only copy the
+                        // report already resolved, which is why it can exist today at all.
+                        openInformation: { model.isInformationPresented = true }
                     )
                 )
+                .sheet(
+                    isPresented: Binding(
+                        get: { model.isInformationPresented },
+                        set: { model.isInformationPresented = $0 }
+                    )
+                ) {
+                    InformationScreenView(
+                        report: model.completedReport,
+                        resolver: app.copyResolver,
+                        dismiss: { model.isInformationPresented = false }
+                    )
+                }
             } else {
                 // Nothing renderable. Deliberately empty rather than filled with substitute
                 // wording: no approved copy exists for the surfaces the projection blocked.

@@ -85,6 +85,20 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
 
     // MARK: Limitations
 
+    /// The control that expands and collapses the limitation statements.
+    ///
+    /// The limitations are the longest text in the application - three paragraphs stating what the
+    /// evidence does not cover - and on a completed report they sat between the evidence and the
+    /// action, so the control that starts a new session was pushed off the first screenful. They are
+    /// now behind this control, which is a real disclosure rather than a visual trick: collapsed,
+    /// the statements are not rendered and are not in the accessibility tree.
+    ///
+    /// ``AccessibilitySemanticsSnapshot`` still exposes the statements alongside this control, and
+    /// that is deliberate - see the note on that type. The snapshot describes the screen with its
+    /// optional groups disclosed, so ``AccessibilityWorkflow/limitationReview`` stays completable and
+    /// now requires this control, which is what a user actually has to activate.
+    case limitationsDisclosure
+
     /// The evidence-scope and unsupported-scope statement.
     case evidenceScopeLimitation
 
@@ -113,14 +127,20 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
 
     // MARK: Onward paths
 
-    /// The path to model identity, limitations, and release status.
-    case modelInformationPath
-
-    /// The path to the in-application privacy explanation.
-    case privacyPath
-
-    /// The path to the externally supplied correction channel.
-    case correctionChannelPath
+    /// The control that opens the information screen.
+    ///
+    /// One destination carrying every limitation, privacy, model, and correction statement, so the
+    /// analysis screen can be the analysis screen.
+    ///
+    /// This replaced three identities - a model-information path, a privacy path, and a
+    /// correction-channel path - which each drew a row on every report labelled with that topic's
+    /// own approved sentence. Three standing paragraphs about the application sat below the two
+    /// cards that described the image, and none of the three rows went anywhere, because navigating
+    /// to a disclosure screen needs a Release Readiness Record no installed artifact supplies. The
+    /// statements moved to the destination and the three identities were removed rather than left
+    /// unreachable, which `everyDeclaredIdentityIsReachable` would otherwise report as dead
+    /// vocabulary.
+    case informationPath
 
     /// Stable identifier, for deterministic ordering and failure reports.
     ///
@@ -135,6 +155,8 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
         case .cancelledStatus: "cancelled-status"
         case .analysisErrorMessage: "analysis-error-message"
         case .analysisErrorRecovery: "analysis-error-recovery"
+        case .limitationsDisclosure: "limitations-disclosure"
+        case .informationPath: "information-path"
         case .pixelEvidenceLabel: "pixel-evidence-label"
         case .pixelEvidenceExplanation: "pixel-evidence-explanation"
         case .provenanceLaneState: "provenance-lane-state"
@@ -149,9 +171,6 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
         case let .recordedDimension(dimension): "recorded-dimension/\(dimension.rawValue)"
         case .onDeviceProcessingStatus: "on-device-processing-status"
         case .modelBundleIntegrityStatus: "model-bundle-integrity-status"
-        case .modelInformationPath: "model-information-path"
-        case .privacyPath: "privacy-path"
-        case .correctionChannelPath: "correction-channel-path"
         }
     }
 
@@ -175,6 +194,7 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
             .screenshotProvenanceExplanation,
             .combinedSummary,
             .apparentInconsistencyNotice,
+            .limitationsDisclosure,
             .evidenceScopeLimitation,
             .falseResultLimitation,
             .bytePreservationLimitation,
@@ -185,9 +205,7 @@ public enum AccessibleElementIdentity: Hashable, Sendable, ProbabilityFreePresen
         identities += [
             .onDeviceProcessingStatus,
             .modelBundleIntegrityStatus,
-            .modelInformationPath,
-            .privacyPath,
-            .correctionChannelPath,
+            .informationPath,
         ]
         return identities
     }

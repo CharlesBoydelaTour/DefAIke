@@ -115,12 +115,18 @@ struct AccessibleSemantics: ViewModifier {
     /// This element's position in the reading order.
     let readingIndex: Int
 
+    /// The weight this element is drawn at, derived from its identity and never from an outcome.
+    var emphasis: VisualEmphasis { .emphasis(for: element.identity) }
+
     func body(content: Content) -> some View {
         content
             // Reflow, never truncate. `fixedSize` vertically lets the text take the height it
             // needs; the absence of any line limit is what keeps it from being cut off.
             .fixedSize(horizontal: false, vertical: true)
-            .multilineTextAlignment(.leading)
+            // The alignment comes from the emphasis rather than from a literal, so the same weight
+            // is aligned the same way on every screen and a block cannot be centred on one and
+            // leading on another.
+            .multilineTextAlignment(emphasis.textAlignment)
             // An operable element gets the required activation area, and the whole rectangle is
             // hit-testable so the target is the area rather than the drawn content.
             .frame(
@@ -192,25 +198,35 @@ struct AccessibleElementView: View {
     /// The axis a name-and-state pairing is laid out along, at the current text size.
     let axis: LayoutAxis
 
+    /// The region this element is grouped into, which decides which control treatment it gets.
+    let region: ScreenRegion
+
+    /// The measured palette for the current appearance.
+    let palette: Palette
+
+    /// Whether this element's group is expanded, or `nil` when it is not a disclosure.
+    ///
+    /// Drives the framework's expanded trait as well as the glyph, so an assistive technology hears
+    /// the state rather than only seeing it (Requirement 12.2).
+    let isExpanded: Bool?
+
     /// What activating this element does, or `nil` for a content element.
     let action: (() -> Void)?
+
+    /// The weight this element is drawn at.
+    ///
+    /// Derived from the identity through ``VisualEmphasis/emphasis(for:)``, which is never shown an
+    /// outcome. This is the only thing that decides how the element looks.
+    private var emphasis: VisualEmphasis { .emphasis(for: element.identity) }
 
     var body: some View {
         if let label = resolver.resolvedText(for: element.label) {
             let value = element.value.flatMap { resolver.resolvedText(for: $0) }
             if element.isOperable, let action {
-                Button(action: action) {
-                    visibleText(label: label, value: value)
-                }
-                .accessibleSemantics(
-                    element,
-                    label: label,
-                    value: value,
-                    elementCount: elementCount,
-                    readingIndex: readingIndex
-                )
+                control(label: label, value: value, action: action)
             } else {
                 visibleText(label: label, value: value)
+                    .foregroundStyle(Color(palette.foreground(for: emphasis)))
                     .accessibleSemantics(
                         element,
                         label: label,
@@ -222,27 +238,136 @@ struct AccessibleElementView: View {
         }
     }
 
+    /// One operable element, in the control treatment its emphasis calls for.
+    ///
+    /// Three treatments, chosen by emphasis rather than by region or by call site: the one filled
+    /// action that moves a session forward, the bordered control that stops active work, and a row
+    /// inside a grouped container. A `Button` in every branch, so an operable element is never drawn
+    /// as text a Switch Control scanner would skip.
+    @ViewBuilder
+    private func control(label: String, value: String?, action: @escaping () -> Void) -> some View {
+        let semantics = { (view: AnyView) in
+            view.accessibleSemantics(
+                element,
+                label: label,
+                value: value,
+                elementCount: elementCount,
+                readingIndex: readingIndex
+            )
+        }
+
+        switch emphasis {
+        case .primaryAction:
+            semantics(
+                AnyView(
+                    Button(action: action) {
+                        HStack(spacing: Space.tight) {
+                            // Decoration yields to text at the accessibility sizes. At those sizes
+                            // the label wraps to three or more lines and a vertically centred glyph
+                            // ends up floating beside the middle line, which reads as a mistake -
+                            // and the glyph says nothing the label does not, so the honest thing is
+                            // to give it the space back.
+                            //
+                            // The condition is the layout policy's own signal rather than a new
+                            // breakpoint: `AdaptiveLayoutPolicy.axis(at:)` answers `.vertical`
+                            // exactly at the accessibility sizes, so there is one place that decides
+                            // what "large text" means and this is not a second one.
+                            if axis == .horizontal {
+                                DecorativeSelectionGlyph()
+                            }
+                            visibleText(label: label, value: value)
+                        }
+                        .foregroundStyle(Color(palette.foreground(for: emphasis)))
+                    }
+                    .buttonStyle(PrimaryActionStyle(palette: palette))
+                )
+            )
+        case .cancellationAction:
+            semantics(
+                AnyView(
+                    Button(action: action) {
+                        visibleText(label: label, value: value)
+                            .foregroundStyle(Color(palette.foreground(for: emphasis)))
+                    }
+                    .buttonStyle(SecondaryActionStyle(palette: palette))
+                )
+            )
+        case .disclosureHeader:
+            // The expanded state is spoken as an approved word, not left to the glyph
+            // (Requirements 12.2 and 12.7). Which of the two words is resolved is view state's
+            // decision; the words themselves come from the catalog like every other string here.
+            let expansionState = (isExpanded == true)
+                ? ChromeCopySurface.disclosureExpandedState
+                : ChromeCopySurface.disclosureCollapsedState
+            let stateValue = resolver.resolvedText(
+                for: .approvedChromeCopy(ChromeCopyReference(expansionState))
+            )
+            Button(action: action) {
+                HStack(spacing: Space.tight) {
+                    visibleText(label: label, value: nil)
+                    if axis == .horizontal {
+                        DecorativeExpansionGlyph(
+                            isExpanded: isExpanded ?? false,
+                            palette: palette
+                        )
+                    }
+                }
+                .foregroundStyle(Color(palette.foreground(for: emphasis)))
+            }
+            .buttonStyle(GroupedRowStyle(palette: palette))
+            .accessibleSemantics(
+                element,
+                label: label,
+                value: stateValue,
+                elementCount: elementCount,
+                readingIndex: readingIndex
+            )
+        case .navigationRow, .transparencyRow, .laneHeadline, .laneBody, .combinedSummary,
+            .inconsistencyNotice, .limitation, .status, .failureMessage:
+            semantics(
+                AnyView(
+                    Button(action: action) {
+                        HStack(spacing: Space.tight) {
+                            visibleText(label: label, value: value)
+                            // Dropped at the accessibility sizes for the same reason as the selection
+                            // glyph above: it is a decorative affordance cue, and beside four lines of
+                            // text it floats rather than points.
+                            if axis == .horizontal {
+                                DecorativeDisclosureGlyph(palette: palette)
+                            }
+                        }
+                        .foregroundStyle(Color(palette.foreground(for: emphasis)))
+                    }
+                    .buttonStyle(GroupedRowStyle(palette: palette))
+                )
+            )
+        }
+    }
+
     /// The visible text: the label alone, or the label and its state along `axis`.
+    ///
+    /// The font comes from the emphasis, so a lane headline is a lane headline on every screen.
     @ViewBuilder
     private func visibleText(label: String, value: String?) -> some View {
         if let value {
             switch axis {
             case .vertical:
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: label)
-                    Text(verbatim: value)
+                VStack(alignment: .leading, spacing: Space.hairGap) {
+                    Text(verbatim: label).font(emphasis.font)
+                    Text(verbatim: value).font(emphasis.font)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: emphasis.frameAlignment)
             case .horizontal:
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(verbatim: label)
-                    Text(verbatim: value)
+                HStack(alignment: .firstTextBaseline, spacing: Space.tight) {
+                    Text(verbatim: label).font(emphasis.font)
+                    Text(verbatim: value).font(emphasis.font)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: emphasis.frameAlignment)
             }
         } else {
             Text(verbatim: label)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(emphasis.font)
+                .frame(maxWidth: .infinity, alignment: emphasis.frameAlignment)
         }
     }
 }

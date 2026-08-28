@@ -664,46 +664,50 @@ struct AccessibilitySemanticsCoverageTests {
             let scope = try #require(snapshot.readingIndex(of: .evidenceScopeLimitation))
             let falseResult = try #require(snapshot.readingIndex(of: .falseResultLimitation))
             let bytes = try #require(snapshot.readingIndex(of: .bytePreservationLimitation))
-            let modelPath = try #require(snapshot.readingIndex(of: .modelInformationPath))
-            let privacy = try #require(snapshot.readingIndex(of: .privacyPath))
-            let correction = try #require(snapshot.readingIndex(of: .correctionChannelPath))
+            let disclosure = try #require(snapshot.readingIndex(of: .limitationsDisclosure))
+            let information = try #require(snapshot.readingIndex(of: .informationPath))
 
             // Both lanes before anything that could read as ranking them.
             #expect(pixelLabel < pixelExplanation, "\(testCase.name)")
             #expect(pixelExplanation < provenance, "\(testCase.name)")
-            #expect(provenance < scope, "\(testCase.name)")
+            // The disclosure control precedes the statements it reveals, so the reading order is
+            // the screen's order: the control, then what activating it shows.
+            #expect(provenance < disclosure, "\(testCase.name)")
+            #expect(disclosure < scope, "\(testCase.name)")
             #expect(scope < falseResult, "\(testCase.name)")
             #expect(falseResult < bytes, "\(testCase.name)")
-            #expect(bytes < modelPath, "\(testCase.name)")
-            #expect(modelPath < privacy, "\(testCase.name)")
-            #expect(privacy < correction, "\(testCase.name)")
+            #expect(bytes < information, "\(testCase.name)")
 
             // The summary and the notice sit after both lanes and before the limitations, so
             // neither replaces a lane and neither displaces a limitation.
             if let summary = snapshot.readingIndex(of: .combinedSummary) {
                 #expect(provenance < summary, "\(testCase.name)")
-                #expect(summary < scope, "\(testCase.name)")
+                #expect(summary < disclosure, "\(testCase.name)")
             }
             if let notice = snapshot.readingIndex(of: .apparentInconsistencyNotice) {
                 #expect(provenance < notice, "\(testCase.name)")
-                #expect(notice < scope, "\(testCase.name)")
+                #expect(notice < disclosure, "\(testCase.name)")
             }
             if let screenshot = snapshot.readingIndex(of: .screenshotProvenanceExplanation) {
                 #expect(provenance < screenshot, "\(testCase.name)")
-                #expect(screenshot < scope, "\(testCase.name)")
+                #expect(screenshot < disclosure, "\(testCase.name)")
             }
 
-            // The action order on a completed report is the three onward paths in the report's
-            // declared path order, then the recovery control. The recovery is last rather than
-            // first: Requirement 3.13 offers a new session from a terminal screen, and putting
-            // that action ahead of the report would let a user reach "start again" before
-            // reaching the limitations the report is required to state.
+            // The action order on a completed report is the limitations disclosure, then the one
+            // onward path, then the recovery control. It used to be three onward paths in the
+            // report's declared path order; those rows each carried a standing paragraph about the
+            // application and none of them navigated anywhere, so they are one control now.
+            //
+            // The recovery is still last rather than first: Requirement 3.13 offers a new session
+            // from a terminal screen, and putting that action ahead of the report would let a user
+            // reach "start again" before reaching the limitations the report is required to state.
+            // It is drawn in a pinned bar at the bottom of the screen, which agrees with being last
+            // rather than contradicting it.
             #expect(
                 snapshot.actionOrder
                     == [
-                        .modelInformationPath,
-                        .privacyPath,
-                        .correctionChannelPath,
+                        .limitationsDisclosure,
+                        .informationPath,
                         .imageSelectionControl,
                     ],
                 "\(testCase.name)"
@@ -718,21 +722,29 @@ struct AccessibilitySemanticsCoverageTests {
         let snapshot = AccessibilitySemanticsSnapshot.projecting(
             .completed(try ReportFixture.pixelOnlyPresentation())
         )
-        var positions: [Int] = []
+        // One onward control, and it is a navigating control like the three it replaced.
+        let element = try #require(snapshot.element(.informationPath))
+        #expect(element.role == .navigatingControl)
+        #expect(element.isOperable)
+        #expect(element.traits == [.button])
+
+        // Every path's statement is still addressable - they moved to the destination rather than
+        // being dropped - so the report's declared path vocabulary is unchanged and complete.
+        let report = try ReportFixture.pixelOnlyPresentation()
         for path in ReportDisclosurePath.allCases {
-            let identity: AccessibleElementIdentity =
-                switch path {
-                case .modelInformation: .modelInformationPath
-                case .privacyBehavior: .privacyPath
-                case .correctionChannel: .correctionChannelPath
-                }
-            let element = try #require(snapshot.element(identity))
-            #expect(element.role == .navigatingControl, "\(path.rawValue)")
-            #expect(element.isOperable, "\(path.rawValue)")
-            #expect(element.traits == [.button], "\(path.rawValue)")
-            positions.append(try #require(snapshot.readingIndex(of: identity)))
+            let reference = report.disclosurePaths.reference(for: path)
+            #expect(reference.localizationKey.rawValue.isEmpty == false, "\(path.rawValue)")
         }
-        #expect(positions == positions.sorted(), "the paths must read in declaration order")
+        #expect(ReportDisclosurePath.allCases.count == 3)
+
+        // And no per-path control survives on the report.
+        for identity in snapshot.readingOrder {
+            #expect(
+                identity.stableKey.hasSuffix("-path") == false
+                    || identity == .informationPath,
+                "\(identity.stableKey) is a per-path control the report should no longer expose"
+            )
+        }
     }
 
     @Test(
@@ -1549,36 +1561,50 @@ struct LocalizationReadinessSubstitutionTests {
         }
     }
 
-    @Test("What the shipped catalog can render is pinned per family, in reading order")
+    @Test("Every exposed element renders, except a Combined Summary with no approved wording")
     func renderableSetIsPinnedPerFamily() throws {
-        // This replaces a test whose expectation was "the pixel label on a completed report, and
-        // nothing anywhere else". That was accurate when the catalog held three strings.
+        // This is the third state of this test, and the history is worth keeping because each step
+        // was a real change in what a user would see:
         //
-        // The chrome surfaces now have approved values, so every family renders its own chrome and
-        // the completed report renders its pixel label as well. The verdict surfaces are unchanged
-        // and still render nothing: the explanation, the lane state, the limitations, the summary,
-        // and the disclosure paths all address keys the shipped catalog does not hold, because
-        // their wording is still the unresolved Approved Verdict Copy decision.
+        //   1. "the pixel label on a completed report, and nothing anywhere else" - accurate while
+        //      the catalog held three strings;
+        //   2. plus each family's own chrome, once the chrome surfaces had proposed values;
+        //   3. and now everything, because the unconditional verdict surfaces have proposed values
+        //      too. The error family in particular went from rendering *nothing at all* - both of its
+        //      elements carry verdict addresses - to rendering its category message and its recovery.
         //
-        // The error family is the one that renders nothing at all. Both elements it exposes carry
-        // verdict addresses — the category's approved message and its approved recovery — so it is
-        // blocked by the same missing decision rather than by anything this change touched.
+        // The one exception is the Combined Summary, whose key an approved Evidence Fusion Rule would
+        // name and which therefore still has no wording. Stating the exception as a filter rather
+        // than as a per-family list is deliberate: a hardcoded list of expected identities has to be
+        // re-derived by hand every time the projection changes, and the claim that actually matters
+        // is "nothing on screen is a missing string".
         let shipped = try AccessibleTextResolver.shipped()
+        var sawCompleted = false
 
         for testCase in try AccessibilityReadinessFixture.allCases() {
             let renderable = shipped.renderableElements(in: testCase.snapshot).map(\.identity)
-            let expected: [AccessibleElementIdentity] =
-                switch testCase.family {
-                case .ready: [.imageSelectionControl]
-                case .importing: [.importStatus]
-                case .active: [.workProgress, .cancellationControl]
-                case .cancelled: [.cancelledStatus, .imageSelectionControl]
-                case .completed: [.pixelEvidenceLabel, .imageSelectionControl]
-                case .error: []
-                }
+            let unresolvable = shipped.unresolvableElements(in: testCase.snapshot).map(\.identity)
 
+            // Whatever cannot render is a Combined Summary, on every screen and in every family.
+            #expect(
+                unresolvable.allSatisfy { $0 == .combinedSummary },
+                "\(testCase.name) cannot render \(unresolvable.map(\.stableKey))"
+            )
+
+            // The renderable set is the rest, in the snapshot's own order.
+            let expected = testCase.snapshot.readingOrder.filter { $0 != .combinedSummary }
             #expect(renderable == expected, "\(testCase.name)")
+
+            if testCase.family == .completed { sawCompleted = true }
+            // The error family used to render nothing; it now renders both of its elements.
+            if testCase.family == .error {
+                #expect(renderable.contains(.analysisErrorMessage), "\(testCase.name)")
+                #expect(renderable.contains(.analysisErrorRecovery), "\(testCase.name)")
+            }
         }
+
+        // Not a vacuous pass over a fixture set with no completed report in it.
+        #expect(sawCompleted)
     }
 
     @Test("No verdict address reaches a catalog, and every chrome address does")
@@ -1615,20 +1641,33 @@ struct LocalizationReadinessSubstitutionTests {
         #expect(chromeAddressed.isEmpty == false)
 
         let shippedKeys = Set(try EnglishStringCatalog.loadShippedCatalog().keys)
+        #expect(shippedKeys.count == 56)
+
+        // The verdict half has inverted. Every verdict address a screen carries is now a key the
+        // shipped catalog holds, except a Combined Summary - so the explanation, the lane state, the
+        // limitations, the error message, the recovery, and the disclosure paths all resolve.
+        let unresolvedAddresses = addressed.subtracting(shippedKeys)
         #expect(
-            shippedKeys.count
-                == PixelLabelKey.allCases.count + ChromeCopySurface.allCases.count
+            unresolvedAddresses.allSatisfy { $0.hasPrefix("copy.combined-summary") },
+            "screens address keys no catalog holds: \(unresolvedAddresses.sorted())"
         )
-        #expect(addressed.isDisjoint(with: shippedKeys))
+
         // Every chrome address a screen carries is a key the shipped catalog holds. The
         // development-build notice is in the vocabulary but is addressed by the application target
         // rather than by any screen, so it is covered by `ChromeCopyCoverage` instead.
         #expect(chromeAddressed.isSubset(of: shippedKeys))
 
+        // The readiness catalogs still hold exactly the shipped key set. That coupling is what makes
+        // Requirements 12.15 and 12.16 non-vacuous, and it is now doing far more work than before:
+        // substituting a catalog changes every sentence on a completed report, not just its chrome.
         for variant in LocalizationReadinessVariant.allCases {
             let readinessKeys = Set(try LocalizationReadinessCatalogs.load(variant).keys)
             #expect(readinessKeys == shippedKeys, "\(variant.rawValue)")
-            #expect(addressed.isDisjoint(with: readinessKeys), "\(variant.rawValue)")
+            #expect(
+                addressed.subtracting(readinessKeys)
+                    .allSatisfy { $0.hasPrefix("copy.combined-summary") },
+                "\(variant.rawValue)"
+            )
         }
     }
 
@@ -1751,6 +1790,58 @@ struct AccessibleViewSourceTests {
         ]
     }
 
+    /// One of the module's design-system sources, with comments removed.
+    static func designSystemSource(_ fileName: String) throws -> String {
+        let root = try #require(
+            PackageSourceTree.packageRoot,
+            "the package source tree is required for this to mean anything"
+        )
+        let url = root.appending(path: "Sources/DefAIkePresentation/DesignSystem/\(fileName)")
+        let text = try String(contentsOf: url, encoding: .utf8)
+        #expect(text.isEmpty == false, "\(fileName)")
+        return ForbiddenControlSourceAudit.strippingComments(text)
+    }
+
+    static func componentsSource() throws -> String { try designSystemSource("Components.swift") }
+    static func tokensSource() throws -> String { try designSystemSource("DesignTokens.swift") }
+
+    /// Whether a module source sits in the design-system directory.
+    ///
+    /// The one directory permitted to name a colour, a symbol, or an opacity. Matched on the path
+    /// rather than on the file name, so a decoration cannot be smuggled into the semantics layer by
+    /// choosing a design-system-sounding name for it.
+    static func isDesignSystem(_ url: URL) -> Bool {
+        url.pathComponents.contains("DesignSystem")
+    }
+
+    /// Every comment-stripped Swift source in the module, split by whether it is design system.
+    static func partitionedModuleSources() throws -> (
+        designSystem: [(name: String, code: String)], other: [(name: String, code: String)]
+    ) {
+        let urls = try #require(
+            ForbiddenControlSourceAudit.moduleSources(),
+            "the module's sources must be readable for this to mean anything"
+        )
+        var designSystem: [(name: String, code: String)] = []
+        var other: [(name: String, code: String)] = []
+        for url in urls {
+            let entry = (
+                url.lastPathComponent,
+                ForbiddenControlSourceAudit.strippingComments(
+                    try String(contentsOf: url, encoding: .utf8)
+                )
+            )
+            if isDesignSystem(url) {
+                designSystem.append(entry)
+            } else {
+                other.append(entry)
+            }
+        }
+        #expect(designSystem.isEmpty == false, "the design-system sweep found no files")
+        #expect(other.isEmpty == false, "the non-design-system sweep found no files")
+        return (designSystem, other)
+    }
+
     /// Every comment-stripped Swift source in the module.
     static func moduleSources() throws -> [(name: String, code: String)] {
         let urls = try #require(
@@ -1830,7 +1921,12 @@ struct AccessibleViewSourceTests {
 
         // Reflow: the text takes the height it needs and no line limit constrains it.
         #expect(semantics.contains("fixedSize(horizontal: false, vertical: true)"))
-        #expect(semantics.contains("multilineTextAlignment(.leading)"))
+
+        // The alignment is taken from the element's emphasis rather than written as a literal, which
+        // is a stronger statement than the literal `.leading` this used to assert: an alignment
+        // derived from a token cannot disagree between two screens showing the same kind of field.
+        #expect(semantics.contains("multilineTextAlignment(emphasis.textAlignment)"))
+        #expect(semantics.contains("multilineTextAlignment(.center)") == false)
 
         // No fixed size on the element that carries text. Only a minimum for the operable frame and
         // a maximum-width expansion, both of which grow rather than clamp.
@@ -1890,34 +1986,171 @@ struct AccessibleViewSourceTests {
         )
     }
 
-    @Test("Meaning never travels as colour, icon, gauge, or animation anywhere in the module")
-    func noColourIconOrAnimationExistsToCarryMeaning() throws {
-        // Requirement 12.7. The value layer has no colour, symbol, or animation field; this is the
-        // backstop for a view modifier, which is not a stored property. The module never names one.
-        let nonTextTokens = [
-            "foregroundColor",
-            "foregroundStyle",
-            "accentColor",
-            "Color",
-            "Image(",
-            "systemName",
-            "symbolEffect",
+    @Test("No magnitude, uncontrolled motion, or ad-hoc colour API exists anywhere in the module")
+    func noMagnitudeOrAdHocColourExists() throws {
+        // Requirements 12.7 and 8.13. This suite used to ban the string "Color" module-wide, which
+        // was a sound proxy while the module drew nothing: with no design layer, any mention of a
+        // colour was a mistake. It is no longer sound, because a designed screen has to name a
+        // colour somewhere, and a proxy that forbids the whole category cannot distinguish a
+        // measured token from a verdict painted green.
+        //
+        // So the ban is split. What stays banned everywhere is the set that has no legitimate use
+        // here at all:
+        //
+        //   * a graphical magnitude - `Gauge`, `ProgressView(value:)` - which is exactly the
+        //     encoding equivalent to a probability that Requirement 8.13 removes;
+        //   * motion that no policy decides - `withAnimation`, `.transition(`, `repeatForever`,
+        //     `symbolEffect` - which would bypass `MotionPolicy` and so bypass Requirement 12.10;
+        //   * the ad-hoc colour APIs - `foregroundColor`, `accentColor` - which take a colour from
+        //     anywhere, as opposed to `foregroundStyle` fed from the measured palette; and
+        //   * `gradient` and `shadow`, because a gradient is the easiest way to imply a scale and
+        //     neither is in this visual language.
+        //
+        // What colour is *permitted* to do is checked separately, and more strictly, by
+        // `everyColourComesFromTheMeasuredPalette` and by `DesignSystemOutcomeBlindnessTests`.
+        let bannedEverywhere = [
             "Gauge",
             "ProgressView(value:",
+            "symbolEffect",
             "withAnimation",
-            ".animation(",
             ".transition(",
             "repeatForever",
-            "opacity",
+            "foregroundColor",
+            "accentColor",
             "gradient",
             "shadow",
         ]
 
         for (name, code) in try Self.moduleSources() {
-            for token in nonTextTokens {
+            for token in bannedEverywhere {
                 #expect(code.contains(token) == false, "\(name) mentions \(token)")
             }
         }
+    }
+
+    @Test("No system colour is ever passed to anything that draws")
+    func noSystemColourIsEverDrawn() throws {
+        // The executable form of the argument in `Palette`: a detector's obvious palette has a green
+        // "authentic" state, and a green card asserts authenticity in a channel the approved-copy
+        // gate cannot read (Requirement 8.4).
+        //
+        // `Palette` removes the *member*, so no view can ask for a success colour, and
+        // `everyColourComesFromTheMeasuredPalette` closes the `Color(...)` route. The remaining hole
+        // is a bare system colour handed straight to a style modifier - `.foregroundStyle(.green)`
+        // needs no `Color(` at all. So the check is the pairing of a drawing modifier with a colour
+        // name, rather than the colour name alone.
+        //
+        // Deliberately not a bare search for `.red` and friends. That was the first spelling of this
+        // test and it reported four false positives: `.reduce` contains `.red`, and
+        // `components.red` is the name of a colour *channel* in the palette's own measured
+        // components. A check that has to be weakened to stay green is worse than no check, so the
+        // narrower claim is the one asserted.
+        let drawingModifiers = [
+            "foregroundStyle", "foregroundColor", "fill", "tint", "background",
+            "stroke", "strokeBorder", "shadow", "border", "accentColor",
+        ]
+        let colourNames = [
+            "green", "red", "blue", "orange", "yellow", "pink", "purple",
+            "mint", "teal", "cyan", "indigo", "brown", "gray", "grey",
+            "white", "black", "clear",
+        ]
+
+        for (name, code) in try Self.moduleSources() {
+            for modifier in drawingModifiers {
+                for colour in colourNames {
+                    // `.foregroundStyle(.green)` and `.foregroundStyle(Color.green)`, the two
+                    // spellings that reach a system colour without constructing one.
+                    for spelling in ["\(modifier)(.\(colour)", "\(modifier)(Color.\(colour)"] {
+                        #expect(
+                            code.contains(spelling) == false,
+                            "\(name) draws with the system colour \(spelling))"
+                        )
+                    }
+                }
+            }
+
+            // The platform colour types have no legitimate use here and no false-positive risk.
+            for token in ["UIColor", "NSColor", "systemGreen", "systemRed", "Color(hue:"] {
+                #expect(code.contains(token) == false, "\(name) mentions \(token)")
+            }
+        }
+    }
+
+    @Test("Every colour is constructed from the measured palette, through one bridge")
+    func everyColourComesFromTheMeasuredPalette() throws {
+        // The positive half of the split above, and the claim that actually matters: a colour on
+        // screen is a colour whose contrast ratio `PaletteContrastTests` measured.
+        //
+        // Two facts establish it. Outside the design system, every `Color(` is built from `palette.`
+        // - so a view cannot introduce a colour of its own. Inside the design system, the only
+        // construction from raw numeric components is the single `ColorComponents` bridge, so even
+        // there a colour has to come from a measured value.
+        let (designSystem, other) = try Self.partitionedModuleSources()
+
+        for (name, code) in other {
+            for occurrence in code.components(separatedBy: "Color(").dropFirst() {
+                #expect(
+                    occurrence.hasPrefix("palette."),
+                    "\(name) builds a Color from something other than the palette: Color(\(occurrence.prefix(40)))"
+                )
+            }
+        }
+
+        // The one bridge from components to a framework colour, and it is in the tokens file.
+        let tokens = try Self.tokensSource()
+        #expect(tokens.contains("init(_ components: ColorComponents)"))
+        #expect(tokens.contains("red: Double(components.red) / 255"))
+
+        let sRGBConstructions = designSystem
+            .map { $0.code.components(separatedBy: ".sRGB").count - 1 }
+            .reduce(0, +)
+        #expect(
+            sRGBConstructions == 1,
+            "the design system constructs a raw sRGB colour \(sRGBConstructions) time(s); exactly one bridge is intended"
+        )
+    }
+
+    @Test("Colour, symbols, and opacity are confined to the design system")
+    func decorationIsConfinedToTheDesignSystem() throws {
+        // Requirement 12.7 again, as a boundary rather than as a blanket ban. The semantics layer -
+        // where the labels, values, traits, and reading order live - names no symbol and no opacity,
+        // so decoration cannot be introduced in the same file that decides what an element *means*.
+        // Colour reaches the views only as the palette bridge checked above.
+        let (_, other) = try Self.partitionedModuleSources()
+
+        for (name, code) in other {
+            #expect(code.contains("Image(") == false, "\(name) draws an image or symbol")
+            #expect(code.contains("systemName") == false, "\(name) names a symbol")
+            #expect(code.contains("opacity") == false, "\(name) sets an opacity")
+        }
+    }
+
+    @Test("The only animation is a screen-family change, and the policy decides whether it moves")
+    func theOnlyAnimationGoesThroughThePolicy() throws {
+        // `.animation(` is permitted in exactly one place and in exactly one form: fed by
+        // `Motion.familyTransition(reduceMotion:)`, which returns `nil` under Reduce Motion. Passing
+        // `nil` performs no animation at all rather than a fast one, so the reduced branch is a real
+        // absence of motion (Requirement 12.10).
+        let screen = try Self.screenSource()
+        let occurrences = screen.components(separatedBy: ".animation(").dropFirst()
+
+        #expect(occurrences.count == 1, "the view declares \(occurrences.count) animations")
+        for occurrence in occurrences {
+            #expect(
+                occurrence.hasPrefix("Motion.familyTransition(reduceMotion: reduceMotion)"),
+                "an animation is not fed by the motion policy: .animation(\(occurrence.prefix(60)))"
+            )
+        }
+
+        // Nothing else in the module animates at all.
+        let (_, other) = try Self.partitionedModuleSources()
+        for (name, code) in other where name != "AnalysisScreenView.swift" {
+            #expect(code.contains(".animation(") == false, "\(name) animates")
+        }
+
+        // And the policy really does return no animation under the reduced setting.
+        #expect(Motion.familyTransition(reduceMotion: true) == nil)
+        #expect(Motion.familyTransition(reduceMotion: false) != nil)
     }
 
     @Test("No rendered string is a literal, and no localized lookup exists to echo a key")
@@ -1954,35 +2187,43 @@ struct AccessibleViewSourceTests {
         #expect(try Self.screenSource().contains("Text(verbatim:") == false)
     }
 
-    @Test("The one non-text visual is hidden from assistive technology and carries no magnitude")
-    func theWorkIndicatorIsDecorativeOnly() throws {
-        let screen = try Self.screenSource()
+    @Test("Every non-text visual is hidden from assistive technology and carries no magnitude")
+    func everyDecorationIsHiddenAndCarriesNoMagnitude() throws {
+        // The indicator, the mark, the two glyphs, and the row divider are the module's only visuals
+        // that are not text. All of them live in the design system now, so this reads there.
+        let components = try Self.componentsSource()
 
-        // The indicator is the module's only visual that is not text. It is hidden, so it can never
-        // be the channel a status travels on, and it has no fill fraction to misread as a
-        // probability.
-        #expect(screen.contains("accessibilityHidden(true)"))
-        #expect(screen.contains("ProgressView()"))
+        // The indeterminate indicator, and deliberately the no-argument initializer.
+        // `ProgressView(value:)` would draw a fill fraction, which is the graphical magnitude
+        // Requirement 8.13 bans; the module-wide sweep above already refuses that spelling.
+        #expect(components.contains("ProgressView()"))
+        #expect(components.contains("Circle()"))
 
-        // The only fixed frame in the module sits on that decorative shape, and nowhere else.
-        let fixedFrames = screen.components(separatedBy: "frame(width:").count - 1
-        #expect(fixedFrames == 1, "the view declares \(fixedFrames) fixed-width frame(s)")
+        // Every decoration is hidden, so none of them can be the channel a status travels on
+        // (Requirement 12.7). Counted rather than merely present: five decorative views are defined
+        // here and each one hides itself.
+        let hidden = components.components(separatedBy: "accessibilityHidden(true)").count - 1
+        #expect(hidden >= 5, "only \(hidden) decoration(s) hide themselves from assistive technology")
 
-        let indicatorLine =
-            screen
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .first { $0.contains("frame(width:") }
-            .map(String.init) ?? "no line found"
-        #expect(indicatorLine.contains("Circle()"), "\(indicatorLine)")
+        // Every fixed frame in the module is on a decorative shape, and every one of them is in the
+        // design system. A fixed frame on text is what clips it; on a hidden square it is a size.
+        let (_, other) = try Self.partitionedModuleSources()
+        for (name, code) in other {
+            #expect(code.contains("frame(width:") == false, "\(name) declares a fixed-width frame")
+        }
     }
 
     @Test("Reduce Motion is read from the environment and decided by the policy, not by the view")
     func reduceMotionGoesThroughThePolicy() throws {
         let screen = try Self.screenSource()
+        let components = try Self.componentsSource()
 
+        // The view reads the setting; the design system's indicator asks the policy what to do with
+        // it. Neither one branches on the raw boolean.
         #expect(screen.contains("@Environment(\\.accessibilityReduceMotion)"))
-        #expect(screen.contains("MotionPolicy.statusChangeStyle(reduceMotion: reduceMotion)"))
+        #expect(components.contains("MotionPolicy.statusChangeStyle(reduceMotion: reduceMotion)"))
         #expect(screen.contains("if reduceMotion {") == false)
+        #expect(components.contains("if reduceMotion {") == false)
 
         // Both branches of the substitution exist, and neither is a moving alternative under the
         // reduced setting. `MotionPolicy` decides that, not the view.

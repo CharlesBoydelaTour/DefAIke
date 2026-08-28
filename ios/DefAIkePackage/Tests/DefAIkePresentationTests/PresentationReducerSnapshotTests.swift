@@ -1643,20 +1643,77 @@ struct ExactCopySnapshotTests {
         #expect(screen.labelExplanations.map(\.label) == PixelLabelKey.allCases)
     }
 
-    @Test("The shipped catalog carries the three fixed pixel-label keys and the chrome keys")
+    /// The localization key one verdict surface's approved value lives under.
+    ///
+    /// The same convention `EnglishStringCatalog` and `ChromeCopySurface` already use: `copy.`
+    /// followed by the surface's stable identifier with the separator flattened to a dot.
+    static func localizationKey(_ surface: VerdictCopySurface) -> String {
+        "copy." + surface.description.replacingOccurrences(of: "/", with: ".")
+    }
+
+    @Test("Every proposed entry records in its own comment that it is not approved")
+    func everyProposedEntryRecordsThatItIsUnapproved() throws {
+        // The whole justification for shipping unapproved wording is that the file says it is
+        // unapproved. That is a claim about the catalog's bytes rather than about any type, so it is
+        // read from the source rather than through `StringCatalog`, which drops comments.
+        //
+        // Exactly three keys are exempt, and they are exempt because they are *required* rather than
+        // proposed: Requirement 8.2 fixes those three strings character for character, so there is
+        // no content decision outstanding for them to be awaiting.
+        let root = try #require(PackageSourceTree.packageRoot)
+        let url = root.appending(
+            path: "Sources/DefAIkePresentation/ApprovedCopy/Localizable.xcstrings"
+        )
+        let catalog = try JSONSerialization.jsonObject(with: try Data(contentsOf: url))
+        let strings = try #require((catalog as? [String: Any])?["strings"] as? [String: Any])
+        #expect(strings.count == 56)
+
+        let requiredByRequirement = Set(
+            EnglishStringCatalog.fixedPixelLabelKeys.values.map(\.rawValue)
+        )
+        #expect(requiredByRequirement.count == 3)
+
+        var markedProposed = 0
+        for (key, entry) in strings {
+            let comment = ((entry as? [String: Any])?["comment"] as? String) ?? ""
+            if requiredByRequirement.contains(key) {
+                #expect(
+                    comment.contains("PROPOSED WORDING") == false,
+                    "\(key) is fixed by Requirement 8.2 and must not be marked proposed"
+                )
+                continue
+            }
+            #expect(
+                comment.contains("PROPOSED WORDING, NOT APPROVED (decision D1)."),
+                "\(key) ships wording with no recorded content-approval status"
+            )
+            markedProposed += 1
+        }
+        // 53 = every key except the three Requirement 8.2 labels.
+        #expect(markedProposed == strings.count - requiredByRequirement.count)
+        #expect(markedProposed == 53)
+    }
+
+    @Test("The shipped catalog carries the fixed labels, the chrome keys, and proposed verdict copy")
     func theShippedCatalogCarriesTheFixedLabelsAndChrome() throws {
-        // The honest statement about "exact copy" in this repository, updated. Two disjoint groups
-        // are present and nothing else:
+        // The honest statement about "exact copy" in this repository, updated a second time. Three
+        // disjoint groups are present and nothing else:
         //
         //   * the three fixed pixel-label keys, whose values Requirement 8.2 fixes character for
-        //     character; and
+        //     character. These are *required*, not proposed;
         //   * the six `ChromeCopySurface` keys, which describe what the application is doing rather
-        //     than what a model concluded. Their wording is *proposed, not approved* — every entry
-        //     says so in its `comment` — and it is here because a control with no name cannot be
-        //     used at all, which is a worse failure than wording awaiting sign-off.
+        //     than what a model concluded; and
+        //   * every unconditional `VerdictCopySurface` key plus the five enabled provenance states.
         //
-        // A key in neither group appearing here would be unapproved verdict wording shipping
-        // without a recorded content approval, which is what this test still guards.
+        // The second and third groups are *proposed, not approved* (decision D1) — every entry says
+        // so in its `comment`, and `everyProposedEntryRecordsThatItIsUnapproved` asserts that rather
+        // than trusting it. They are here because a report that renders nothing cannot be reviewed,
+        // and a screen with no words is a worse failure than wording awaiting sign-off.
+        //
+        // What this test still guards is that nothing *else* appears. In particular no Combined
+        // Summary key is present: those are addressed by an approved Evidence Fusion Rule, and
+        // inventing wording for a summary of two lanes is a different and larger claim than
+        // restating what one lane already says.
         let catalog = try EnglishStringCatalog.loadShippedCatalog()
         let keys = catalog.keys.sorted()
 
@@ -1667,9 +1724,25 @@ struct ExactCopySnapshotTests {
         ]
         let chromeKeys = ChromeCopySurface.requiredLocalizationKeys.map(\.rawValue)
 
-        #expect(keys == (fixedLabelKeys + chromeKeys).sorted())
-        #expect(keys.count == 3 + ChromeCopySurface.allCases.count)
+        // Derived from the vocabularies rather than written out, so a new surface has to be given
+        // wording rather than silently widening the gap this test used to record.
+        let verdictKeys =
+            VerdictCopySurface.unconditionalSurfaces.map(Self.localizationKey)
+            + ProvenanceStateKey.allCases.map { Self.localizationKey(.provenanceState($0)) }
+
+        #expect(keys == Set(fixedLabelKeys + chromeKeys + verdictKeys).sorted())
+        #expect(
+            keys.count
+                == VerdictCopySurface.unconditionalSurfaces.count
+                    + ProvenanceStateKey.allCases.count
+                    + ChromeCopySurface.allCases.count
+        )
+        #expect(keys.count == 56)
         #expect(Set(fixedLabelKeys).isDisjoint(with: Set(chromeKeys)))
+        #expect(Set(chromeKeys).isDisjoint(with: Set(verdictKeys)))
+
+        // No Combined Summary wording exists, in either direction.
+        #expect(keys.contains { $0.hasPrefix("copy.combined-summary") } == false)
         #expect(
             Set(fixedLabelKeys)
                 == Set(EnglishStringCatalog.fixedPixelLabelKeys.values.map(\.rawValue))
@@ -1706,16 +1779,44 @@ struct ExactCopySnapshotTests {
         // messages, 10 error recoveries, and 3 byte-status limitations.
         #expect(addressed.count == 37)
         #expect(Set(addressed).count == 37)
-        #expect(missing == expectedMissing)
-        #expect(missing.count == 34)
+
+        // All 37 now have a value, so a pixel-only release's coverage gate passes. This inverts what
+        // the test used to assert - 34 missing keys and a thrown refusal - and the inversion is the
+        // change: the gap is closed with proposed wording rather than left open.
+        //
+        // The gate itself is unchanged and is what makes this meaningful. It still refuses a catalog
+        // that omits a reachable surface; `aCatalogMissingOneValueIsStillRefused` below proves that
+        // by removing one.
+        #expect(expectedMissing.count == 34)
+        #expect(missing.isEmpty)
         let coversAFixedLabel = missing.contains { fixed.contains($0) }
         #expect(coversAFixedLabel == false)
-        #expect(throws: StringCatalogError.missingApprovedValues(missing)) {
+        #expect(throws: Never.self) {
             try StringCatalogCoverage.audit(catalog, for: binding)
         }
     }
 
-    @Test("A provenance-and-fusion release addresses eight more surfaces, all unapproved")
+    @Test("Removing one approved value still fails the coverage gate closed")
+    func aCatalogMissingOneValueIsStillRefused() throws {
+        // The pixel-only gate now passes, so on its own it can no longer show that the gate bites.
+        // Removing a single value restores the condition the previous expectation relied on, which
+        // keeps the fail-closed behaviour asserted rather than merely believed.
+        let binding = try ViewStateFixture.pixelOnlyBinding()
+        let full = try EnglishStringCatalog.loadShippedCatalog()
+        let victim = try #require(binding.localizationKey(for: .evidenceScope))
+
+        var strings = full.strings
+        strings.removeValue(forKey: victim.rawValue)
+        let reduced = StringCatalog(version: full.version, sourceLanguage: full.sourceLanguage, strings: strings)
+
+        let missing = StringCatalogCoverage.missingValues(in: reduced, for: binding)
+        #expect(missing == [victim])
+        #expect(throws: StringCatalogError.missingApprovedValues([victim])) {
+            try StringCatalogCoverage.audit(reduced, for: binding)
+        }
+    }
+
+    @Test("A provenance-and-fusion release still lacks its Combined Summary wording")
     func enablingCapabilitiesAddsOnlyUnapprovedSurfaces() throws {
         let catalog = try EnglishStringCatalog.loadShippedCatalog()
         let pixelOnly = try ViewStateFixture.pixelOnlyBinding()
@@ -1724,9 +1825,18 @@ struct ExactCopySnapshotTests {
         // Five enabled provenance states and three summary keys, on top of the 37.
         #expect(pixelOnly.reachableSurfaces.surfaces.count == 37)
         #expect(fusion.reachableSurfaces.surfaces.count == 45)
-        #expect(
-            StringCatalogCoverage.missingValues(in: catalog, for: fusion).count == 42
-        )
+
+        // The five provenance states now have wording; the three Combined Summary keys do not, and
+        // deliberately so. A summary key is named by an approved Evidence Fusion Rule, and no such
+        // artifact exists here - so there is nothing to know what the summary should say. Writing one
+        // anyway would be inventing a joint conclusion about two independent lanes, which is a much
+        // larger claim than restating what a single lane already states.
+        let missing = StringCatalogCoverage.missingValues(in: catalog, for: fusion)
+        #expect(missing.count == 3)
+        #expect(missing.allSatisfy { $0.rawValue.hasPrefix("copy.combined-summary") })
+        #expect(throws: StringCatalogError.missingApprovedValues(missing)) {
+            try StringCatalogCoverage.audit(catalog, for: fusion)
+        }
     }
 
     @Test("The four recorded gap vocabularies are closed, sized, and pairwise disjoint")

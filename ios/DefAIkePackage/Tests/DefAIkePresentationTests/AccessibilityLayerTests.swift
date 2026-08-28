@@ -165,7 +165,7 @@ struct AccessibilityLayerTests {
         let provenance = try #require(snapshot.readingIndex(of: .provenanceLaneState))
         let summary = try #require(snapshot.readingIndex(of: .combinedSummary))
         let scope = try #require(snapshot.readingIndex(of: .evidenceScopeLimitation))
-        let path = try #require(snapshot.readingIndex(of: .privacyPath))
+        let path = try #require(snapshot.readingIndex(of: .informationPath))
 
         #expect(pixel < explanation)
         #expect(explanation < provenance)
@@ -218,8 +218,8 @@ struct AccessibilityLayerTests {
         #expect(field.activationArea == nil)
         #expect(field.isOperable == false)
 
-        let control = try #require(snapshot.element(.privacyPath))
-        #expect(control.activationArea == .requiredMinimum)
+        let control = try #require(snapshot.element(.informationPath))
+        #expect(control.activationArea == MinimumActivationArea.requiredMinimum)
         #expect(control.isOperable)
     }
 
@@ -456,9 +456,10 @@ struct AccessibilityLayerTests {
                 #expect(snapshot.exposes(.evidenceScopeLimitation))
                 #expect(snapshot.exposes(.falseResultLimitation))
                 #expect(snapshot.exposes(.bytePreservationLimitation))
-                #expect(snapshot.exposes(.modelInformationPath))
-                #expect(snapshot.exposes(.privacyPath))
-                #expect(snapshot.exposes(.correctionChannelPath))
+                // One onward control now, not three. The privacy, model, and correction
+                // statements moved to the information screen it opens.
+                #expect(snapshot.exposes(.limitationsDisclosure))
+                #expect(snapshot.exposes(.informationPath))
             }
         }
     }
@@ -766,8 +767,15 @@ struct AccessibilityLayerTests {
 
     @Test("A key the catalog has no approved value for does not resolve")
     func unapprovedKeysDoNotResolve() throws {
+        // The Combined Summary is now the surface that still has no approved value, and it is the
+        // right one to check: its wording is addressed by key from an approved Evidence Fusion
+        // Rule, and no such artifact exists in this repository. The unconditional verdict surfaces
+        // that used to stand in here - the evidence scope among them - now carry proposed English,
+        // so they resolve and can no longer witness the fail-closed path.
         let resolver = try AccessibleTextResolver.shipped()
-        let reference = try ViewStateFixture.pixelOnlyBinding().reference(for: .evidenceScope)
+        let summaryKey = try #require(CopyFixture.summaryKeys[.notEnoughSignal])
+        let reference = try ViewStateFixture.fusionBinding()
+            .reference(for: .combinedSummary(summaryKey))
 
         #expect(resolver.resolvedText(for: .approvedCopy(reference)) == nil)
         #expect(throws: StringCatalogError.self) {
@@ -785,11 +793,16 @@ struct AccessibilityLayerTests {
         let renderable = resolver.renderableElements(in: snapshot)
         let unresolvable = resolver.unresolvableElements(in: snapshot)
 
-        // Two elements resolve on a completed report, by two different routes: the pixel label
-        // through `FixedPixelLabelText` with no catalog lookup at all, and the recovery control
-        // through its `ChromeCopySurface` key. Every other field addresses a `VerdictCopySurface`
-        // key the shipped catalog does not hold, so it stays a release-validation finding.
-        #expect(renderable.map(\.identity) == [.pixelEvidenceLabel, .imageSelectionControl])
+        // Every element on a pixel-only completed report now resolves. Three routes reach text:
+        // the pixel label through `FixedPixelLabelText` with no catalog lookup at all, the recovery
+        // control through its `ChromeCopySurface` key, and every remaining field through the
+        // proposed `VerdictCopySurface` wording the shipped catalog now carries.
+        //
+        // This replaces an expectation of exactly two renderable elements. That was accurate while
+        // the verdict wording was absent; what it was really pinning is that nothing renders a
+        // localization key, which the emptiness of `unresolvable` states more directly.
+        #expect(renderable.map(\.identity) == snapshot.readingOrder)
+        #expect(unresolvable.isEmpty)
         #expect(renderable.count + unresolvable.count == snapshot.elements.count)
 
         // The renderable subset keeps the whole snapshot's relative order.

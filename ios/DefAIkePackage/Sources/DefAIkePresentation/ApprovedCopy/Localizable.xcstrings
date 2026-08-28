@@ -1,114 +1,678 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "copy.chrome.analysis-in-progress-status" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.analysisInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change; Requirement 15.1 keeps the active family on screen until the work ends. States that work is continuing and nothing more: Requirements 15.2, 15.3, and 15.10 forbid a completion fraction, an estimate, or a time remaining, and no stage reports a completed-work and total-work pair for the same measured unit to this layer. Do not add a percentage, a duration, or a stage name.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Analyzing this image on your device"
+  "sourceLanguage": "en",
+  "strings": {
+    "copy.analysis-error.calibration-input-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the calibration-input-error category, raised by calibration refusing its input, which must never fall back to a label. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result could not be turned into one of this app's three labels, so no result is being shown."
           }
         }
       }
     },
-    "copy.chrome.cancellation-action" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.cancellationAction. Requirement 12.1 requires a label identifying the control's purpose and Requirement 15.5 keeps this control visible and enabled for all active analysis work. Names stopping the work, never discarding, deleting, or retrying: cancellation is its own terminal (Requirement 11.17) and no other recovery is representable.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop analyzing"
+    "copy.analysis-error.decoding-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the decoding-error category, raised by a supported container whose bytes will not decode. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That image could not be read. The file may be incomplete or damaged."
           }
         }
       }
     },
-    "copy.chrome.cancelled-status" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.cancelledStatus. Requirement 11.17 makes cancellation a terminal disjoint from completed and failed and forbids presenting it as a failure, so this states the absence of a result without naming an error, a category, or a cause. Do not word it as an error, a timeout, or a problem.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You stopped the analysis, so there is no result"
+    "copy.analysis-error.handoff-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the handoff-error category, raised by a Share Extension handoff that could not be claimed or verified. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image shared from the other app did not arrive intact, so it was not analysed."
           }
         }
       }
     },
-    "copy.chrome.development-build-notice" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Notice for ChromeCopySurface.developmentBuildNotice, rendered only from the application target's #if DEBUG development-provisioning seam and addressed by nothing in a Release build. Requirement 8.4 forbids presenting a model signal as proof, and Requirement 8.13 forbids a displayed magnitude; a locally provisioned build supplies its own unapproved Calibration Policy, so the label a run produces is not a verdict and this says so before any label is read. Do not soften it and do not remove the word development.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Development build. Its calibration is not approved, so nothing below is a verdict about any image."
+    "copy.analysis-error.inference-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the inference-error category, raised by the model failing during execution. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The analysis did not finish running on this device, so no result was produced."
           }
         }
       }
     },
-    "copy.chrome.image-selection-action" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.imageSelectionAction. Requirement 12.1 requires a label identifying the control's purpose; Requirement 2.1 fixes the Photos Picker route and Requirement 2.7 fixes exactly one image per session, so this names a single image. It is also the recovery every terminal screen offers (Requirement 3.13), and SessionRecovery has one case, so it must not read as resume, retry, or recompute.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose an image to analyze"
+    "copy.analysis-error.invalid-output-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the invalid-output-error category, raised by model output that fails validation before calibration. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model returned something this app could not use, so no result is being shown."
           }
         }
       }
     },
-    "copy.chrome.import-in-progress-status" : {
-      "comment" : "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.importInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change. An ingest attempt is not yet an Analysis Session, so this must not say analyzing; it carries no route name, because a route is a developer identifier and not a sentence, and no progress, because a provider retrieval reports no measured amounts to this layer.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Getting the image you chose"
+    "copy.analysis-error.model-load-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the model-load-error category, raised by the Model Bundle failing to verify, load, or activate. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The on-device model could not be loaded, so no analysis ran."
           }
         }
       }
     },
-    "copy.pixel-label.no-strong-signal-detected" : {
-      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.4 makes it a statement about model signal, never proof of authenticity. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No strong signal detected"
+    "copy.analysis-error.preprocessing-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the preprocessing-error category, raised by a failure resizing, cropping, or colour-converting the decoded image. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image could not be prepared for analysis, so no result was produced."
           }
         }
       }
     },
-    "copy.pixel-label.not-enough-signal" : {
-      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.5 makes it a lack of usable signal, never an authentic-image result. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not enough signal"
+    "copy.analysis-error.resource-limit": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the resource-limit category, raised by a Resource Budget breach, which returns no evidence at all. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis stopped because it needed more memory or time than this app is allowed to use on this device."
           }
         }
       }
     },
-    "copy.pixel-label.signals-consistent-with-ai-generation" : {
-      "comment" : "Requirement 8.2 fixes this display string character for character. Requirement 8.3 keeps it probabilistic-consistency framing rather than certainty. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Signals consistent with AI generation"
+    "copy.analysis-error.unsupported-media": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the unsupported-media category, raised by the selected item is not a still image at all - a video, a live photo, or a document. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That file is not a still image, so there was nothing for this app to analyse."
+          }
+        }
+      }
+    },
+    "copy.analysis-error.unsupported-static-format": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Analysis Error message for the unsupported-static-format category, raised by a still image in a container the app does not accept. Requirement 11.17 keeps this distinguishable from every pixel label, provenance state, and the cancelled terminal, and it must never describe the image's content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That image format is not supported. This app analyses JPEG, PNG, and HEIC images."
+          }
+        }
+      }
+    },
+    "copy.apparent-inconsistency": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). The apparent-inconsistency notice. Requirements 7.1 and 7.8 keep the lanes independent, so this names the disagreement and must not resolve it, rank the lanes, or suggest which to believe.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The two checks above point in different directions. Both are shown exactly as they were found. This app does not decide between them."
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.original-bytes": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 2.9 byte-preservation limitation for the strongest recorded status. It states what was analysed and claims nothing further about the result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The exact file you chose was analysed, with no changes."
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.platform-transformed-copy": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 2.10. Names the platform as the cause so the user does not read it as their own mistake, and states the consequence for the result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS supplied a converted copy rather than the original file. Converting an image can remove the patterns this app looks for, so treat this result with extra caution."
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.unknown": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 2.11. The status must never be upgraded toward original bytes without evidence, so this states the uncertainty rather than assuming either case.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app could not confirm whether it received the original file or a converted copy. If it was converted, some patterns may have been lost."
+          }
+        }
+      }
+    },
+    "copy.chrome.analysis-in-progress-status": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.analysisInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change; Requirement 15.1 keeps the active family on screen until the work ends. States that work is continuing and nothing more: Requirements 15.2, 15.3, and 15.10 forbid a completion fraction, an estimate, or a time remaining, and no stage reports a completed-work and total-work pair for the same measured unit to this layer. Do not add a percentage, a duration, or a stage name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyzing this image on your device"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.cancellationAction. Requirement 12.1 requires a label identifying the control's purpose and Requirement 15.5 keeps this control visible and enabled for all active analysis work. Names stopping the work, never discarding, deleting, or retrying: cancellation is its own terminal (Requirement 11.17) and no other recovery is representable.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop analyzing"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.cancelledStatus. Requirement 11.17 makes cancellation a terminal disjoint from completed and failed and forbids presenting it as a failure, so this states the absence of a result without naming an error, a category, or a cause. Do not word it as an error, a timeout, or a problem.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You stopped the analysis, so there is no result"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Notice for ChromeCopySurface.developmentBuildNotice, rendered only from the application target's #if DEBUG development-provisioning seam and addressed by nothing in a Release build. Requirement 8.4 forbids presenting a model signal as proof, and Requirement 8.13 forbids a displayed magnitude; a locally provisioned build supplies its own unapproved Calibration Policy, so the label a run produces is not a verdict and this says so before any label is read. Do not soften it and do not remove the word development.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Development build. Its calibration is not approved, so nothing below is a verdict about any image."
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-collapsed-state": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Value for ChromeCopySurface.disclosureCollapsedState. The counterpart to the expanded state; see that entry.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-expanded-state": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Value for ChromeCopySurface.disclosureExpandedState. Requirement 12.7 forbids a state carried only by a glyph, and SwiftUI's AccessibilityTraits has no expanded member, so the state is a word. One word, because it is spoken after the control's own label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.imageSelectionAction. Requirement 12.1 requires a label identifying the control's purpose; Requirement 2.1 fixes the Photos Picker route and Requirement 2.7 fixes exactly one image per session, so this names a single image. It is also the recovery every terminal screen offers (Requirement 3.13), and SessionRecovery has one case, so it must not read as resume, retry, or recompute.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image to analyze"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Status text for ChromeCopySurface.importInProgressStatus. Requirement 12.1 requires text identifying the field's purpose and Requirement 12.5 announces a status change. An ingest attempt is not yet an Analysis Session, so this must not say analyzing; it carries no route name, because a route is a developer identifier and not a sentence, and no progress, because a provider retrieval reports no measured amounts to this layer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting the image you chose"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-about-heading": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Heading for ChromeCopySurface.informationAboutHeading, introducing the privacy, model, and correction statements. Groups them as behaviour rather than as credentials, because that is what they describe.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How this app works"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-action": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.informationAction, the control that opens the information screen. Deliberately not 'About': the screen carries the limitations and the privacy statement, which are not an about-box.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-dismiss-action": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.informationDismissAction. The platform's own word for closing a sheet that changed nothing, so it does not imply saving or accepting anything.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-limitations-heading": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Heading for ChromeCopySurface.informationLimitationsHeading, introducing the limitation statements on the information screen. Deliberately the same words as the disclosure control on the report, so the two routes to the same content are recognisably the same content.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What this cannot tell you"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-title": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Title for ChromeCopySurface.informationTitle. Matches the control that opens it, so the destination is recognisable as the thing that was tapped.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information"
+          }
+        }
+      }
+    },
+    "copy.chrome.limitations-disclosure-action": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for ChromeCopySurface.limitationsDisclosureAction, the control that reveals the three limitation statements. Phrased as what the user gains by opening it rather than as a category name, because a heading reading 'Limitations' invites being skipped. Names no outcome, so it is chrome and not verdict copy.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What this cannot tell you"
+          }
+        }
+      }
+    },
+    "copy.correction-channel": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). The externally supplied correction channel, and the label of the row that opens it. Deliberately promises no response, correction, or timescale, and states the privacy boundary because a report is the one place a user might expect their image to travel.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can report a result that looks wrong. Your image is never included in a report."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.calibration-input-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the calibration-input-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.decoding-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the decoding-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.handoff-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the handoff-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share the image again, or choose it from your photos to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.inference-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the inference-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.invalid-output-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the invalid-output-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.model-load-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the model-load-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.preprocessing-error": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the preprocessing-error category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose another image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.resource-limit": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the resource-limit category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close other apps to free up memory, then choose an image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-media": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the unsupported-media category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a still image to start again."
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-static-format": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Recovery offered for the unsupported-static-format category. SessionRecovery has one case, so this names choosing an image and nothing else - never resume, retry this session, or recompute, none of which is representable (Requirement 3.15).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a JPEG, PNG, or HEIC image to start again."
+          }
+        }
+      }
+    },
+    "copy.evidence-scope": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 8.10 evidence scope and unsupported scope. Localized editing is outside the scope entirely, which is why it is listed rather than qualified.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app looks for signs that an entire image was generated. It does not detect edited regions, composites, face swaps, retouching, video, or audio, and it does not identify which tool was used."
+          }
+        }
+      }
+    },
+    "copy.false-result-limitation": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 8.11 false-positive and false-negative statement. States both directions symmetrically so neither label is presented as the more trustworthy one, and carries no rate, frequency, or percentage.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Both kinds of mistake happen. A real photograph can be reported as showing AI signals, and an AI-generated image can be reported as showing none. Do not rely on this result on its own."
+          }
+        }
+      }
+    },
+    "copy.model-information": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Model identity, limitations, and release status, and the label of the row that opens it. Names no version number, no metric, and no score, because Requirement 8.13 keeps measurement off every user-facing surface; the bound version is a technical-details row instead.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One model runs on your device. It is not perfect, and it is never updated over the network."
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.no-strong-signal-detected": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Explanation for the Non Positive Pixel Label. Requirement 8.4 forbids presenting this as authenticity, so the sentence states what was not found and then names why absence is uninformative. Do not reword this as 'no AI detected' or 'appears authentic'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app did not find the patterns it looks for. That is not a finding that the image is real or unedited. Resaving, cropping, or screenshotting an image can remove those patterns, so an AI-generated image can also look like this."
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.not-enough-signal": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Explanation for the Insufficient Evidence Outcome (Requirement 8.8). An abstention, not a middle result: it must not read as a weak positive or a weak negative, and must carry no scale between the other two labels.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There was not enough usable signal in this image to report either way. Heavy compression, a small image, or a screenshot can all cause this."
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.signals-consistent-with-ai-generation": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Explanation for the Positive Pixel Label. States consistency, never a conclusion (Requirement 8.3), and explicitly disclaims authorship, intent, and editing history (Requirement 8.9). Do not add a probability, a confidence level, or a likelihood word such as 'probably' or 'likely'.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image contains patterns that often appear in images generated entirely by AI. That is not proof of how it was made. This app cannot tell you who made it, what it was made for, or whether any part of it was edited."
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected": {
+      "comment": "Requirement 8.2 fixes this display string character for character. Requirement 8.4 makes it a statement about model signal, never proof of authenticity. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No strong signal detected"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal": {
+      "comment": "Requirement 8.2 fixes this display string character for character. Requirement 8.5 makes it a lack of usable signal, never an authentic-image result. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough signal"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation": {
+      "comment": "Requirement 8.2 fixes this display string character for character. Requirement 8.3 keeps it probabilistic-consistency framing rather than certainty. Do not edit without a recorded content approval and a matching update to FixedPixelLabelText.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signals consistent with AI generation"
+          }
+        }
+      }
+    },
+    "copy.privacy-explanation": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). The in-application privacy explanation, and the label of the row that opens it. Both clauses are behaviours the application enforces: on-device inference, no network use for analysis, no persistence, and no export. Kept to one sentence because the report renders this as a single tappable row.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your image is analysed on this device. It is never uploaded, saved, or shared."
+          }
+        }
+      }
+    },
+    "copy.provenance-state.absent": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 8.7: an absent Content Credential is explicitly not an authenticity result. The second sentence prevents absence being read as suspicion.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image carries no Content Credential. Most images do not, so this says nothing about how the image was made."
+          }
+        }
+      }
+    },
+    "copy.provenance-state.indeterminate": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). An inconclusive validator run (Requirement 6.21). Must be distinguishable from the unavailable lane, which is a build that cannot check at all.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app could not finish checking this image's Content Credential, so there is no result from that source."
+          }
+        }
+      }
+    },
+    "copy.provenance-state.invalid": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). States the mismatch and offers both readings without choosing one. Do not attribute the mismatch to tampering as a conclusion, which would be a claim about intent (Requirement 8.9).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image carries a Content Credential that does not match the bytes analysed. The image may have been changed after it was signed, or the credential may have been altered."
+          }
+        }
+      }
+    },
+    "copy.provenance-state.unsupported": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). A limit of the validator, not a finding about the image. Distinct from absent and from invalid, both of which have their own copy.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image carries credential data that this app cannot read."
+          }
+        }
+      }
+    },
+    "copy.provenance-state.validated": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 8.6: cryptographic validation establishes binding, not the factual truth of any signed assertion. The second sentence is the whole point of the entry and must not be dropped or softened.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This image carries a Content Credential that matches the exact bytes analysed. That confirms the credential belongs to these bytes. It does not confirm that what the credential says about the image is true."
+          }
+        }
+      }
+    },
+    "copy.provenance-unavailable": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). The unavailable source-lane state (Requirement 6.9). States a capability this build does not have, never a property of the image, and names the pixel-plus-provenance composition so the absence reads as a build boundary rather than as a finding. Do not phrase this as 'no credential found', which is a different lane state with its own copy. Deliberately names no URL, App Store link, or install action: the distribution identity of the second composition is an owed release-controlled input, and a tappable link to a build that has no distribution channel yet would be a promise this application cannot keep.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version cannot check Content Credentials. A separate version of DefAIke does, as a second and independent check."
+          }
+        }
+      }
+    },
+    "copy.screenshot-provenance-explanation": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Requirement 6.x screenshot explanation. Shown beside the provenance lane so an absent credential on a screenshot is not read as a finding.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taking a screenshot creates a new image and usually removes any Content Credential the original had. A missing credential on a screenshot tells you nothing about the original image."
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

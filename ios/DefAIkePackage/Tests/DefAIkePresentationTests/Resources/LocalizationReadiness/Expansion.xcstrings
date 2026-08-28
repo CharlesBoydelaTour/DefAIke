@@ -1,114 +1,631 @@
 {
-  "sourceLanguage" : "en-x-expand",
-  "strings" : {
-    "copy.chrome.analysis-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Analyzing this image on your device · Analyzing this image on your device⟧"
+  "sourceLanguage": "en-x-expand",
+  "strings": {
+    "copy.analysis-error.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The result could not be turned into one of this app's three labels, so no result is being shown. · The result could not be turned into one of this app's three labels, so no result is being shown.⟧"
           }
         }
       }
     },
-    "copy.chrome.cancellation-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Stop analyzing · Stop analyzing⟧"
+    "copy.analysis-error.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦That image could not be read. The file may be incomplete or damaged. · That image could not be read. The file may be incomplete or damaged.⟧"
           }
         }
       }
     },
-    "copy.chrome.cancelled-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦You stopped the analysis, so there is no result · You stopped the analysis, so there is no result⟧"
+    "copy.analysis-error.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The image shared from the other app did not arrive intact, so it was not analysed. · The image shared from the other app did not arrive intact, so it was not analysed.⟧"
           }
         }
       }
     },
-    "copy.chrome.development-build-notice" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Development build. Its calibration is not approved, so nothing below is a verdict about any image. · Development build. Its calibration is not approved, so nothing below is a verdict about any image.⟧"
+    "copy.analysis-error.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The analysis did not finish running on this device, so no result was produced. · The analysis did not finish running on this device, so no result was produced.⟧"
           }
         }
       }
     },
-    "copy.chrome.image-selection-action" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Choose an image to analyze · Choose an image to analyze⟧"
+    "copy.analysis-error.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The model returned something this app could not use, so no result is being shown. · The model returned something this app could not use, so no result is being shown.⟧"
           }
         }
       }
     },
-    "copy.chrome.import-in-progress-status" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Getting the image you chose · Getting the image you chose⟧"
+    "copy.analysis-error.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The on-device model could not be loaded, so no analysis ran. · The on-device model could not be loaded, so no analysis ran.⟧"
           }
         }
       }
     },
-    "copy.pixel-label.no-strong-signal-detected" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦No strong signal detected · No strong signal detected⟧"
+    "copy.analysis-error.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The image could not be prepared for analysis, so no result was produced. · The image could not be prepared for analysis, so no result was produced.⟧"
           }
         }
       }
     },
-    "copy.pixel-label.not-enough-signal" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Not enough signal · Not enough signal⟧"
+    "copy.analysis-error.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Analysis stopped because it needed more memory or time than this app is allowed to use on this device. · Analysis stopped because it needed more memory or time than this app is allowed to use on this device.⟧"
           }
         }
       }
     },
-    "copy.pixel-label.signals-consistent-with-ai-generation" : {
-      "comment" : "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en-x-expand" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⟦Signals consistent with AI generation · Signals consistent with AI generation⟧"
+    "copy.analysis-error.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦That file is not a still image, so there was nothing for this app to analyse. · That file is not a still image, so there was nothing for this app to analyse.⟧"
+          }
+        }
+      }
+    },
+    "copy.analysis-error.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦That image format is not supported. This app analyses JPEG, PNG, and HEIC images. · That image format is not supported. This app analyses JPEG, PNG, and HEIC images.⟧"
+          }
+        }
+      }
+    },
+    "copy.apparent-inconsistency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The two checks above point in different directions. Both are shown exactly as they were found. This app does not decide between them. · The two checks above point in different directions. Both are shown exactly as they were found. This app does not decide between them.⟧"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.original-bytes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦The exact file you chose was analysed, with no changes. · The exact file you chose was analysed, with no changes.⟧"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.platform-transformed-copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦iOS supplied a converted copy rather than the original file. Converting an image can remove the patterns this app looks for, so treat this result with extra caution. · iOS supplied a converted copy rather than the original file. Converting an image can remove the patterns this app looks for, so treat this result with extra caution.⟧"
+          }
+        }
+      }
+    },
+    "copy.byte-preservation-limitation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This app could not confirm whether it received the original file or a converted copy. If it was converted, some patterns may have been lost. · This app could not confirm whether it received the original file or a converted copy. If it was converted, some patterns may have been lost.⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.analysis-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Analyzing this image on your device · Analyzing this image on your device⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancellation-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Stop analyzing · Stop analyzing⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.cancelled-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦You stopped the analysis, so there is no result · You stopped the analysis, so there is no result⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.development-build-notice": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Development build. Its calibration is not approved, so nothing below is a verdict about any image. · Development build. Its calibration is not approved, so nothing below is a verdict about any image.⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-collapsed-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Hidden · Hidden⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.disclosure-expanded-state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Showing · Showing⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.image-selection-action": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose an image to analyze · Choose an image to analyze⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.import-in-progress-status": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Getting the image you chose · Getting the image you chose⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-about-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦How this app works · How this app works⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Information · Information⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-dismiss-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Done · Done⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-limitations-heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦What this cannot tell you · What this cannot tell you⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.information-title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Information · Information⟧"
+          }
+        }
+      }
+    },
+    "copy.chrome.limitations-disclosure-action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦What this cannot tell you · What this cannot tell you⟧"
+          }
+        }
+      }
+    },
+    "copy.correction-channel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦You can report a result that looks wrong. Your image is never included in a report. · You can report a result that looks wrong. Your image is never included in a report.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.calibration-input-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose an image to start again. · Choose an image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.decoding-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose another image to start again. · Choose another image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.handoff-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Share the image again, or choose it from your photos to start again. · Share the image again, or choose it from your photos to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.inference-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose an image to start again. · Choose an image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.invalid-output-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose an image to start again. · Choose an image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.model-load-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose an image to start again. · Choose an image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.preprocessing-error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose another image to start again. · Choose another image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.resource-limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Close other apps to free up memory, then choose an image to start again. · Close other apps to free up memory, then choose an image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-media": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose a still image to start again. · Choose a still image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.error-recovery.unsupported-static-format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Choose a JPEG, PNG, or HEIC image to start again. · Choose a JPEG, PNG, or HEIC image to start again.⟧"
+          }
+        }
+      }
+    },
+    "copy.evidence-scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This app looks for signs that an entire image was generated. It does not detect edited regions, composites, face swaps, retouching, video, or audio, and it does not identify which tool was used. · This app looks for signs that an entire image was generated. It does not detect edited regions, composites, face swaps, retouching, video, or audio, and it does not identify which tool was used.⟧"
+          }
+        }
+      }
+    },
+    "copy.false-result-limitation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Both kinds of mistake happen. A real photograph can be reported as showing AI signals, and an AI-generated image can be reported as showing none. Do not rely on this result on its own. · Both kinds of mistake happen. A real photograph can be reported as showing AI signals, and an AI-generated image can be reported as showing none. Do not rely on this result on its own.⟧"
+          }
+        }
+      }
+    },
+    "copy.model-information": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦One model runs on your device. It is not perfect, and it is never updated over the network. · One model runs on your device. It is not perfect, and it is never updated over the network.⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.no-strong-signal-detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This app did not find the patterns it looks for. That is not a finding that the image is real or unedited. Resaving, cropping, or screenshotting an image can remove those patterns, so an AI-generated image can also look like this. · This app did not find the patterns it looks for. That is not a finding that the image is real or unedited. Resaving, cropping, or screenshotting an image can remove those patterns, so an AI-generated image can also look like this.⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.not-enough-signal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦There was not enough usable signal in this image to report either way. Heavy compression, a small image, or a screenshot can all cause this. · There was not enough usable signal in this image to report either way. Heavy compression, a small image, or a screenshot can all cause this.⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-explanation.signals-consistent-with-ai-generation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This image contains patterns that often appear in images generated entirely by AI. That is not proof of how it was made. This app cannot tell you who made it, what it was made for, or whether any part of it was edited. · This image contains patterns that often appear in images generated entirely by AI. That is not proof of how it was made. This app cannot tell you who made it, what it was made for, or whether any part of it was edited.⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.no-strong-signal-detected": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦No strong signal detected · No strong signal detected⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.not-enough-signal": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Not enough signal · Not enough signal⟧"
+          }
+        }
+      }
+    },
+    "copy.pixel-label.signals-consistent-with-ai-generation": {
+      "comment": "Localization Readiness Suite test copy. Never shipped. Expanded to roughly twice the English length so a layout that only fits English fails visibly.",
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Signals consistent with AI generation · Signals consistent with AI generation⟧"
+          }
+        }
+      }
+    },
+    "copy.privacy-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Your image is analysed on this device. It is never uploaded, saved, or shared. · Your image is analysed on this device. It is never uploaded, saved, or shared.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.absent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This image carries no Content Credential. Most images do not, so this says nothing about how the image was made. · This image carries no Content Credential. Most images do not, so this says nothing about how the image was made.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.indeterminate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This app could not finish checking this image's Content Credential, so there is no result from that source. · This app could not finish checking this image's Content Credential, so there is no result from that source.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This image carries a Content Credential that does not match the bytes analysed. The image may have been changed after it was signed, or the credential may have been altered. · This image carries a Content Credential that does not match the bytes analysed. The image may have been changed after it was signed, or the credential may have been altered.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.unsupported": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This image carries credential data that this app cannot read. · This image carries credential data that this app cannot read.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-state.validated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This image carries a Content Credential that matches the exact bytes analysed. That confirms the credential belongs to these bytes. It does not confirm that what the credential says about the image is true. · This image carries a Content Credential that matches the exact bytes analysed. That confirms the credential belongs to these bytes. It does not confirm that what the credential says about the image is true.⟧"
+          }
+        }
+      }
+    },
+    "copy.provenance-unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦This version cannot check Content Credentials. A separate version of DefAIke does, as a second and independent check. · This version cannot check Content Credentials. A separate version of DefAIke does, as a second and independent check.⟧"
+          }
+        }
+      }
+    },
+    "copy.screenshot-provenance-explanation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en-x-expand": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⟦Taking a screenshot creates a new image and usually removes any Content Credential the original had. A missing credential on a screenshot tells you nothing about the original image. · Taking a screenshot creates a new image and usually removes any Content Credential the original had. A missing credential on a screenshot tells you nothing about the original image.⟧"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

@@ -209,7 +209,12 @@ extension WorkflowOperability {
                 .provenanceLaneState,
             ]
         case .limitationReview:
+            // The disclosure control is required alongside the statements it reveals. The three
+            // paragraphs are now behind it, so a user who cannot operate the control cannot reach
+            // them - which makes the control part of what "review the limitations" needs, not an
+            // extra beside it.
             [
+                .limitationsDisclosure,
                 .evidenceScopeLimitation,
                 .falseResultLimitation,
                 .bytePreservationLimitation,
