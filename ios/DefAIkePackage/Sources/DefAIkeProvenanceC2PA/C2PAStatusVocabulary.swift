@@ -127,7 +127,7 @@ public enum C2PAFailureClassification {
     /// Requirement 6.12's byte-binding case and must stay separate from a signature
     /// failure: the signature can be perfectly valid over a claim that describes
     /// different bytes.
-    static let byteBinding: Set<String> = [
+    public static let byteBinding: Set<String> = [
         "assertion.alternativeContentRepresentation.hashMismatch",
         "assertion.bmffHash.mismatch",
         "assertion.boxesHash.mismatch",
@@ -148,7 +148,7 @@ public enum C2PAFailureClassification {
     ]
 
     /// Codes reporting that a signature, credential, or timestamp did not verify.
-    static let cryptographic: Set<String> = [
+    public static let cryptographic: Set<String> = [
         "algorithm.unsupported",
         "claimSignature.mismatch",
         "claimSignature.missing",
@@ -166,7 +166,7 @@ public enum C2PAFailureClassification {
 
     /// Codes reporting that the manifest's required structure is malformed, absent, or
     /// inconsistent.
-    static let structural: Set<String> = [
+    public static let structural: Set<String> = [
         "assertion.action.ingredientMismatch",
         "assertion.action.malformed",
         "assertion.action.missing",
@@ -220,5 +220,10 @@ public enum C2PAFailureClassification {
         if cryptographic.contains(code) { return .cryptographic }
         if structural.contains(code) { return .structural }
         return nil
+    }
+
+    /// Every C2PA failure code this adapter can classify without guessing.
+    public static var allKnownCodes: Set<String> {
+        byteBinding.union(cryptographic).union(structural)
     }
 }

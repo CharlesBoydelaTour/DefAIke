@@ -62,7 +62,8 @@ protocol CapabilityComposition: Sendable {
     /// session is bound to, present exactly when the manifest binds one.
     static func provenanceAnalyzer(
         store: any EphemeralFileStoring,
-        policy: ProvenancePolicy?
+        policy: ProvenancePolicy?,
+        copyCatalog: ApprovedVerdictCopyCatalog
     ) -> (any ProvenanceAnalyzing)?
 
     /// The implementation version each compiled capability's *linked module* reports about

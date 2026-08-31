@@ -1,6 +1,7 @@
 import DefAIkeDomain
 import DefAIkeProvenanceAPI
 import DefAIkeProvenanceC2PA
+import DefAIkeSharedTransfer
 
 /// The application's capability composition.
 ///
@@ -48,6 +49,7 @@ enum CompiledCapabilityComposition: CapabilityComposition {
     static let capabilities: Set<CapabilityID> = [
         .pixelAnalysis,
         .contentCredentialValidation,
+        .evidenceFusion,
     ]
 
     /// Anchors the linked conditional adapter. Read by the archive-composition audit, which
@@ -57,31 +59,58 @@ enum CompiledCapabilityComposition: CapabilityComposition {
     /// The reviewed validator release this build links.
     static let reviewedValidatorVersion = DefAIkeProvenanceC2PAModule.reviewedValidatorVersion
 
-    /// `nil`, and honestly so.
+    /// Builds the Content Credential analyzer when its policy, display copy, and exact-pinned
+    /// offline trust snapshot agree.
     ///
-    /// `C2PAProvenanceValidator` deliberately does not conform to `ProvenanceAnalyzing`, and
-    /// its own documentation says why: `analyze(_:policy:)` returns a `ProvenanceEvidence`
-    /// unconditionally, so a conformance would have to resolve a
-    /// `ProvenanceFeasibilityFinding` by *selecting* a state, and no signed artifact in the
-    /// current schema says which state answers an unresolved condition. `ProvenancePolicy`
-    /// maps statuses, not faults.
-    ///
-    /// So this composition supplies no analyzer, and that is fail-closed rather than a gap
-    /// left open. `ProvenanceLaneProvider.resolve(...)` reports
-    /// `UnavailableReason.validatorEnablementUnapproved` for exactly this shape — linked,
-    /// enabled by the manifest, no analyzer — which is the one reason that misstates neither
-    /// the module graph nor the manifest. Nothing here fabricates a validated, absent, or
-    /// indeterminate state to make the lane appear to work, and nothing reports the linked
-    /// adapter as uncompiled to borrow a reason that was true only of the deleted pixel-only
-    /// build.
-    ///
-    /// Two approved decisions have to land before this returns a validator, and both are
-    /// recorded in `UnresolvedProvenanceEnablement`.
+    /// The low-level validator keeps feasibility failures distinct. The port adapter maps any
+    /// such unresolved validation condition to the policy-bound indeterminate explanation; it
+    /// never promotes one to validated, absent, invalid, or unsupported. This is enabled only in
+    /// DEBUG provisioning. A Release build returns `nil` until equivalent release-approved
+    /// artifacts are supplied.
     static func provenanceAnalyzer(
         store: any EphemeralFileStoring,
-        policy: ProvenancePolicy?
+        policy: ProvenancePolicy?,
+        copyCatalog: ApprovedVerdictCopyCatalog
     ) -> (any ProvenanceAnalyzing)? {
-        nil
+        #if DEBUG
+        guard let policy,
+              let trust = BundledC2PATrustStore.material(matching: policy.trustStore)
+        else {
+            return nil
+        }
+
+        var detailLabels: [ProvenanceDisplayField: ApprovedCopyKey] = [:]
+        for field in policy.displayableFields {
+            guard let key = ApprovedCopyKey("copy.provenance-detail.\(field.rawValue)") else {
+                return nil
+            }
+            detailLabels[field] = key
+        }
+        guard let copy = ProvenanceCopyBinding(
+                  policy: policy,
+                  catalog: copyCatalog,
+                  detailLabels: detailLabels
+              ),
+              let mapper = ProvenanceOutcomeMapper(policy: policy, copy: copy),
+              let configuration = C2PAValidatorConfiguration(mapper: mapper, trust: trust),
+              let indeterminate = copy.stateExplanations[.indeterminate]
+        else {
+            return nil
+        }
+
+        let validator = C2PAProvenanceValidator(
+            store: store,
+            reader: C2PALibraryReader(),
+            clock: SystemSessionClock(),
+            configuration: configuration
+        )
+        return C2PAProvenanceAnalyzer(
+            validator: validator,
+            indeterminateExplanation: indeterminate
+        )
+        #else
+        return nil
+        #endif
     }
 
     /// The adapter-version pin, read out of the linked module.
@@ -123,7 +152,8 @@ enum CompiledCapabilityComposition: CapabilityComposition {
 enum UnresolvedProvenanceEnablement: String, Hashable, Sendable, CaseIterable {
     /// No approved mapping from a `ProvenanceFeasibilityFinding` to one of the five enabled
     /// states, so the adapter cannot conform to `ProvenanceAnalyzing` without choosing one.
-    case feasibilityFindingStateMapping = "feasibility-finding-state-mapping"
+    case releaseApprovedFeasibilityFindingStateMapping =
+        "release-approved-feasibility-finding-state-mapping"
 
     /// No approved offline trust store is installed.
     ///
@@ -132,5 +162,5 @@ enum UnresolvedProvenanceEnablement: String, Hashable, Sendable, CaseIterable {
     /// configuration with synthetic anchors, so every real read reports that the validator is
     /// not configurable and the manifest-reading path stays unreachable until an approved
     /// offline trust store exists.
-    case approvedOfflineTrustStore = "approved-offline-trust-store"
+    case releaseApprovedOfflineTrustStore = "release-approved-offline-trust-store"
 }

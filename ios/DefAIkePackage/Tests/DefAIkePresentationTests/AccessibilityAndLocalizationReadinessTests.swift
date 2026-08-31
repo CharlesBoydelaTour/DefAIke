@@ -1607,21 +1607,8 @@ struct LocalizationReadinessSubstitutionTests {
         #expect(sawCompleted)
     }
 
-    @Test("No verdict address reaches a catalog, and every chrome address does")
-    func verdictAddressesMissAndChromeAddressesResolve() throws {
-        // Two halves, and the split is the point.
-        //
-        // The verdict half is unchanged and still uncomfortable: every `VerdictCopySurface` address
-        // an element carries resolves against a key no catalog holds, because that wording is the
-        // unresolved Approved Verdict Copy decision. So the explanation, the lane state, the
-        // limitations, the summary, and the disclosure paths render nothing.
-        //
-        // The chrome half is what changed. Every `ChromeCopySurface` address resolves in the
-        // shipped catalog and in all four readiness catalogs, which is what makes Requirements
-        // 12.15 and 12.16 non-vacuous for the first time: substituting an expansion, long-word,
-        // bidirectional, or pseudolocalized catalog now changes real text on every screen, rather
-        // than changing nothing because the only rendered element bypassed the catalog through
-        // `FixedPixelLabelText`.
+    @Test("Every catalogued result and chrome key resolves in all readiness catalogs")
+    func cataloguedVerdictAndChromeAddressesResolve() throws {
         var addressed: Set<String> = []
         var chromeAddressed: Set<String> = []
         for testCase in try AccessibilityReadinessFixture.allCases() {
@@ -1641,11 +1628,10 @@ struct LocalizationReadinessSubstitutionTests {
         #expect(chromeAddressed.isEmpty == false)
 
         let shippedKeys = Set(try EnglishStringCatalog.loadShippedCatalog().keys)
-        #expect(shippedKeys.count == 56)
+        #expect(shippedKeys.count == 66)
 
-        // The verdict half has inverted. Every verdict address a screen carries is now a key the
-        // shipped catalog holds, except a Combined Summary - so the explanation, the lane state, the
-        // limitations, the error message, the recovery, and the disclosure paths all resolve.
+        // These generic presentation fixtures deliberately use synthetic Combined Summary keys;
+        // every real catalogued result address resolves, and only those synthetic keys remain.
         let unresolvedAddresses = addressed.subtracting(shippedKeys)
         #expect(
             unresolvedAddresses.allSatisfy { $0.hasPrefix("copy.combined-summary") },

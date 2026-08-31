@@ -315,6 +315,16 @@
         }
       }
     },
+    "copy.combined-summary.inconclusive": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار نتيجة مجمعة⁩"}}}},
+    "copy.combined-summary.mixed-evidence": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار أدلة مختلطة⁩"}}}},
+    "copy.combined-summary.no-strong-ai-signal": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار إشارة بكسل⁩"}}}},
+    "copy.combined-summary.no-strong-ai-signal-with-credential": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار إشارة مع بيانات⁩"}}}},
+    "copy.combined-summary.signs-of-ai-credential-unresolved": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار إشارة وبيانات غير محسومة⁩"}}}},
+    "copy.combined-summary.signs-of-ai-without-credential": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار إشارة بدون بيانات⁩"}}}},
+    "copy.combined-summary.validated-credential-pixel-inconclusive": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار بيانات متحققة⁩"}}}},
+    "copy.provenance-detail.assertion-labels": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار ادعاء بيانات⁩"}}}},
+    "copy.provenance-detail.claim-generator": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار منشئ بيانات⁩"}}}},
+    "copy.provenance-detail.signer-identity": {"extractionState":"manual","localizations":{"ar-x-bidi":{"stringUnit":{"state":"translated","value":"⁧اختبار موقع بيانات⁩"}}}},
     "copy.correction-channel": {
       "extractionState": "manual",
       "localizations": {

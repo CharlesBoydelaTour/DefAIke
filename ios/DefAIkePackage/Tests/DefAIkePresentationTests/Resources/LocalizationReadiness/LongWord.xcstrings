@@ -315,6 +315,16 @@
         }
       }
     },
+    "copy.combined-summary.inconclusive": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.mixed-evidence": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.no-strong-ai-signal": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.no-strong-ai-signal-with-credential": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.signs-of-ai-credential-unresolved": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.signs-of-ai-without-credential": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.combined-summary.validated-credential-pixel-inconclusive": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CombinedResultLocalizationReadinessUnbreakableTokenForNarrowLayoutTesting"}}}},
+    "copy.provenance-detail.assertion-labels": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CredentialAssertionLocalizationReadinessUnbreakableToken"}}}},
+    "copy.provenance-detail.claim-generator": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"ClaimGeneratorLocalizationReadinessUnbreakableToken"}}}},
+    "copy.provenance-detail.signer-identity": {"extractionState":"manual","localizations":{"en-x-longword":{"stringUnit":{"state":"translated","value":"CredentialSignerLocalizationReadinessUnbreakableToken"}}}},
     "copy.correction-channel": {
       "extractionState": "manual",
       "localizations": {

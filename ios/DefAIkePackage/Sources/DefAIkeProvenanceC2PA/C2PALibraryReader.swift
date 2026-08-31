@@ -29,26 +29,17 @@ import Foundation
 //      attacker-influenced, so it is checked against the policy's byte and depth
 //      ceilings by ``ArtifactEncodingProfile`` in one pass *before* any field is read.
 //
-// What is deliberately left unset: every library setting whose value is a release
-// decision rather than a requirement — trust-list verification, timestamp-trust
-// verification, and strict specification-version behavior among them. Setting one would
-// embed an unapproved signer or assertion policy; those are decision D5 and they are the
-// Provenance Feasibility Gate's review surface, named in one place at
-// ``C2PALibraryReader/unreviewedLibraryDefaults``.
+// Every security-relevant verification setting is explicit. The validator verifies the
+// bundled C2PA trust list, performs strict v1 validation, resolves ingredient conflicts,
+// and leaves timestamp trust disabled until a separately pinned TSA trust list is bundled.
 
 /// Reads Content Credentials with exact-pinned `c2pa-swift` 0.0.12, offline.
 public struct C2PALibraryReader: C2PAManifestReading {
-    /// The library settings whose value is a release decision this module must not make.
+    /// Security-sensitive library settings left to the vendor default.
     ///
-    /// Documented as data so a dependency or security review can enumerate exactly what
-    /// is running on the library's own default. Each one is a Provenance Feasibility Gate
-    /// input, and none may be resolved by editing this module.
-    public static let unreviewedLibraryDefaults: [String] = [
-        "trust.verify_trust_list",
-        "verify.verify_timestamp_trust",
-        "verify.strict_v1_validation",
-        "verify.skip_ingredient_conflict_resolution",
-    ]
+    /// Empty by construction: every such setting supported by the reviewed SDK is set in
+    /// ``applyOfflineSettings(trust:)``.
+    public static let unreviewedLibraryDefaults: [String] = []
 
     /// The exact reviewed library version this adapter is written against.
     ///
@@ -148,13 +139,20 @@ public struct C2PALibraryReader: C2PAManifestReading {
         }
         let definition = C2PASettingsDefinition(
             version: 1,
-            trust: TrustSettings(userAnchors: anchors, trustAnchors: anchors),
+            trust: TrustSettings(
+                verifyTrustList: true,
+                userAnchors: anchors,
+                trustAnchors: anchors
+            ),
             core: CoreSettings(allowedNetworkHosts: []),
             verify: VerifySettings(
                 verifyAfterReading: true,
                 verifyTrust: true,
+                verifyTimestampTrust: false,
                 ocspFetch: false,
-                remoteManifestFetch: false
+                remoteManifestFetch: false,
+                skipIngredientConflictResolution: false,
+                strictV1Validation: true
             )
         )
         _ = try C2PASettings(definition: definition)

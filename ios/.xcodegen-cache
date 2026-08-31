@@ -111,6 +111,7 @@
             "DEFAIKE_APP_BUILD_ID" : "build.local-development",
             "DEFAIKE_CAPABILITY_MANIFEST_ID" : "manifest.local-development",
             "DEFAIKE_EMBEDDED_MODEL_BUNDLE_ID" : "bundle.local-development",
+            "DEFAIKE_EVIDENCE_FUSION_IMPLEMENTATION_VERSION" : "1.0.0",
             "DEFAIKE_PIXEL_ANALYSIS_IMPLEMENTATION_VERSION" : "1.0.0",
             "DEFAIKE_VERDICT_COPY_CATALOG_ID" : "catalog.local-development.verdict-copy"
           },
@@ -233,6 +234,7 @@ DefAIkeApp/Shared/CapabilityComposition.swift
 DefAIkeApp/Shared/CompiledCapabilityComposition.swift
 DefAIkeApp/Shared/DefAIkeApp.swift
 DefAIkeApp/Shared/DevelopmentDiagnostics.swift
+DefAIkeApp/Shared/DevelopmentFusionPolicy.swift
 DefAIkeApp/Shared/DevelopmentModelBundle.swift
 DefAIkeApp/Shared/DevelopmentProvisioning.swift
 DefAIkeApp/Shared/DevelopmentProvisioningNotice.swift

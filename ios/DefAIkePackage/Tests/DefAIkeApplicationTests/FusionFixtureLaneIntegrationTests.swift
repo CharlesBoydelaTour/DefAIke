@@ -55,18 +55,12 @@ import Testing
 // Plan; a host or simulator pass is a development check and satisfies no device gate. Task
 // 14.2 owns the runners that consume a physical-device result.
 //
-// # The recorded `ProvenanceAnalyzing` conformance gap
+// # The analyzer seam used here
 //
-// The conditional C2PA adapter deliberately does not conform to `ProvenanceAnalyzing`,
-// because the port returns `ProvenanceEvidence` unconditionally and cannot express a
-// Provenance Feasibility Gate finding. That is a recorded open question, not a defect. Its
-// consequence here is stated rather than worked around: the enabled lane in this file comes
-// from a recording double standing in for the port, so **this file cannot distinguish a
-// provenance-enabled build from a build that linked the adapter**, and it asserts nothing
-// about which concrete adapter supplies a conformance. The byte-level half of task 9.9 —
-// real fixtures through the real adapter — is in
-// `DefAIkeProvenanceC2PATests/OfflineProvenanceFixtureIntegrationTests.swift`, which calls
-// the adapter directly for exactly this reason.
+// The enabled lane uses a recording double so the test can isolate the signed fusion table from
+// byte parsing and trust configuration. Concrete Content Credential bytes and the real
+// `C2PAProvenanceAnalyzer` are exercised in `DefAIkeProvenanceC2PATests`; this file asserts the
+// lane-to-fusion contract independently.
 
 // MARK: - The approved artifacts
 

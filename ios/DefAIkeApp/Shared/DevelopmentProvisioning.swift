@@ -2,6 +2,7 @@
 
 import DefAIkeDomain
 import DefAIkeModelBundle
+import DefAIkeProvenanceC2PA
 import DefAIkeSharedTransfer
 import Foundation
 
@@ -27,9 +28,9 @@ import Foundation
 // `nil`, `MainAppComposition.start(...)` sees no provisioning, and startup refuses exactly as
 // it does today. The failure mode is the existing fail-closed one.
 //
-// # The three fabrications, stated plainly
+// # The four provisional inputs, stated plainly
 //
-// A release input set is externally approved. This one is not, and there are exactly three
+// A release input set is externally approved. This one is not, and there are exactly four
 // places where that difference is load-bearing. They are the reason this file cannot ship:
 //
 //   1. **The device allowlist is derived from the observed device.** A real
@@ -39,17 +40,12 @@ import Foundation
 //      guaranteed rather than earned. That is precisely the self-describing loop
 //      `MainAppPlatform.swift` warns about, inverted on purpose and confined to DEBUG.
 //
-//   2. **The gate evidence claims a physical-device environment that does not exist.**
+//   2. **The gate evidence claims measurements that were not approved.**
 //      `GateResultReference.isSatisfied` requires `environment.isPhysicalDeviceEvidence` for
-//      every applicable mandatory `DeviceGate`, and no Simulator result can satisfy that
-//      (`ObservedDeviceIdentity.environment` is compile-time `.iOSSimulator` here). So the
-//      references below assert `.physicalIPhone` for measurements nobody took. This is the most
-//      consequential fabrication in the file.
-//
-//      It is at least self-refuting in the admission it produces: the same `ReleaseAdmission`
-//      carries `context.device.environment == .iOSSimulator` alongside gate evidence claiming
-//      `.physicalIPhone`. Any audit that reads one field and then the other sees the
-//      contradiction without being told.
+//      every applicable mandatory `DeviceGate`. The references below assert `.physicalIPhone`
+//      with passing measurements that no approved Device Validation Plan produced. A physical
+//      development phone makes the environment label accurate, but does not make the unmeasured
+//      gate result release evidence.
 //
 //   3. **The Calibration Policy's category boundary is provisional.** The compiled model, its
 //      weights, and the logit it produces are real (see `DevelopmentModelBundle`). This seam uses
@@ -59,6 +55,11 @@ import Foundation
 //      **not a verdict**, which is why the application target renders
 //      `ChromeCopySurface.developmentBuildNotice` above every screen whenever this seam supplied
 //      the provisioning.
+//
+//   4. **The Evidence Fusion Rule and its fixture outcomes are provisional.** They implement the
+//      requested combined-result table and are total over all 15 pixel/provenance combinations,
+//      but they have not been signed as release artifacts or validated against an approved
+//      Release Fixture Suite. They make the development UI testable; they do not admit Release.
 //
 // Everything else is a synthetic-but-coherent artifact: it satisfies its own schema and agrees
 // with its siblings, which is what lets the gate's comparisons be real comparisons.
@@ -186,6 +187,7 @@ extension DevelopmentProvisioning {
         )
 
         let enablesProvenance = capabilities.contains(.contentCredentialValidation)
+        let enablesFusion = capabilities.contains(.evidenceFusion)
 
         let manifest = try capabilityManifest(
             ids: ids,
@@ -202,7 +204,13 @@ extension DevelopmentProvisioning {
         )
         let contract = try preprocessingContract(ids: ids)
         let calibration = try calibrationPolicy(ids: ids)
-        let copyCatalog = try verdictCopyCatalog(ids: ids, enablesProvenance: enablesProvenance)
+        let copyCatalog = try verdictCopyCatalog(
+            ids: ids,
+            enablesProvenance: enablesProvenance,
+            enablesFusion: enablesFusion
+        )
+        let fusionFixtures = enablesFusion ? try fusionFixtureSuite(ids: ids) : nil
+        let fusionRule = enablesFusion ? try evidenceFusionRule(ids: ids) : nil
         let budgets = try resourceBudgets(ids: ids)
         let bundle = try boundBundle(ids: ids, device: device, capabilities: capabilities)
 
@@ -219,10 +227,7 @@ extension DevelopmentProvisioning {
             provenancePolicy: enablesProvenance
                 ? try provenancePolicy(ids: ids, versions: versions)
                 : nil,
-            // No composition compiles `evidence-fusion`, so no rule is registered and the
-            // manifest declares the binding not applicable. A Combined Summary is unreachable
-            // rather than synthesized.
-            fusionRule: nil
+            fusionRule: fusionRule
         )
 
         let bundles = DevelopmentModelBundleManager(active: bundle)
@@ -245,10 +250,12 @@ extension DevelopmentProvisioning {
             bundleLayout: try DevelopmentModelBundle.layout(source: ids.bundleLayoutEvidence),
             installedBundleRoot: DevelopmentModelBundle.installedRoot,
             evidenceIndex: evidenceIndex,
+            fusionFixtures: fusionFixtures,
             release: try releaseRecord(
                 ids: ids,
                 device: device,
-                enablesProvenance: enablesProvenance
+                enablesProvenance: enablesProvenance,
+                enablesFusion: enablesFusion
             )
         )
     }
@@ -310,6 +317,7 @@ extension DevelopmentProvisioning {
         let shareExtensionBudget: ArtifactID
         let bundleVerificationPolicy: ArtifactID
         let provenancePolicy: ArtifactID
+        let fusionRule: ArtifactID
         let fixtureSuite: ArtifactID
         let validationPlan: ArtifactID
         let activationReceipt: ArtifactID
@@ -345,6 +353,7 @@ extension DevelopmentProvisioning {
                 "policy.local-development.bundle-verification"
             )
             provenancePolicy = try Self.artifact("policy.local-development.provenance")
+            fusionRule = try Self.artifact("rule.local-development.evidence-fusion")
             fixtureSuite = try Self.artifact("suite.local-development.fixtures")
             validationPlan = try Self.artifact("plan.local-development.device-validation")
             activationReceipt = try Self.artifact("receipt.local-development.activation")
@@ -354,7 +363,7 @@ extension DevelopmentProvisioning {
             evidenceScopeComponent = try Self.artifact("component.local-development.scope")
             selfTestComponent = try Self.artifact("component.local-development.self-tests")
 
-            evidenceRecords = try [
+            var records = try [
                 "evidence.local-development.calibration",
                 "evidence.local-development.measurement",
                 "evidence.local-development.bundle-layout",
@@ -363,7 +372,13 @@ extension DevelopmentProvisioning {
                 "evidence.local-development.file-protection",
                 "evidence.local-development.trust-store",
                 "evidence.local-development.c2pa-specification",
+                "approval.local-development.fusion-rule",
             ].map { try Self.evidence($0) }
+            records[6] = try Self.evidence(
+                "evidence.local-development.trust-store",
+                digestHex: BundledC2PATrustStore.contentDigestHex
+            )
+            evidenceRecords = records
         }
 
         /// The calibration evidence record, which the policy names and the index must resolve.
@@ -375,6 +390,7 @@ extension DevelopmentProvisioning {
         var fileProtectionEvidence: EvidenceSource { evidenceRecords[5] }
         var trustStoreEvidence: EvidenceSource { evidenceRecords[6] }
         var c2paSpecificationEvidence: EvidenceSource { evidenceRecords[7] }
+        var fusionRuleApprovalEvidence: EvidenceSource { evidenceRecords[8] }
 
         static func artifact(_ raw: String) throws -> ArtifactID {
             try require(ArtifactID(raw))
@@ -382,12 +398,15 @@ extension DevelopmentProvisioning {
 
         /// One synthetic evidence record. The digest is a fixed pattern, not a measurement:
         /// nothing was digested, and the index resolves references by equality alone.
-        static func evidence(_ raw: String) throws -> EvidenceSource {
+        static func evidence(
+            _ raw: String,
+            digestHex: String = String(repeating: "0", count: 64)
+        ) throws -> EvidenceSource {
             EvidenceSource(
                 artifact: try artifact(raw),
                 version: try CapabilityImplementationVersion(validating: "1.0.0"),
                 contentDigest: try require(
-                    SHA256Digest(hexadecimal: String(repeating: "0", count: 64))
+                    SHA256Digest(hexadecimal: digestHex)
                 )
             )
         }
@@ -455,9 +474,9 @@ extension DevelopmentProvisioning {
                 provenancePolicy: capabilities.contains(.contentCredentialValidation)
                     ? .bound(ids.provenancePolicy)
                     : .notApplicable(decision: try approval(ids, "provenance-not-compiled")),
-                fusionRule: .notApplicable(
-                    decision: try approval(ids, "fusion-not-compiled")
-                )
+                fusionRule: capabilities.contains(.evidenceFusion)
+                    ? .bound(ids.fusionRule)
+                    : .notApplicable(decision: try approval(ids, "fusion-not-compiled"))
             ),
             approval: try approval(ids, "capability-manifest")
         )
@@ -731,7 +750,8 @@ extension DevelopmentProvisioning {
     /// no value in this repository, so most of a completed report stays unrendered even here.
     private static func verdictCopyCatalog(
         ids: Identifiers,
-        enablesProvenance: Bool
+        enablesProvenance: Bool,
+        enablesFusion: Bool
     ) throws -> ApprovedVerdictCopyCatalog {
         var surfaces = VerdictCopySurface.unconditionalSurfaces
         if enablesProvenance {
@@ -739,14 +759,25 @@ extension DevelopmentProvisioning {
                 surfaces.insert(.provenanceState(state))
             }
         }
+        if enablesFusion {
+            for key in try DevelopmentFusionPolicy.allCopyKeys() {
+                surfaces.insert(.combinedSummary(key))
+            }
+        }
         let entries = try surfaces.sorted { $0.description < $1.description }.map { surface in
-            VerdictCopyEntry(
-                surface: surface,
-                localizationKey: try Identifiers.require(
+            let localizationKey: ApprovedCopyKey
+            if case let .combinedSummary(key) = surface {
+                localizationKey = key
+            } else {
+                localizationKey = try Identifiers.require(
                     ApprovedCopyKey(
                         "copy." + surface.description.replacingOccurrences(of: "/", with: ".")
                     )
                 )
+            }
+            return VerdictCopyEntry(
+                surface: surface,
+                localizationKey: localizationKey
             )
         }
         return try ApprovedVerdictCopyCatalog(
@@ -756,6 +787,62 @@ extension DevelopmentProvisioning {
             languageTag: try text(ApprovedVerdictCopyCatalog.requiredLanguageTag),
             entries: entries,
             approval: try approval(ids, "verdict-copy-catalog")
+        )
+    }
+}
+
+// MARK: - Combined evidence policy
+
+extension DevelopmentProvisioning {
+    private static func evidenceFusionRule(ids: Identifiers) throws -> EvidenceFusionRule {
+        try EvidenceFusionRule(
+            id: ids.fusionRule,
+            schemaVersion: .v1,
+            ruleVersion: try version(),
+            compatibleVerdictCopy: ids.verdictCopyCompatibility,
+            fixtureSuite: ids.fixtureSuite,
+            entries: try FusionLaneCombination.allCombinations.map { combination in
+                FusionEntry(
+                    combination: combination,
+                    disposition: .show(try DevelopmentFusionPolicy.copyKey(for: combination)),
+                    fixture: try DevelopmentFusionPolicy.fixtureID(for: combination)
+                )
+            },
+            approval: ApprovalRecord(
+                source: ids.fusionRuleApprovalEvidence,
+                decision: .approved,
+                approver: try Identifiers.require(
+                    ApproverID("role.local-development-seam")
+                ),
+                decidedAt: Date(timeIntervalSince1970: 0)
+            )
+        )
+    }
+
+    private static func fusionFixtureSuite(ids: Identifiers) throws -> ReleaseFixtureSuite {
+        let digest = try Identifiers.require(
+            SHA256Digest(hexadecimal: String(repeating: "6", count: 64))
+        )
+        return try ReleaseFixtureSuite(
+            id: ids.fixtureSuite,
+            schemaVersion: .v1,
+            provenanceApplicability: .applicable,
+            fixtures: try FusionLaneCombination.allCombinations.map { combination in
+                let path = "fusion/\(combination.pixel.rawValue)/"
+                    + "\(combination.provenance.rawValue).jpg"
+                return try FixtureRecord(
+                    id: DevelopmentFusionPolicy.fixtureID(for: combination),
+                    family: DevelopmentFusionPolicy.fixtureFamily(for: combination.provenance),
+                    assetPath: try Identifiers.require(CanonicalRelativePath(path)),
+                    contentDigest: digest,
+                    byteCount: try PositiveByteCount(validating: 1),
+                    source: ids.c2paSpecificationEvidence,
+                    expectations: [
+                        .pixelLabel(combination.pixel),
+                        .provenanceState(combination.provenance),
+                    ]
+                )
+            }
         )
     }
 }
@@ -922,7 +1009,7 @@ extension DevelopmentProvisioning {
             supportedSpecification: ids.c2paSpecificationEvidence,
             trustStore: ProvenanceTrustStoreDescriptor(
                 store: ids.trustStoreEvidence,
-                anchorCount: try PositiveCount(validating: 1),
+                anchorCount: try PositiveCount(validating: BundledC2PATrustStore.anchorCount),
                 isOfflineOnly: true
             ),
             revocationBehavior: try ProvenanceRevocationBehavior(
@@ -931,7 +1018,7 @@ extension DevelopmentProvisioning {
                 approval: try approval(ids, "revocation-behavior")
             ),
             supportedAssertionLabels: [try text("c2pa.actions")],
-            displayableFields: [.signerIdentity, .bindingStatus],
+            displayableFields: [.signerIdentity, .claimGenerator, .assertionLabels],
             processingLimits: ProvenanceProcessingLimits(
                 maximumManifestByteCount: try PositiveByteCount(validating: 1_048_576),
                 maximumAssertionCount: try PositiveCount(validating: 64),
@@ -939,16 +1026,46 @@ extension DevelopmentProvisioning {
                 maximumProcessingDuration: try ValidatedDuration(validating: 5_000)
             ),
             resourceBudget: ids.mainApplicationBudget,
-            statusMappings: [
-                ProvenanceStatusMapping(
-                    status: try Identifiers.require(
-                        ProvenanceValidatorStatusID("status.local-development.signature-valid")
-                    ),
-                    state: .validated
-                )
-            ],
+            statusMappings: try provenanceStatusMappings(),
             feasibilityApproval: try approval(ids, "provenance-feasibility")
         )
+    }
+
+    /// The complete fail-closed mapping for every structural reader condition and every
+    /// library failure code this adapter classifies. A future unknown code becomes the
+    /// analyzer's indeterminate fallback; it can never become validated by default.
+    private static func provenanceStatusMappings() throws -> [ProvenanceStatusMapping] {
+        var mappings = C2PAReaderCondition.allCases.map { condition in
+            let state: ProvenanceStateKey
+            switch condition {
+            case .allChecksPassed: state = .validated
+            case .noManifestFound: state = .absent
+            case .manifestNotEmbedded, .containerNotSupported: state = .unsupported
+            case .revocationAnswerUnavailable, .inputNotParsable,
+                 .validationResultAbsent: state = .indeterminate
+            }
+            return ProvenanceStatusMapping(
+                status: C2PAStatusVocabulary.statusID(for: condition),
+                state: state
+            )
+        }
+        mappings += try C2PAFailureClassification.allKnownCodes.sorted().map { code in
+            ProvenanceStatusMapping(
+                status: try Identifiers.require(
+                    C2PAStatusVocabulary.statusID(forLibraryCode: code)
+                ),
+                state: .invalid
+            )
+        }
+        mappings.append(
+            ProvenanceStatusMapping(
+                status: try Identifiers.require(
+                    C2PAStatusVocabulary.statusID(forLibraryCode: "general.error")
+                ),
+                state: .indeterminate
+            )
+        )
+        return mappings
     }
 }
 
@@ -1053,7 +1170,8 @@ extension DevelopmentProvisioning {
     private static func releaseRecord(
         ids: Identifiers,
         device: DeviceContext,
-        enablesProvenance: Bool
+        enablesProvenance: Bool,
+        enablesFusion: Bool
     ) throws -> ReleaseReadinessRecord {
         try ReleaseReadinessRecord(
             id: ids.releaseRecord,
@@ -1066,8 +1184,7 @@ extension DevelopmentProvisioning {
                 let applicable: Bool
                 switch gate {
                 case .provenanceFeasibility: applicable = enablesProvenance
-                // No composition compiles evidence fusion, so this gate is never applicable.
-                case .fusionRuleApproval: applicable = false
+                case .fusionRuleApproval: applicable = enablesFusion
                 default: applicable = true
                 }
                 return try ReleaseGateRecord(

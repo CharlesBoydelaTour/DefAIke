@@ -31,23 +31,14 @@ import DefAIkeProvenanceAPI
 //   * It never chooses a state. Every unanswerable condition leaves as a
 //     ``ProvenanceFeasibilityFinding``.
 //
-// MARK: - Why this adapter does not conform to `ProvenanceAnalyzing`
+// MARK: - Port adaptation
 //
-// ``ProvenanceAnalyzing/analyze(_:policy:)`` returns ``ProvenanceEvidence``
-// unconditionally: it cannot throw, and it has no case for "no approved input answers
-// this". That is correct for the port — every condition a validator can *reach* is a
-// state the policy chose — but it means a conformance would have to resolve a
-// ``ProvenanceFeasibilityFinding`` by selecting a state, and no artifact in the current
-// schema says which. ``ProvenancePolicy`` maps statuses, not faults; the one field that
-// answers an unresolved question, ``ProvenanceRevocationBehavior/unavailableAnswerState``,
-// is scoped to revocation alone.
-//
-// So the conformance is absent until an approved decision supplies the missing answer,
-// and its absence is fail-closed rather than a gap: ``ProvenanceLaneProvider/resolve(analyzer:policy:manifest:)``
-// treats a `nil` analyzer as the pixel-only lane regardless of what the signed manifest
-// enables, so a composition that links this module still reports
-// ``UnavailableReason/validatorNotCompiledIntoRelease`` until one exists. Linking is not
-// approval, and neither is compiling.
+// The low-level validator deliberately returns a feasibility finding instead of choosing a
+// user-facing state for a condition the signed status mapping did not answer. The separate
+// ``C2PAProvenanceAnalyzer`` adapts this to the non-throwing ``ProvenanceAnalyzing`` port: a
+// successful inspection passes through unchanged, while every feasibility finding becomes
+// the explicitly supplied indeterminate explanation. The adapter therefore cannot turn an
+// operational or policy failure into validated, absent, invalid, or unsupported evidence.
 
 /// Everything one inspection needs besides the bytes.
 ///
@@ -246,6 +237,42 @@ public struct C2PAProvenanceValidator: Sendable {
             guard depth <= limit else {
                 throw .processingLimitExceeded(.nestingDepth(observed: depth, limit: limit))
             }
+        }
+    }
+}
+
+// MARK: - Nonthrowing application port
+
+/// Runs the C2PA validator through the application's nonthrowing provenance port.
+///
+/// A validator operational or policy-mapping failure is deliberately represented as an
+/// indeterminate provenance result. It is never converted into `validated`, `absent`, or
+/// `invalid`, because no Content Credential conclusion was reached. The explanation key is
+/// supplied by the same approved copy binding used by the validator mapper.
+public struct C2PAProvenanceAnalyzer: ProvenanceAnalyzing, Sendable {
+    private let validator: C2PAProvenanceValidator
+    private let fallback: IndeterminateSummary
+
+    public init(
+        validator: C2PAProvenanceValidator,
+        indeterminateExplanation: ApprovedCopyKey
+    ) {
+        self.validator = validator
+        self.fallback = IndeterminateSummary(
+            provenancePolicyID: validator.policy.id,
+            explanationKey: indeterminateExplanation
+        )
+    }
+
+    public func analyze(
+        _ asset: ImportedEncodedAsset,
+        policy: ProvenancePolicy
+    ) async -> ProvenanceEvidence {
+        guard policy == validator.policy else { return .indeterminate(fallback) }
+        do {
+            return try await validator.inspect(asset)
+        } catch {
+            return .indeterminate(fallback)
         }
     }
 }

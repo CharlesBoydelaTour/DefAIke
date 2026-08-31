@@ -1631,7 +1631,7 @@ struct DisclosureScreenSnapshotTests {
 
 // MARK: - 8.1, 8.2, 8.18: exact copy, and the recorded absence of the rest
 
-@Suite("Exact copy: three fixed strings, and every other surface recorded as blocked")
+@Suite("Exact copy: fixed labels plus documented proposed result wording")
 struct ExactCopySnapshotTests {
 
     /// The three display strings Requirement 8.2 fixes, transcribed as literals.
@@ -1690,7 +1690,7 @@ struct ExactCopySnapshotTests {
         )
         let catalog = try JSONSerialization.jsonObject(with: try Data(contentsOf: url))
         let strings = try #require((catalog as? [String: Any])?["strings"] as? [String: Any])
-        #expect(strings.count == 56)
+        #expect(strings.count == 66)
 
         let requiredByRequirement = Set(
             EnglishStringCatalog.fixedPixelLabelKeys.values.map(\.rawValue)
@@ -1713,31 +1713,31 @@ struct ExactCopySnapshotTests {
             )
             markedProposed += 1
         }
-        // 53 = every key except the three Requirement 8.2 labels.
+        // Every entry except the three Requirement 8.2 labels remains explicitly marked as
+        // proposed wording. The ten additions exercise the development-only fusion and
+        // provenance-detail paths without representing production copy approval.
         #expect(markedProposed == strings.count - requiredByRequirement.count)
-        #expect(markedProposed == 53)
+        #expect(markedProposed == 63)
     }
 
     @Test("The shipped catalog carries the fixed labels, the chrome keys, and proposed verdict copy")
     func theShippedCatalogCarriesTheFixedLabelsAndChrome() throws {
-        // The honest statement about "exact copy" in this repository, updated a second time. Three
-        // disjoint groups are present and nothing else:
+        // Four disjoint groups are present and nothing else:
         //
         //   * the three fixed pixel-label keys, whose values Requirement 8.2 fixes character for
         //     character. These are *required*, not proposed;
         //   * the six `ChromeCopySurface` keys, which describe what the application is doing rather
         //     than what a model concluded; and
-        //   * every unconditional `VerdictCopySurface` key plus the five enabled provenance states.
+        //   * every unconditional `VerdictCopySurface` key plus the five enabled provenance states;
+        //   * the seven combined results and three validated-credential detail labels used by the
+        //     development-only Content Credential and fusion composition.
         //
         // The second and third groups are *proposed, not approved* (decision D1) — every entry says
         // so in its `comment`, and `everyProposedEntryRecordsThatItIsUnapproved` asserts that rather
         // than trusting it. They are here because a report that renders nothing cannot be reviewed,
         // and a screen with no words is a worse failure than wording awaiting sign-off.
         //
-        // What this test still guards is that nothing *else* appears. In particular no Combined
-        // Summary key is present: those are addressed by an approved Evidence Fusion Rule, and
-        // inventing wording for a summary of two lanes is a different and larger claim than
-        // restating what one lane already says.
+        // What this test still guards is that nothing else appears silently.
         let catalog = try EnglishStringCatalog.loadShippedCatalog()
         let keys = catalog.keys.sorted()
 
@@ -1754,19 +1754,36 @@ struct ExactCopySnapshotTests {
             VerdictCopySurface.unconditionalSurfaces.map(Self.localizationKey)
             + ProvenanceStateKey.allCases.map { Self.localizationKey(.provenanceState($0)) }
 
-        #expect(keys == Set(fixedLabelKeys + chromeKeys + verdictKeys).sorted())
+        let developmentFusionAndDetailKeys = [
+            "copy.combined-summary.inconclusive",
+            "copy.combined-summary.mixed-evidence",
+            "copy.combined-summary.no-strong-ai-signal",
+            "copy.combined-summary.no-strong-ai-signal-with-credential",
+            "copy.combined-summary.signs-of-ai-credential-unresolved",
+            "copy.combined-summary.signs-of-ai-without-credential",
+            "copy.combined-summary.validated-credential-pixel-inconclusive",
+            "copy.provenance-detail.assertion-labels",
+            "copy.provenance-detail.claim-generator",
+            "copy.provenance-detail.signer-identity",
+        ]
+
+        #expect(
+            keys
+                == Set(
+                    fixedLabelKeys + chromeKeys + verdictKeys + developmentFusionAndDetailKeys
+                ).sorted()
+        )
         #expect(
             keys.count
                 == VerdictCopySurface.unconditionalSurfaces.count
                     + ProvenanceStateKey.allCases.count
                     + ChromeCopySurface.allCases.count
+                    + developmentFusionAndDetailKeys.count
         )
-        #expect(keys.count == 56)
+        #expect(keys.count == 66)
         #expect(Set(fixedLabelKeys).isDisjoint(with: Set(chromeKeys)))
         #expect(Set(chromeKeys).isDisjoint(with: Set(verdictKeys)))
-
-        // No Combined Summary wording exists, in either direction.
-        #expect(keys.contains { $0.hasPrefix("copy.combined-summary") } == false)
+        #expect(keys.filter { $0.hasPrefix("copy.combined-summary") }.count == 7)
         #expect(
             Set(fixedLabelKeys)
                 == Set(EnglishStringCatalog.fixedPixelLabelKeys.values.map(\.rawValue))

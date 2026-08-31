@@ -297,11 +297,11 @@ enum CompositionRootSourceAudit {
 /// cleanup owns, whether the evidence branches can run concurrently.
 enum CompositionWiringDecision: String, Sendable, CaseIterable, CustomStringConvertible {
 
-    /// The main app hard-codes an omitted fusion rule, so no summary is ever reachable.
-    case fusionIsOmittedWithNoRuleBound
+    /// The main app resolves a provisioned candidate with its bound fixture suite.
+    case fusionResolvesFromProvisionedFixtures
 
-    /// The coordinator's fusion port is that omitted rule's `nil`, not a bound fuser.
-    case fuserComesFromTheOmittedFusion
+    /// The coordinator's fusion port comes from the resolved optional fusion.
+    case fuserComesFromResolvedFusion
 
     /// No apparent-inconsistency classifier is installed.
     case noInconsistencyClassifier
@@ -362,9 +362,9 @@ enum CompositionWiringDecision: String, Sendable, CaseIterable, CustomStringConv
     /// The comment-stripped text that makes this decision.
     var pinnedText: String {
         switch self {
-        case .fusionIsOmittedWithNoRuleBound:
-            "let fusion: OptionalFusion = .omitted(.noRuleBound)"
-        case .fuserComesFromTheOmittedFusion:
+        case .fusionResolvesFromProvisionedFixtures:
+            "if let fixtures = provisioning.fusionFixtures"
+        case .fuserComesFromResolvedFusion:
             "fuser: fusion.approvedRule"
         case .noInconsistencyClassifier:
             "inconsistencyClassifier: nil"
@@ -404,6 +404,8 @@ enum CompositionWiringDecision: String, Sendable, CaseIterable, CustomStringConv
     /// .serial` is the decision.
     var accompanyingText: String? {
         switch self {
+        case .fusionResolvesFromProvisionedFixtures:
+            "fusion = .resolving("
         case .serialBranchExecutionUnderTheBoundPlan:
             "execution: .serial,"
         case .startupSweepStoresHaveZeroCapacity:

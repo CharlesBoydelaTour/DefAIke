@@ -577,6 +577,90 @@
         }
       }
     },
+    "copy.combined-summary.inconclusive": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary for an inconclusive pixel result without validated provenance.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough evidence to assess AI generation: pixel analysis was inconclusive and Content Credentials did not provide validated provenance."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.mixed-evidence": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary when pixel evidence and validated provenance point in different directions.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mixed evidence: pixel patterns point toward AI generation, while a Content Credential validates for these bytes. A valid credential can describe either captured or AI-generated media, so review its details."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.no-strong-ai-signal": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary when the model reports no strong AI signal and provenance is not validated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No strong signs of AI generation: the pixel check found no strong AI signal. The Content Credential status below does not add validated provenance."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.no-strong-ai-signal-with-credential": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary when the model reports no strong AI signal and a credential validates.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No strong signs of AI generation: the pixel check found no strong AI signal, and a Content Credential validates for these bytes. Neither check proves authenticity."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.signs-of-ai-credential-unresolved": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary when the model reports AI patterns and credential validation is unresolved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signs of AI generation: the pixel check found patterns associated with AI, and the Content Credential check did not provide validated provenance."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.signs-of-ai-without-credential": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary for the requested positive-pixel plus absent-credential combination.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signs of AI generation: the pixel check found patterns associated with AI. No Content Credential was found, which is neutral because most images do not carry one."
+          }
+        }
+      }
+    },
+    "copy.combined-summary.validated-credential-pixel-inconclusive": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Development Evidence Fusion Rule summary when provenance validates and the pixel result is inconclusive.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pixel analysis was inconclusive, but a Content Credential validates for these bytes. Review its details to understand the recorded origin."
+          }
+        }
+      }
+    },
     "copy.privacy-explanation": {
       "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). The in-application privacy explanation, and the label of the row that opens it. Both clauses are behaviours the application enforces: on-device inference, no network use for analysis, no persistence, and no export. Kept to one sentence because the report renders this as a single tappable row.",
       "extractionState": "manual",
@@ -645,6 +729,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "This image carries a Content Credential that matches the exact bytes analysed. That confirms the credential belongs to these bytes. It does not confirm that what the credential says about the image is true."
+          }
+        }
+      }
+    },
+    "copy.provenance-detail.assertion-labels": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for assertion names displayed from a validated Content Credential.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credential assertion"
+          }
+        }
+      }
+    },
+    "copy.provenance-detail.claim-generator": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for the claim generator displayed from a validated Content Credential.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claim generator"
+          }
+        }
+      }
+    },
+    "copy.provenance-detail.signer-identity": {
+      "comment": "PROPOSED WORDING, NOT APPROVED (decision D1). Label for the certificate issuer displayed from a validated Content Credential.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credential signer"
           }
         }
       }

@@ -301,21 +301,18 @@ public enum UnobservableParityEvidence: String, Hashable, Sendable, CaseIterable
     /// pair describes what the platform actually handed over.
     case preservationStatusNotIntegrityBound = "preservation-status-not-integrity-bound"
 
-    /// No shipping type conforms to `ProvenanceAnalyzing`.
+    /// No release-approved provenance analyzer is configured.
     ///
-    /// `DefAIkeProvenanceC2PA.C2PAProvenanceValidator` deliberately does not conform, so
-    /// there is no shipping provenance analyzer at all; and `c2pa-swift` 0.0.12 refuses
-    /// configuration with synthetic trust anchors, so every real read returns
-    /// `validatorNotConfigurable`. Requirement 6.18's per-fixture state comparison is
-    /// therefore unrunnable against a real validator. A run records that; it does not stand
-    /// a fake result in for one.
+    /// A concrete analyzer now exists, but Release composition remains fail-closed until its
+    /// policy, copy, trust descriptor, and validation evidence are release-approved. A parity
+    /// run records that missing admission rather than substituting development provisioning.
     case noShippingProvenanceAnalyzer = "no-shipping-provenance-analyzer"
 
-    /// No offline Content Credential trust store exists.
+    /// No release-approved offline Content Credential trust store exists.
     ///
     /// Requirements 6.7 and 6.8 require validation entirely on device with connectivity
-    /// disabled, which needs an approved offline trust store. There is none, so even a
-    /// conforming analyzer would have no anchors to validate against.
+    /// disabled, which needs an approved offline trust store. The public C2PA snapshot bundled
+    /// for development is digest-pinned, but it is not itself DefAIke release approval.
     case noOfflineContentCredentialTrustStore = "no-offline-content-credential-trust-store"
 
     /// The compiled Core ML model carries no checkpoint identifier.

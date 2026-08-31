@@ -92,6 +92,10 @@ struct MainAppReleaseProvisioning: Sendable {
     /// which is Requirement 5.12 as a construction rule.
     let evidenceIndex: ReleaseEvidenceIndex
 
+    /// The immutable fixture suite used to validate a bound Evidence Fusion Rule.
+    /// A build with no fusion rule supplies `nil`.
+    let fusionFixtures: ReleaseFixtureSuite?
+
     /// The auditable record carrying the externally supplied disclosures the
     /// model-information and correction-channel screens quote (Requirements 8.17, 14.9,
     /// and 14.14).

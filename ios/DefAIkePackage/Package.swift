@@ -159,7 +159,8 @@ let package = Package(
         ),
         .target(
             name: "DefAIkeProvenanceC2PA",
-            dependencies: ["DefAIkeDomain", "DefAIkeProvenanceAPI", contentCredentials]
+            dependencies: ["DefAIkeDomain", "DefAIkeProvenanceAPI", contentCredentials],
+            resources: [.copy("Trust")]
         ),
 
         // MARK: - Presentation

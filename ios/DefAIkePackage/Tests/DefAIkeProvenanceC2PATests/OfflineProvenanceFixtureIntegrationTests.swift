@@ -80,16 +80,12 @@ import Testing
 // and refuses to invent one. Task 14.2 owns the nonshipping parity runners that consume a
 // physical-device result.
 //
-// # The recorded `ProvenanceAnalyzing` conformance gap
+// # Why these fixtures exercise the low-level validator
 //
-// `C2PAProvenanceValidator` deliberately does not conform to `ProvenanceAnalyzing`: the
-// port returns `ProvenanceEvidence` unconditionally and cannot express a Provenance
-// Feasibility Gate finding. That is an open spec-level question, not a defect, and it is
-// why every test below calls `inspect(_:)` on the adapter directly instead of resolving a
-// `ProvenanceLaneProvider` around it. The consequence for this file is recorded rather than
-// worked around: **an approved fixture cannot currently be driven through the provider and
-// into an Evidence Report in one call**, so the lane-level integration lives in the fusion
-// file against the port, and the byte-level integration lives here against the adapter.
+// `C2PAProvenanceAnalyzer` now supplies the application port and fail-closes feasibility
+// findings to indeterminate. These tests still call `inspect(_:)` directly because they assert
+// each precise feasibility finding and byte-level validation outcome before that intentional
+// collapse. Lane-level integration remains in the fusion test.
 //
 // **No policy, mapping, copy key, or trust value in this file is an approved release
 // input.** They come from `C2PAAdapterFixtures.swift`, which says the same, and they exist
@@ -809,10 +805,7 @@ struct OfflineContentCredentialValidationTests {
                 )
             }
         }
-        #expect(
-            !C2PALibraryReader.unreviewedLibraryDefaults.isEmpty,
-            "the reviewed-defaults list must be nonempty for this check to mean anything"
-        )
+        #expect(C2PALibraryReader.unreviewedLibraryDefaults.isEmpty)
     }
 
     /// Requirements 6.19 and 6.20: which products may reach the validator module.

@@ -315,6 +315,16 @@
         }
       }
     },
+    "copy.combined-summary.inconclusive": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Cömbïnéd résült ïncönclüsïvé]"}}}},
+    "copy.combined-summary.mixed-evidence": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Mïxéd évïdéncé résült]"}}}},
+    "copy.combined-summary.no-strong-ai-signal": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Nö ströng ÅÏ sïgnål]"}}}},
+    "copy.combined-summary.no-strong-ai-signal-with-credential": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Nö ströng ÅÏ sïgnål wïth crédéntïål]"}}}},
+    "copy.combined-summary.signs-of-ai-credential-unresolved": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Sïgns öf ÅÏ, crédéntïål ünrésölvéd]"}}}},
+    "copy.combined-summary.signs-of-ai-without-credential": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Sïgns öf ÅÏ wïthöüt crédéntïål]"}}}},
+    "copy.combined-summary.validated-credential-pixel-inconclusive": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Vålïd crédéntïål, pïxéls ïncönclüsïvé]"}}}},
+    "copy.provenance-detail.assertion-labels": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Crédéntïål åssértïön]"}}}},
+    "copy.provenance-detail.claim-generator": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Clåïm généråtör]"}}}},
+    "copy.provenance-detail.signer-identity": {"extractionState":"manual","localizations":{"en-x-pseudo":{"stringUnit":{"state":"translated","value":"[Crédéntïål sïgnér]"}}}},
     "copy.correction-channel": {
       "extractionState": "manual",
       "localizations": {

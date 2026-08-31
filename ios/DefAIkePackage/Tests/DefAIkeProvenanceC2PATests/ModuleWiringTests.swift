@@ -1,5 +1,6 @@
 import Testing
 
+@testable import DefAIkeDomain
 @testable import DefAIkeProvenanceAPI
 @testable import DefAIkeProvenanceC2PA
 
@@ -22,16 +23,46 @@ struct ModuleWiringTests {
         #expect(DefAIkeProvenanceC2PAModule.reviewedValidatorVersion == "0.0.12")
     }
 
-    @Test("The library settings left on their own defaults are named, not silently taken")
-    func unreviewedDefaultsAreEnumerated() {
-        // The list is the dependency and security review's surface. It is asserted to be
-        // nonempty rather than exhaustive: shrinking it means an approved artifact now
-        // answers one of those settings, which is a spec change, not a code change.
-        #expect(!C2PALibraryReader.unreviewedLibraryDefaults.isEmpty)
-        #expect(
-            Set(C2PALibraryReader.unreviewedLibraryDefaults).count
-                == C2PALibraryReader.unreviewedLibraryDefaults.count
+    @Test("No security-sensitive library setting is left on its vendor default")
+    func securitySensitiveDefaultsAreResolved() {
+        #expect(C2PALibraryReader.unreviewedLibraryDefaults.isEmpty)
+    }
+
+    @Test("The bundled official trust snapshot matches its pinned descriptor")
+    func bundledTrustSnapshotIsDigestAndCountPinned() throws {
+        let digest = try #require(
+            DefAIkeDomain.SHA256Digest(
+                hexadecimal: BundledC2PATrustStore.contentDigestHex
+            )
         )
+        let descriptor = try ProvenanceTrustStoreDescriptor(
+            store: EvidenceSource(
+                artifact: try #require(ArtifactID("c2pa.official-trust-list")),
+                version: try SchemaSemanticVersion(validating: "1.0.0"),
+                contentDigest: digest
+            ),
+            anchorCount: try PositiveCount(validating: BundledC2PATrustStore.anchorCount),
+            isOfflineOnly: true
+        )
+
+        let material = try #require(BundledC2PATrustStore.material(matching: descriptor))
+        #expect(material.descriptor == descriptor)
+        #expect(material.anchorBytes.isEmpty == false)
+
+        let mismatched = try ProvenanceTrustStoreDescriptor(
+            store: EvidenceSource(
+                artifact: descriptor.store.artifact,
+                version: descriptor.store.version,
+                contentDigest: try #require(
+                    DefAIkeDomain.SHA256Digest(
+                        hexadecimal: String(repeating: "0", count: 64)
+                    )
+                )
+            ),
+            anchorCount: descriptor.anchorCount,
+            isOfflineOnly: true
+        )
+        #expect(BundledC2PATrustStore.material(matching: mismatched) == nil)
     }
 
     @Test("Compiling the adapter does not by itself produce an enabled provenance lane")
@@ -39,9 +70,8 @@ struct ModuleWiringTests {
         // The shipped application composition's exact shape, asserted from the one test
         // target that actually links this module: the adapter is present, the signed
         // manifest enables the capability and binds the policy, and there is still no
-        // analyzer — because no value here conforms to `ProvenanceAnalyzing`, the port
-        // cannot express a Provenance Feasibility Gate finding, and no approved artifact
-        // says which state one becomes.
+        // analyzer — because this call intentionally supplies none. Linking an adapter or
+        // bundling public trust material cannot approve a Release composition by itself.
         //
         // So the lane is unavailable (Requirements 6.3, 6.4, 6.19, and 6.20), and the
         // reason is the one that is true of this build rather than the one that used to

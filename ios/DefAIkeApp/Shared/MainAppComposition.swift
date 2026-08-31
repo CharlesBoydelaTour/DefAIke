@@ -57,12 +57,11 @@ import Foundation
 // whether a validator is linked, and the preflight compares all three against the signed
 // manifest in both directions.
 //
-// The provenance lane is then resolved from the composition's own analyzer factory *and* its
-// linkage fact, because those two answer different questions. Linkage says whether a validator
-// could exist in these bytes; the factory says whether an approved decision lets one be built.
-// A build that links the adapter and still supplies no analyzer is the state this app is in
-// today, and it is reported as `validatorEnablementUnapproved` rather than as an uncompiled
-// validator, which would be a false statement about the module graph.
+// The provenance lane is resolved from the composition's own analyzer factory *and* its linkage
+// fact, because those two answer different questions. Linkage says whether a validator could
+// exist in these bytes; the factory says whether the policy, copy binding, and offline trust
+// material can build one. The development composition supplies all three; Release remains
+// fail-closed until equivalent release-approved inputs are provisioned.
 
 // MARK: - Startup refusals
 
@@ -638,18 +637,37 @@ enum MainAppComposition {
             linksValidator: composition.linksProvenanceValidator,
             analyzer: composition.provenanceAnalyzer(
                 store: sessionStore,
-                policy: configuration.provenancePolicy
+                policy: configuration.provenancePolicy,
+                copyCatalog: configuration.verdictCopyCatalog
             ),
             policy: configuration.provenancePolicy,
             manifest: configuration.capabilityManifest
         )
 
         // The optional Combined Summary. A rule that cannot be validated costs the summary and
-        // nothing else (Requirement 7.16), so this never blocks startup. Validating a candidate
-        // rule needs the Release Fixture Suite and the release evidence index it names, and
-        // fixtures are nonshipping release evidence a distributed build does not carry — so a
-        // bound rule stays omitted here until an approved runtime validation input exists.
-        let fusion: OptionalFusion = .omitted(.noRuleBound)
+        // nothing else (Requirement 7.16), so this never blocks startup. Development provisioning
+        // carries a coherent candidate and fixture suite; Release must supply its own approved
+        // equivalents or the summary remains omitted.
+        let fusion: OptionalFusion
+        if let fixtures = provisioning.fusionFixtures {
+            fusion = .resolving(
+                candidate: configuration.fusionRule,
+                verdictCopy: configuration.verdictCopyCatalog,
+                fixtures: fixtures,
+                evidence: provisioning.evidenceIndex
+            )
+        } else if let candidate = configuration.fusionRule {
+            fusion = .omitted(
+                .candidateRejected(
+                    .missingRequiredEntries(
+                        field: "fusionRule.fixtureSuite",
+                        keys: [candidate.fixtureSuite.rawValue]
+                    )
+                )
+            )
+        } else {
+            fusion = .omitted(.noRuleBound)
+        }
 
         let copyResolver: AccessibleTextResolver
         do {

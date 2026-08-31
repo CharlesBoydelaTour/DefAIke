@@ -961,14 +961,13 @@ struct AbsentReleaseInputBlocksTests {
         }
     }
 
-    @Test("No signed release artifact of any kind is packaged in this repository")
-    func noSignedReleaseArtifactIsPackaged() throws {
-        // The other absent inputs this task enumerates are *artifacts*, and they are absent in
-        // the same way: nothing under `Sources/` carries one. The single non-Swift resource in
-        // every shipping module is the English String Catalog, so there is no signed capability
-        // manifest, no approved-device allowlist, no Device Validation Plan, no Release Fixture
-        // Suite, none of the 96 model-parity fixtures, no Evidence Fusion Rule, no offline C2PA
-        // trust store, and no approved-signature known-answer vector packaged anywhere.
+    @Test("No private signed release artifact is packaged in this repository")
+    func noPrivateSignedReleaseArtifactIsPackaged() throws {
+        // The private release inputs remain absent. Two public resources are packaged: the English
+        // String Catalog and the official C2PA public trust-list snapshot. The latter is verified
+        // against its pinned digest at runtime, but it is not a DefAIke-signed release admission
+        // artifact. No signed capability manifest, device allowlist, validation plan, release
+        // fixture suite, model-parity fixture, fusion rule, or signature KAT is present.
         let root = try #require(ReleaseCheckout.iosRoot)
         let sourcesRoot = root.appending(path: "DefAIkePackage/Sources")
         let resources = ReleaseCheckout.files(under: sourcesRoot) {
@@ -981,15 +980,22 @@ struct AbsentReleaseInputBlocksTests {
         }
         let relative = resources.map { String($0.path.dropFirst(sourcesRoot.path.count + 1)) }
         #expect(
-            relative == ["DefAIkePresentation/ApprovedCopy/Localizable.xcstrings"],
+            relative == [
+                "DefAIkePresentation/ApprovedCopy/Localizable.xcstrings",
+                "DefAIkeProvenanceC2PA/Trust/C2PA-TRUST-LIST.pem",
+            ],
             "unexpected packaged resource set: \(relative)"
         )
-        // And no artifact payload is carried beside the Xcode targets either.
+        // The only payload-like extension is that public trust-list snapshot.
         let payloads = ReleaseCheckout.files(under: root) {
             ["json", "cbor", "pem", "cer", "der", "sig", "npy"].contains($0.pathExtension)
         }
         let payloadPaths = payloads.map { String($0.path.dropFirst(root.path.count + 1)) }
-        #expect(payloadPaths.isEmpty, "unexpected artifact payloads: \(payloadPaths)")
+        #expect(
+            payloadPaths
+                == ["DefAIkePackage/Sources/DefAIkeProvenanceC2PA/Trust/C2PA-TRUST-LIST.pem"],
+            "unexpected artifact payloads: \(payloadPaths)"
+        )
     }
 
     @Test("No root code-license or attribution-notice file exists")

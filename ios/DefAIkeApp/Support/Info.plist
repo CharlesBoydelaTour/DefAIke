@@ -69,6 +69,8 @@
 	<dict>
 		<key>pixel-analysis</key>
 		<string>$(DEFAIKE_PIXEL_ANALYSIS_IMPLEMENTATION_VERSION)</string>
+		<key>evidence-fusion</key>
+		<string>$(DEFAIKE_EVIDENCE_FUSION_IMPLEMENTATION_VERSION)</string>
 	</dict>
 	<!-- No NSPhotoLibraryUsageDescription is required for the Photos route: it
 	     uses selected-item access through PhotosPicker and never requests
