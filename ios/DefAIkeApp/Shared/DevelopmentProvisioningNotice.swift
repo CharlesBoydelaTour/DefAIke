@@ -12,8 +12,9 @@ import SwiftUI
 ///
 /// # Why a banner exists at all
 ///
-/// `DevelopmentProvisioning` supplies its own Calibration Policy, and the category boundary in it
-/// is a number chosen by a developer rather than one derived from calibration slices, a measured
+/// `DevelopmentProvisioning` supplies its own Calibration Policy. Its category boundary is tied
+/// to the checkpoint's published model boundary and its abstention band covers measured Core ML
+/// conversion drift, but neither was derived from product calibration slices, a measured
 /// false-accusation rate, and an approved pass rule. The compiled model, its weights, and the
 /// logit it produces are real; the mapping from that logit to one of the three fixed pixel labels
 /// is not approved. A label displayed on that basis is a development observation, and Requirement

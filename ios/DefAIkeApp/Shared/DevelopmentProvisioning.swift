@@ -51,13 +51,14 @@ import Foundation
 //      `.physicalIPhone`. Any audit that reads one field and then the other sees the
 //      contradiction without being told.
 //
-//   3. **The Calibration Policy's category boundary is invented.** The compiled model, its
-//      weights, and the logit it produces are real (see `DevelopmentModelBundle`). The boundary
-//      that turns that logit into one of the three fixed pixel labels is a number chosen here,
-//      with no calibration slice, no false-accusation budget evidence, and no approved pass
-//      rule behind it. A label produced through it is therefore **not a verdict**, which is why
-//      the application target renders `ChromeCopySurface.developmentBuildNotice` above every
-//      screen whenever this seam supplied the provisioning.
+//   3. **The Calibration Policy's category boundary is provisional.** The compiled model, its
+//      weights, and the logit it produces are real (see `DevelopmentModelBundle`). This seam uses
+//      the checkpoint's published boundary and the minimum conversion-safety abstention band,
+//      but neither is a product decision: no calibration slice, false-accusation budget evidence,
+//      or approved pass rule supports the mapping yet. A label produced through it is therefore
+//      **not a verdict**, which is why the application target renders
+//      `ChromeCopySurface.developmentBuildNotice` above every screen whenever this seam supplied
+//      the provisioning.
 //
 // Everything else is a synthetic-but-coherent artifact: it satisfies its own schema and agrees
 // with its siblings, which is what lets the gate's comparisons be real comparisons.
@@ -100,18 +101,31 @@ enum DevelopmentProvisioning {
         guard case let .success(installed) =
             MainAppReleaseProvisioning.installedIdentifiers(bundle: bundle)
         else {
+            if case let .failure(error) =
+                MainAppReleaseProvisioning.installedIdentifiers(bundle: bundle)
+            {
+                DevelopmentDiagnostics.emit("development-provisioning-identifiers-failed", error)
+            }
             return nil
         }
         // The running identity, observed through the same platform reader the gate's caller
         // uses. Fabrication 1 hangs off this value: the allowlist entry is built from it.
         guard case let .success(device) = ObservedDeviceIdentity.observed(bundle: bundle) else {
+            if case let .failure(error) = ObservedDeviceIdentity.observed(bundle: bundle) {
+                DevelopmentDiagnostics.emit("development-provisioning-device-failed", error)
+            }
             return nil
         }
-        return try? assemble(
-            composition: composition,
-            installed: installed,
-            device: device
-        )
+        do {
+            return try assemble(
+                composition: composition,
+                installed: installed,
+                device: device
+            )
+        } catch {
+            DevelopmentDiagnostics.emit("development-provisioning-assembly-failed", error)
+            return nil
+        }
     }
 
     /// How data protection is applied for a locally provisioned run.
@@ -641,19 +655,28 @@ extension DevelopmentProvisioning {
         )
     }
 
-    /// The Calibration Policy, whose boundary is **invented**.
+    /// The Calibration Policy, whose boundary is **provisional**.
     ///
-    /// **Fabrication 3.** Every other field here is a schema requirement or a domain constant.
-    /// `rawLogitBoundary` is not: it is a number with no calibration slice, no measured
-    /// false-accusation rate, and no approved pass rule behind it. The model's logit is real and
-    /// this threshold is not, so the label a run produces is a development observation and not a
-    /// verdict. `ChromeCopySurface.developmentBuildNotice` says so on screen.
+    /// **Fabrication 3.** `rawLogitBoundary` starts from the checkpoint's published upstream
+    /// boundary, and the abstention half-width is the minimum envelope established by Core ML
+    /// conversion parity. Those are model facts, not a product calibration: there is still no
+    /// dedicated contemporary phone-camera slice, measured false-accusation rate, or approved
+    /// pass rule behind this mapping. The label a run produces is therefore a development
+    /// observation and not a verdict. `ChromeCopySurface.developmentBuildNotice` says so on
+    /// screen.
     ///
     /// `requiredQualityFeatures` is empty and `qualityRules` is empty, which is the coherent
     /// pairing: a policy that requires no additional quality feature needs no rule covering one,
     /// and Requirement 5.11's binding of a rule to release evidence has nothing to bind.
     private static func calibrationPolicy(ids: Identifiers) throws -> CalibrationPolicy {
-        try CalibrationPolicy(
+        // Keep the development policy tied to the sole permitted checkpoint rather than copying
+        // its threshold as another drifting literal. 1.390625 is exactly representable as a
+        // Double; with the 0.131 closed abstention half-width, a positive label requires a raw
+        // logit strictly above 1.521625 instead of the previous, unsafe 0.131.
+        let publishedBoundary = NSDecimalNumber(
+            decimal: UpstreamBoundaryMetadata.requiredValue
+        ).doubleValue
+        return try CalibrationPolicy(
             id: ids.calibrationPolicy,
             schemaVersion: .v1,
             compatibleModel: RequiredPixelModel.identity,
@@ -675,7 +698,7 @@ extension DevelopmentProvisioning {
             },
             boundaries: [
                 try CategoryBoundary(
-                    rawLogitBoundary: 0,
+                    rawLogitBoundary: publishedBoundary,
                     abstentionHalfWidth: CategoryBoundary.minimumAbstentionHalfWidth,
                     lowerDecision: .noStrongSignalDetected,
                     upperDecision: .signalsConsistentWithAIGeneration

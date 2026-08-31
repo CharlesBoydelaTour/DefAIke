@@ -127,6 +127,8 @@ struct CoreValueInvariantTests {
         #expect(ArtifactID(String(repeating: "a", count: 257)) == nil)
         #expect(ArtifactID(String(repeating: "a", count: 256)) != nil)
         #expect(ModelCheckpointIdentifier("Example/checkpoint-2026-08") != nil)
+        #expect(DeviceHardwareID("iPhone18,1") != nil)
+        #expect(ArtifactID("artifact,with-comma") == nil)
     }
 
     @Test("A digest accepts exactly 32 bytes and canonical lowercase hexadecimal")

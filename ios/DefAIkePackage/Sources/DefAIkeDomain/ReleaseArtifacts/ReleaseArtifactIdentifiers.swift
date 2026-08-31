@@ -142,7 +142,11 @@ public struct DeviceHardwareID: CanonicalIdentifier {
     public init?(_ rawValue: String) {
         guard CanonicalIdentifierSyntax.isCanonical(
             rawValue,
-            maximumCharacterCount: Self.maximumCharacterCount
+            maximumCharacterCount: Self.maximumCharacterCount,
+            // Apple's `hw.machine` values use a comma, for example `iPhone18,1`.
+            // Keep that vendor punctuation confined to device identities rather than
+            // widening every artifact and policy identifier in the domain.
+            additionalAllowedPunctuation: [","]
         ) else {
             return nil
         }

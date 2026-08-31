@@ -38,7 +38,8 @@ public enum CanonicalIdentifierSyntax: Sendable {
     /// `maximumCharacterCount` characters.
     public static func isCanonical(
         _ rawValue: String,
-        maximumCharacterCount: Int = defaultMaximumCharacterCount
+        maximumCharacterCount: Int = defaultMaximumCharacterCount,
+        additionalAllowedPunctuation: Set<Character> = []
     ) -> Bool {
         guard !rawValue.isEmpty, rawValue.count <= maximumCharacterCount else {
             return false
@@ -48,6 +49,7 @@ public enum CanonicalIdentifierSyntax: Sendable {
             return character.isLetter
                 || character.isNumber
                 || allowedPunctuation.contains(character)
+                || additionalAllowedPunctuation.contains(character)
         }
     }
 }
